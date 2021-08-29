@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module List (
-  listMajorCmd,
+  listVersionsCmd,
   showMinorCmd
   ) where
 
@@ -16,14 +16,15 @@ import Common
 import Query (showMinor)
 import Types
 
-listMajorCmd :: Verbosity -> Branch -> Manager -> String -> RepoSource
+listVersionsCmd :: Verbosity -> Manager -> String -> RepoSource
              -> IO ()
-listMajorCmd _verbose branch mgr server (RepoCentosStream chan) =
-  showMinorCmd branch mgr server (RepoCentosStream chan) X86_64
-listMajorCmd _ _ _ _ RepoKoji =
+listVersionsCmd _verbose _mgr _server (RepoCentosStream _chan) =
+  error' "listing Centos Stream versions not supported"
+  --showMinorCmd mgr server (RepoCentosStream chan) X86_64
+listVersionsCmd _ _ _ RepoKoji =
   error' "listing Koji versions not supported"
-listMajorCmd verbose branch mgr server (RepoFedora _) = do
-  let url = server +/+ show branch
+listVersionsCmd verbose mgr server (RepoFedora _) = do
+  let url = server +/+ "fedora/linux/releases"
   unless (verbose == Quiet) $ warning $! "<" ++ url ++ ">"
   httpDirectory mgr url >>= mapM_ (T.putStrLn . noTrailingSlash)
 

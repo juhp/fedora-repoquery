@@ -30,7 +30,7 @@ import Paths_fedora_repoquery (version)
 import Query
 import Types
 
-data Command = Query Branch [String] | CacheSize | CacheEmpties
+data Command = Query Branch [String] | CacheSize | CacheEmpties | List
 
 main :: IO ()
 main = do
@@ -46,6 +46,7 @@ main = do
          optionalWith (eitherReader readArch) 'a' "arch" "ARCH" "Specify arch [default: x86_64]" X86_64)
     <*> (flagWith' CacheSize 'z' "cache-size" "Show total dnf repo metadata cache disksize"
          <|> flagWith' CacheEmpties 'e' "cache-clean-empty" "Remove empty dnf caches"
+         <|> flagWith' List 'l' "list" "List versions"
          <|> Query <$> argumentWith branchM "RELEASE" <*> many (strArg "[REPOQUERY_OPTS] [PACKAGE/KEY]..."))
   where
     branchM :: ReadM Branch
@@ -75,11 +76,8 @@ runMain verbose reposource arch command = do
   case command of
     CacheSize -> cacheSize
     CacheEmpties -> cleanEmptyCaches
+    List -> listVersionsCmd verbose mgr server reposource
     Query branch args ->
       if null args
-      then
-        if False -- isMajorVer branch
-        then listMajorCmd verbose branch mgr server reposource
-        else showMinorCmd branch mgr server reposource arch
-      else
-        repoqueryCmd verbose branch mgr server reposource arch args
+      then showMinorCmd branch mgr server reposource arch
+      else repoqueryCmd verbose branch mgr server reposource arch args
