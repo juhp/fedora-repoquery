@@ -52,7 +52,7 @@ main = do
     branchM = maybeReader readBranch
 
 downloadServer :: String
-downloadServer = "https://download.fedoraproject.org/pub/fedora/linux"
+downloadServer = "https://download.fedoraproject.org/pub"
 
 runMain :: Verbosity -> RepoSource
         -> Arch -> Command -> IO ()
@@ -71,7 +71,7 @@ runMain verbose reposource arch command = do
                       Nothing -> return downloadServer
                       Just actual -> return $ B.unpack actual
                   Mirror serv -> return serv
-                  DlFpo -> return "http://dl.fedoraproject.org/pub/fedora/linux"
+                  DlFpo -> return "http://dl.fedoraproject.org/pub"
   case command of
     CacheSize -> cacheSize
     CacheEmpties -> cleanEmptyCaches

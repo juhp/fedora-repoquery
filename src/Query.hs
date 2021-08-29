@@ -4,6 +4,7 @@ module Query (
   ) where
 
 import Control.Monad.Extra
+import Data.Maybe
 import Data.Either
 import qualified Data.List as L
 import Network.HTTP.Directory
@@ -65,19 +66,22 @@ repoqueryCmd verbose branch mgr server reposource arch args = do
 repoConfigArgs :: String -> RepoSource -> Arch -> Branch
                -> String -> (String,(String,String))
 repoConfigArgs server (RepoFedora _) arch branch repo =
-  let (compose,path) =
+  let reponame = repo ++ "-" ++ show branch ++
+                 if arch == X86_64 then "" else "-" ++ showArch arch
+      (compose,mpath) =
         case branch of
-          Rawhide -> ("development/rawhide", repo)
+          Rawhide -> ("fedora/linux/development/rawhide", Nothing)
           Fedora n ->
             if False {-n == branched-}
-            then ("development" +/+ show n, repo)
-            else ("releases" +/+ show n, repo)
-          EPEL _n -> error' "EPEL not supported"
-      reponame = repo ++ "-" ++ show branch ++
-                 if arch == X86_64 then "" else "-" ++ showArch arch
-  in (reponame, (server +/+ compose, path +/+ showArch arch +/+ (if arch == Source then "tree" else "os") ++ "/"))
+            then ("fedora/linux/development" +/+ show n, Nothing)
+            else ("fedora/linux/releases" +/+ show n, Nothing)
+          EPEL n -> ("epel" +/+ show n +/+ "Everything", Just (showArch arch ++ "/"))
+  in (reponame, (server +/+ compose, fromMaybe (repo +/+ showArch arch +/+ (if arch == Source then "tree" else "os") ++ "/") mpath))
 repoConfigArgs server RepoKoji arch branch repo =
-  let (compose,path) = ("repos" +/+ show branch ++ "-build/latest","")
+  let (compose,path) =
+        case branch of
+          Rawhide -> ("repos" +/+ show branch +/+ "latest","")
+          _ -> ("repos" +/+ show branch ++ "-build/latest","")
       reponame = repo ++ "-" ++ show branch ++ "-build" ++
                  if arch == X86_64 then "" else "-" ++ showArch arch
   in (reponame, (server +/+ compose, path +/+ showArch arch ++ "/"))
@@ -112,7 +116,11 @@ showMinor verbose warn branch mgr server reposource arch = do
               topurl +/+ case reposource of
                            RepoKoji -> "repo.json"
                            RepoCentosStream _ -> "metadata/composeinfo.json"
-                           RepoFedora _ -> "COMPOSE_ID"
+                           RepoFedora _ ->
+                             case branch of
+                               Rawhide -> "COMPOSE_ID"
+                               Fedora _ -> "COMPOSE_ID"
+                               EPEL _ -> "state"
         exists <- httpExists mgr composeinfo
         if exists
           then fmap show <$> httpLastModified mgr composeinfo
