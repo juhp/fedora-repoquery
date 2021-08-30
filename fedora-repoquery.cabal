@@ -31,7 +31,9 @@ executable fedora-repoquery
                        Types
   hs-source-dirs:      src
   build-depends:       base < 5,
+                       bodhi,
                        bytestring,
+                       cached-json-file,
                        directory,
                        extra,
                        fedora-dists,

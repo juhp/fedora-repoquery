@@ -1,14 +1,21 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Query (
+  getServer,
   repoqueryCmd,
-  showMinor
+  showReleaseCmd,
+  downloadServer
   ) where
 
 import Control.Monad.Extra
-import Data.Maybe
+import qualified Data.ByteString.Char8 as B
 import Data.Either
+import Data.Maybe
 import qualified Data.List as L
+import Fedora.Bodhi
 import Network.HTTP.Directory
 import SimpleCmd
+import System.Cached.JSON
 import System.Directory (doesFileExist)
 
 import Distribution.Fedora.Branch
@@ -16,10 +23,14 @@ import Distribution.Fedora.Branch
 import Common
 import Types
 
-repoqueryCmd :: Verbosity -> Branch -> Manager -> String -> RepoSource
+showReleaseCmd :: Branch  -> RepoSource -> Arch -> IO ()
+showReleaseCmd branch reposource arch =
+  void $ showRelease Normal False branch reposource arch
+
+repoqueryCmd :: Verbosity -> Branch -> RepoSource
              -> Arch -> [String] -> IO ()
-repoqueryCmd verbose branch mgr server reposource arch args = do
-  repoConfigs <- showMinor verbose True branch mgr server reposource arch
+repoqueryCmd verbose branch reposource arch args = do
+  repoConfigs <- showRelease verbose True branch reposource arch
   let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","-qf","--queryformat"]) args
       queryformat = "%{repoid}: %{name}-%{version}-%{release}.%{arch}"
   -- LANG=C.utf8
@@ -65,47 +76,44 @@ repoqueryCmd verbose branch mgr server reposource arch args = do
 
 repoConfigArgs :: String -> RepoSource -> Arch -> Branch
                -> String -> (String,(String,String))
-repoConfigArgs server (RepoFedora _) arch branch repo =
+repoConfigArgs url (RepoFedora _) arch branch repo =
   let reponame = repo ++ "-" ++ show branch ++
                  if arch == X86_64 then "" else "-" ++ showArch arch
-      (compose,mpath) =
-        case branch of
-          Rawhide -> ("fedora/linux/development/rawhide", Nothing)
-          Fedora n ->
-            if False {-n == branched-}
-            then ("fedora/linux/development" +/+ show n, Nothing)
-            else ("fedora/linux/releases" +/+ show n, Nothing)
-          EPEL n -> ("epel" +/+ show n +/+ "Everything", Just (showArch arch ++ "/"))
-  in (reponame, (server +/+ compose, fromMaybe (repo +/+ showArch arch +/+ (if arch == Source then "tree" else "os") ++ "/") mpath))
-repoConfigArgs server RepoKoji arch branch repo =
+      mpath = case branch of
+                EPEL _n -> Just (showArch arch ++ "/")
+                _ -> Nothing
+  in (reponame, (url, fromMaybe (repo +/+ showArch arch +/+ (if arch == Source then "tree" else "os") ++ "/") mpath))
+repoConfigArgs url RepoKoji arch branch repo =
   let (compose,path) =
         case branch of
           Rawhide -> ("repos" +/+ show branch +/+ "latest","")
           _ -> ("repos" +/+ show branch ++ "-build/latest","")
       reponame = repo ++ "-" ++ show branch ++ "-build" ++
                  if arch == X86_64 then "" else "-" ++ showArch arch
-  in (reponame, (server +/+ compose, path +/+ showArch arch ++ "/"))
-repoConfigArgs server (RepoCentosStream devel) arch branch repo =
+  in (reponame, (url +/+ compose, path +/+ showArch arch ++ "/"))
+repoConfigArgs url (RepoCentosStream devel) arch branch repo =
   let (compose,path) = ("composes" +/+ (if devel then "development" else "test") +/+ "latest-CentOS-Stream/compose",repo)
       reponame = repo ++ "-Centos-" ++ show branch ++ "-Stream" ++ "-" ++ (if devel then "devel" else "test") ++ if arch == X86_64 then "" else "-" ++ showArch arch
-  in (reponame, (server +/+ compose, path +/+ showArch arch +/+ "os/"))
+  in (reponame, (url +/+ compose, path +/+ showArch arch +/+ "os/"))
 
 renderRepoConfig :: (String, String) -> [String]
 renderRepoConfig (name, url) =
   ["--repofrompath", name ++ "," ++ url, "--repo", name]
 
-showMinor :: Verbosity -> Bool -> Branch -> Manager -> String
-          -> RepoSource -> Arch
-          -> IO [(String, String)]
-showMinor verbose warn branch mgr server reposource arch = do
+showRelease :: Verbosity -> Bool -> Branch -> RepoSource -> Arch
+            -> IO [(String, String)]
+showRelease verbose warn branch reposource arch = do
+  mgr <- httpManager
+  path <- getReleasePath reposource branch
+  url <- getServer mgr reposource path
   let repos =
         case reposource of
           RepoFedora _ -> ["Everything"]
           RepoKoji -> ["koji-fedora"]
           RepoCentosStream _ -> ["BaseOS", "AppStream", "CRB"]
-      repoConfigs = map (repoConfigArgs server reposource arch branch) repos
-      (url,path) = snd (head repoConfigs)
-      baserepo = url +/+ path
+      repoConfigs = map (repoConfigArgs url reposource arch branch) repos
+      (url',path') = snd (head repoConfigs)
+      baserepo = url' +/+ path'
   ok <- httpExists mgr baserepo
   if ok
     then do
@@ -132,3 +140,35 @@ showMinor verbose warn branch mgr server reposource arch = do
       error' $ baserepo ++ " not found"
   where
     joinUrl (n,(u,p)) = (n, u +/+ p)
+
+downloadServer :: String
+downloadServer = "https://download.fedoraproject.org/pub"
+
+getServer :: Manager -> RepoSource -> FilePath -> IO String
+getServer mgr reposource path =
+  case reposource of
+    RepoKoji ->
+      return $ "http://kojipkgs.fedoraproject.org" +/+ path
+    RepoCentosStream _ ->
+      return $ "https://odcs.stream.rdu2.redhat.com" +/+ path
+    RepoFedora mirror ->
+      case mirror of
+        DownloadFpo -> do
+          redir <- httpRedirect mgr (downloadServer +/+ path)
+          case redir of
+            Nothing -> return (downloadServer +/+ path)
+            Just actual -> return (B.unpack actual)
+        -- FIXME how to handle any path
+        Mirror serv -> return serv
+        DlFpo -> return $ "http://dl.fedoraproject.org/pub" +/+ path
+
+getReleasePath :: RepoSource -> Branch -> IO FilePath
+getReleasePath _reposource branch =
+  case branch of
+    Rawhide -> return "fedora/linux/development/rawhide/"
+    Fedora n -> do
+      pending <- mapMaybe (lookupKey "branch") <$> getCachedJSONQuery "fedora-bodhi-releases-pending" "fedora-bodhi-releases-pending" (bodhiReleases (makeKey "state" "pending")) 1000
+      if show branch `elem` pending
+      then return $ trailingSlash $ "fedora/linux/development" +/+ show n
+      else return $ trailingSlash $ "fedora/linux/releases" +/+ show n
+    EPEL n -> return $ "epel" +/+ show n +/+ "Everything/"

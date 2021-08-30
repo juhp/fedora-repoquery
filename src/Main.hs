@@ -13,8 +13,6 @@ import Control.Applicative (
 #endif
   )
 #endif
-import qualified Data.ByteString.Char8 as B
-import Network.HTTP.Directory
 #if !MIN_VERSION_simple_cmd_args(0,1,7)
 import Options.Applicative (eitherReader)
 #endif
@@ -52,32 +50,14 @@ main = do
     branchM :: ReadM Branch
     branchM = maybeReader readBranch
 
-downloadServer :: String
-downloadServer = "https://download.fedoraproject.org/pub"
-
 runMain :: Verbosity -> RepoSource
         -> Arch -> Command -> IO ()
 runMain verbose reposource arch command = do
-  mgr <- httpManager
-  server <- case reposource of
-              RepoKoji ->
-                return "http://kojipkgs.fedoraproject.org"
-              RepoCentosStream _ ->
-                return "https://odcs.stream.rdu2.redhat.com"
-              RepoFedora mirror ->
-                case mirror of
-                  DownloadFpo -> do
-                    redir <- httpRedirect mgr downloadServer
-                    case redir of
-                      Nothing -> return downloadServer
-                      Just actual -> return $ B.unpack actual
-                  Mirror serv -> return serv
-                  DlFpo -> return "http://dl.fedoraproject.org/pub"
   case command of
     CacheSize -> cacheSize
     CacheEmpties -> cleanEmptyCaches
-    List -> listVersionsCmd verbose mgr server reposource
-    Query branch args ->
+    List -> listVersionsCmd verbose reposource
+    Query branch args -> do
       if null args
-      then showMinorCmd branch mgr server reposource arch
-      else repoqueryCmd verbose branch mgr server reposource arch args
+      then showReleaseCmd branch reposource arch
+      else repoqueryCmd verbose branch reposource arch args
