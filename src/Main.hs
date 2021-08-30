@@ -21,6 +21,9 @@ import System.IO (BufferMode(NoBuffering), hSetBuffering, stdout)
 
 import Distribution.Fedora.Branch
 --import Distribution.Fedora.Repoquery
+#if !MIN_VERSION_simple_cmd_args(0,1,7)
+import Options.Applicative (maybeReader, ReadM)
+#endif
 
 import Cache
 import List

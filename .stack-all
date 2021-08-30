@@ -1,0 +1,3 @@
+[versions]
+# lts-10 http-date too old
+oldest = lts-11
