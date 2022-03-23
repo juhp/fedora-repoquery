@@ -29,6 +29,7 @@ executable fedora-repoquery
                        List
                        Query
                        Types
+                       URL
   hs-source-dirs:      src
   build-depends:       base < 5,
                        bodhi,

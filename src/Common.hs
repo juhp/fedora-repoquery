@@ -1,7 +1,6 @@
 {-# LANGUAGE CPP #-}
 
 module Common (
-  (+/+),
   Manager,
   warning,
 #if !MIN_VERSION_http_directory(0,1,6)
@@ -22,15 +21,6 @@ import System.IO (hPutStrLn, stderr)
 warning :: String -> IO ()
 warning = hPutStrLn stderr
 #endif
-
--- from http-query
-infixr 5 +/+
-(+/+) :: String -> String -> String
-"" +/+ s = s
-s +/+ "" = s
-s +/+ t | last s == '/' = s ++ t
-        | head t == '/' = s ++ t
-s +/+ t = s ++ '/' : t
 
 #if !MIN_VERSION_http_directory(0,1,6)
 noTrailingSlash :: T.Text -> T.Text

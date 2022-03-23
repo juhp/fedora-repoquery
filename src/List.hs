@@ -12,6 +12,7 @@ import SimpleCmd (error')
 import Common
 import Query (getServer)
 import Types
+import URL
 
 listVersionsCmd :: Verbosity -> RepoSource -> IO ()
 listVersionsCmd _verbose (RepoCentosStream _chan) =
@@ -22,6 +23,6 @@ listVersionsCmd _ RepoKoji =
 listVersionsCmd verbose reposource = do
   mgr <- httpManager
   -- FIXME handle others
-  url <- getServer mgr reposource "fedora/linux/releases"
-  unless (verbose == Quiet) $ warning $! "<" ++ url ++ ">"
-  httpDirectory mgr url >>= mapM_ (T.putStrLn . noTrailingSlash)
+  url <- getServer mgr reposource ["fedora", "linux", "releases"]
+  unless (verbose == Quiet) $ warning $! "<" ++ renderUrl url ++ ">"
+  httpDirectory mgr (renderUrl url) >>= mapM_ (T.putStrLn . noTrailingSlash)
