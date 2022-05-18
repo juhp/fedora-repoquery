@@ -92,6 +92,7 @@ repoConfigArgs url (RepoFedora mirror) arch branch repo =
                    DlFpo -> "-dl.fpo"
       mpath = case branch of
                 EPEL _n -> Just [showArch arch,""]
+                EPELNext _n -> Just [showArch arch,""]
                 _ -> Nothing
   in (reponame, (url, fromMaybe [repo, showArch arch, if arch == Source then "tree" else "os", ""] mpath))
 repoConfigArgs url RepoKoji arch branch repo =
@@ -141,6 +142,7 @@ showRelease verbose warn branch reposource arch = do
                                Rawhide -> ["COMPOSE_ID"]
                                Fedora _ -> ["COMPOSE_ID"]
                                EPEL _ -> ["state"]
+                               EPELNext _ -> ["state"]
         exists <- httpExists mgr (renderUrl composeinfo)
         if exists
           then httpLastModified mgr (renderUrl composeinfo)
@@ -185,3 +187,4 @@ getReleasePath _reposource branch =
       then return ["fedora/linux/development", show n, ""]
       else return ["fedora/linux/releases", show n, ""]
     EPEL n -> return ["epel", show n, "Everything/"]
+    EPELNext n -> return ["epel", "next", show n, "Everything/"]

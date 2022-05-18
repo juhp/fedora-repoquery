@@ -1,6 +1,6 @@
 resolver: lts-16.31
 extra-deps:
   - cached-json-file-0.1.0
-  - fedora-dists-2.0.0
+  - fedora-dists-2.1.0
   - pdc-0.1.1
   - bodhi-0.1.0
