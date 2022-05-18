@@ -29,23 +29,25 @@ showReleaseCmd :: Branch  -> RepoSource -> Arch -> IO ()
 showReleaseCmd branch reposource arch =
   void $ showRelease Normal False branch reposource arch
 
-repoqueryCmd :: Verbosity -> Branch -> RepoSource
-             -> Arch -> [String] -> IO ()
-repoqueryCmd verbose branch reposource arch args = do
+repoqueryCmd :: Bool -> Verbosity -> Branch -> RepoSource -> Arch -> [String]
+             -> IO ()
+repoqueryCmd debug verbose branch reposource arch args = do
   repoConfigs <- showRelease verbose True branch reposource arch
   let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","-qf","--queryformat"]) args
       queryformat = "%{repoid}: %{name}-%{version}-%{release}.%{arch}"
   -- LANG=C.utf8
   rhsm <- doesFileExist "/etc/dnf/plugins/subscription-manager.conf"
-  res <- cmdLines "dnf"
-         ("repoquery" :
-          ["--quiet" | verbose /= Verbose] ++
-          -- https://bugzilla.redhat.com/show_bug.cgi?id=1876828
-          ["--disableplugin=subscription-manager" | rhsm] ++
-          (if qfAllowed then ["--qf", queryformat] else []) ++
-          ["--setopt=module_platform_id=platform:" ++ show branch] ++
-          concatMap renderRepoConfig repoConfigs ++
-          args)
+  let cmdargs = "repoquery" :
+                ["--quiet" | verbose /= Verbose] ++
+                -- https://bugzilla.redhat.com/show_bug.cgi?id=1876828
+                ["--disableplugin=subscription-manager" | rhsm] ++
+                (if qfAllowed then ["--qf", queryformat] else []) ++
+                ["--setopt=module_platform_id=platform:" ++ show branch] ++
+                concatMap renderRepoConfig repoConfigs ++
+                args
+  when debug $
+    putStrLn $ unwords $ "\ndnf" : map show cmdargs
+  res <- cmdLines "dnf" cmdargs
   unless (null res) $ do
     unless (verbose == Quiet) $ warning ""
     putStrLn $ L.intercalate "\n" (simplifyBuildroot res)

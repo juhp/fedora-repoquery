@@ -41,21 +41,24 @@ main = do
     runMain
     <$> (flagWith' Quiet 'q' "quiet" "Avoid output to stderr" <|> flagWith Normal Verbose 'v' "verbose" "Show stderr from dnf repoquery")
     <*> (flagWith' RepoKoji 'K' "koji" "Use Koji buildroot" <|>
-         (flagWith' RepoCentosStream 'C' "centos-stream" "Use Centos Stream repo" <*> switchWith 'D' "devel" "Use centos-stream development compose (default is test)") <|>
-         ((RepoFedora <$> ((Mirror <$> strOptionWith 'm' "mirror" "URL" ("Fedora mirror [default: " ++ downloadServer ++ "]")) <|> flagWith DownloadFpo DlFpo 'd' "dl" "Use dl.fp.o"))))
+         (flagWith' RepoCentosStream 'c' "centos-stream" "Use Centos Stream repo" <*>
+          -- FIXME streams
+          switchWith 'C' "devel" "Use centos-stream development compose (default is test)") <|>
+         (RepoFedora <$> ((Mirror <$> strOptionWith 'm' "mirror" "URL" ("Fedora mirror [default: " ++ downloadServer ++ "]")) <|>
+                           flagWith DownloadFpo DlFpo 'D' "dl" "Use dl.fp.o")))
     <*> (flagWith' Source 's' "source" "Query source repos" <|>
          optionalWith (eitherReader readArch) 'a' "arch" "ARCH" "Specify arch [default: x86_64]" X86_64)
+    <*> switchWith 'd' "debug" "Show some debug output"
     <*> (flagWith' CacheSize 'z' "cache-size" "Show total dnf repo metadata cache disksize"
          <|> flagWith' CacheEmpties 'e' "cache-clean-empty" "Remove empty dnf caches"
          <|> flagWith' List 'l' "list" "List versions"
-         <|> Query <$> argumentWith branchM "RELEASE" <*> many (strArg "[REPOQUERY_OPTS] [PACKAGE/KEY]..."))
+         <|> Query <$> argumentWith branchM "RELEASE" <*> many (strArg "[REPOQUERY_OPTS] [PACKAGE]..."))
   where
     branchM :: ReadM Branch
     branchM = maybeReader readBranch
 
-runMain :: Verbosity -> RepoSource
-        -> Arch -> Command -> IO ()
-runMain verbose reposource arch command = do
+runMain :: Verbosity -> RepoSource -> Arch -> Bool -> Command -> IO ()
+runMain verbose reposource arch debug command = do
   case command of
     CacheSize -> cacheSize
     CacheEmpties -> cleanEmptyCaches
@@ -63,4 +66,4 @@ runMain verbose reposource arch command = do
     Query branch args -> do
       if null args
       then showReleaseCmd branch reposource arch
-      else repoqueryCmd verbose branch reposource arch args
+      else repoqueryCmd debug verbose branch reposource arch args
