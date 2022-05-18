@@ -19,6 +19,7 @@ import Network.HTTP.Directory
 import SimpleCmd
 import System.Cached.JSON
 import System.Directory (doesFileExist)
+import Text.Regex
 
 #if !MIN_VERSION_simple_cmd(0,2,0)
 import Common (warning)
@@ -81,9 +82,14 @@ repoqueryCmd debug verbose branch reposource arch args = do
 
 repoConfigArgs :: URL -> RepoSource -> Arch -> Branch
                -> String -> (String,(URL,[String]))
-repoConfigArgs url (RepoFedora _) arch branch repo =
-  let reponame = repo ++ "-" ++ show branch ++
-                 if arch == X86_64 then "" else "-" ++ showArch arch
+repoConfigArgs url (RepoFedora mirror) arch branch repo =
+  let archsuffix = if arch == X86_64 then "" else "-" ++ showArch arch
+      reponame = repo ++ "-" ++ show branch ++ archsuffix ++
+                 case mirror of
+                   DownloadFpo -> ""
+                   Mirror serv ->
+                     '-' : subRegex (mkRegex "https?://") serv ""
+                   DlFpo -> "-dl.fpo"
       mpath = case branch of
                 EPEL _n -> Just [showArch arch,""]
                 _ -> Nothing

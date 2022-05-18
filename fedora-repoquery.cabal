@@ -42,6 +42,7 @@ executable fedora-repoquery
                        http-client,
                        http-directory >= 0.1.4 && (< 0.1.6 || >= 0.1.8),
                        optparse-applicative,
+                       regex-compat,
                        simple-cmd,
                        simple-cmd-args,
                        text,
