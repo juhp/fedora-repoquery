@@ -12,6 +12,7 @@ import qualified Data.ByteString.Char8 as B
 import Data.Either
 import Data.Maybe
 import qualified Data.List as L
+import Data.Time.LocalTime (utcToLocalZonedTime)
 import Distribution.Fedora.Branch
 import Fedora.Bodhi
 import Network.HTTP.Directory
@@ -123,7 +124,7 @@ showRelease verbose warn branch reposource arch = do
     then do
     unless (verbose == Quiet) $
       forM_ (L.nub (map (fst . snd) repoConfigs)) $ \ topurl -> do
-      mdate <- do
+      mtime <- do
         let composeinfo =
               topurl +//+ case reposource of
                            RepoKoji -> ["repo.json"]
@@ -136,10 +137,11 @@ showRelease verbose warn branch reposource arch = do
                                EPEL _ -> ["state"]
         exists <- httpExists mgr (renderUrl composeinfo)
         if exists
-          then fmap show <$> httpLastModified mgr (renderUrl composeinfo)
+          then httpLastModified mgr (renderUrl composeinfo)
           else return Nothing
-      whenJust mdate $ \date ->
-        (if warn then warning else putStrLn) $ date ++ " <" ++ renderUrl topurl ++ ">"
+      whenJust mtime $ \utc -> do
+        date <- utcToLocalZonedTime utc
+        (if warn then warning else putStrLn) $ show date ++ " <" ++ renderUrl topurl ++ ">"
     return $ map joinUrl repoConfigs
     else
       error' $ renderUrl baserepo ++ " not found"
