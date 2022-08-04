@@ -103,9 +103,9 @@ repoConfigArgs url RepoKoji arch branch repo =
       reponame = repo ++ "-" ++ show branch ++ "-build" ++
                  if arch == X86_64 then "" else "-" ++ showArch arch
   in (reponame, (url +//+ compose, [path, showArch arch, ""]))
-repoConfigArgs url (RepoCentosStream devel) arch branch repo =
-  let (compose,path) = (["composes", if devel then "development" else "test", "latest-CentOS-Stream", "compose"], repo)
-      reponame = repo ++ "-Centos-" ++ show branch ++ "-Stream" ++ "-" ++ (if devel then "devel" else "test") ++ if arch == X86_64 then "" else "-" ++ showArch arch
+repoConfigArgs url (RepoCentosStream chan) arch branch repo =
+  let (compose,path) = (["composes", channel chan, "latest-CentOS-Stream", "compose"], repo)
+      reponame = repo ++ "-Centos-" ++ show branch ++ "-Stream" ++ "-" ++ show chan ++ if arch == X86_64 then "" else "-" ++ showArch arch
   in (reponame, (url +//+ compose, [path, showArch arch, "os/"]))
 
 renderRepoConfig :: (String, URL) -> [String]

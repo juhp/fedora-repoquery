@@ -7,6 +7,8 @@ module Types (
   Mirror(..),
   RepoSource(..),
   showRepoSource,
+  Channel(..),
+  channel,
   Verbosity(..)
   ) where
 
@@ -52,10 +54,23 @@ data Mirror = DownloadFpo | DlFpo | Mirror String
 
 data RepoSource = RepoFedora Mirror
                 | RepoKoji
-                | RepoCentosStream Bool -- development
+                | RepoCentosStream Channel
   deriving Eq
 
 showRepoSource :: RepoSource -> String
 showRepoSource (RepoFedora _) = "Fedora"
 showRepoSource RepoKoji = "Koji"
 showRepoSource (RepoCentosStream _) = "Centos Stream"
+
+data Channel = Devel | Test | Prod
+  deriving Eq
+
+channel :: Channel -> String
+channel Devel = "development"
+channel Test = "test"
+channel Prod = "production"
+
+instance Show Channel where
+  show Devel = "devel"
+  show Test = "test"
+  show Prod = "prod"

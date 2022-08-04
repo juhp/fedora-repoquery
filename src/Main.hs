@@ -42,8 +42,9 @@ main = do
     <$> (flagWith' Quiet 'q' "quiet" "Avoid output to stderr" <|> flagWith Normal Verbose 'v' "verbose" "Show stderr from dnf repoquery")
     <*> (flagWith' RepoKoji 'K' "koji" "Use Koji buildroot" <|>
          (flagWith' RepoCentosStream 'c' "centos-stream" "Use Centos Stream repo" <*>
-          -- FIXME streams
-          switchWith 'C' "devel" "Use centos-stream development compose (default is test)") <|>
+          (flagLongWith' Devel "devel" "Use centos-stream development compose" <|>
+           flagLongWith Prod Test "test" "Use centos-stream test compose [default: production]")
+          ) <|>
          (RepoFedora <$> ((Mirror <$> strOptionWith 'm' "mirror" "URL" ("Fedora mirror [default: " ++ downloadServer ++ "]")) <|>
                            flagWith DownloadFpo DlFpo 'D' "dl" "Use dl.fp.o")))
     <*> (flagWith' Source 's' "source" "Query source repos" <|>
