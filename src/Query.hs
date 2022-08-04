@@ -165,7 +165,7 @@ getServer mgr reposource path =
     RepoKoji ->
       return $ URL "http://kojipkgs.fedoraproject.org"
     RepoCentosStream _ ->
-      return $ URL "https://odcs.stream.rdu2.redhat.com"
+      return $ URL "https://odcs.stream.centos.org"
     RepoFedora mirror ->
       case mirror of
         DownloadFpo -> do
