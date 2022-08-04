@@ -163,9 +163,9 @@ getServer :: Manager -> RepoSource -> [FilePath] -> IO URL
 getServer mgr reposource path =
   case reposource of
     RepoKoji ->
-      return $ URL "http://kojipkgs.fedoraproject.org" +//+ path
+      return $ URL "http://kojipkgs.fedoraproject.org"
     RepoCentosStream _ ->
-      return $ URL "https://odcs.stream.rdu2.redhat.com" +//+ path
+      return $ URL "https://odcs.stream.rdu2.redhat.com"
     RepoFedora mirror ->
       case mirror of
         DownloadFpo -> do
@@ -177,6 +177,7 @@ getServer mgr reposource path =
         Mirror serv -> return $ URL serv
         DlFpo -> return $ URL "https://dl.fedoraproject.org/pub" +//+ path
 
+-- FIXME is fedora download specific
 getReleasePath :: RepoSource -> Branch -> IO [String]
 getReleasePath _reposource branch =
   case branch of
