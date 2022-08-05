@@ -3,9 +3,8 @@
 - modular
 - use plain dnf repoquery for system version
 - accept version alias for rawhide (eg f37)
-- drop f prefix to version
 - --all-archs
-- ppc64le and s390x:
+- secondary ppc64le and s390x:
   https://dl.fedoraproject.org/pub/fedora-secondary/development/rawhide/Everything/
-- centos-stream 8
 - query multiple versions
+- read COMPOSE_ID

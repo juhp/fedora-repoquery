@@ -6,13 +6,16 @@ module Types (
   showArch,
   Mirror(..),
   RepoSource(..),
-  showRepoSource,
-  Channel(..),
+  CentosChannel(..),
   channel,
-  Verbosity(..)
+  Verbosity(..),
+  Release(..),
+  readRelease
   ) where
 
+import Data.Char (isDigit)
 import Data.List.Extra
+import Numeric.Natural
 
 --import Distribution.Fedora.Repoquery
 
@@ -52,25 +55,50 @@ showArch I386 = "i386"
 data Mirror = DownloadFpo | DlFpo | Mirror String
   deriving Eq
 
-data RepoSource = RepoFedora Mirror
-                | RepoKoji
-                | RepoCentosStream Channel
+data RepoSource = RepoSource Bool CentosChannel Mirror
   deriving Eq
 
-showRepoSource :: RepoSource -> String
-showRepoSource (RepoFedora _) = "Fedora"
-showRepoSource RepoKoji = "Koji"
-showRepoSource (RepoCentosStream _) = "Centos Stream"
-
-data Channel = Devel | Test | Prod
+data CentosChannel = CentosDevel | CentosTest | CentosProd
   deriving Eq
 
-channel :: Channel -> String
-channel Devel = "development"
-channel Test = "test"
-channel Prod = "production"
+channel :: CentosChannel -> String
+channel CentosDevel = "development"
+channel CentosTest = "test"
+channel CentosProd = "production"
 
-instance Show Channel where
-  show Devel = "devel"
-  show Test = "test"
-  show Prod = "prod"
+instance Show CentosChannel where
+  show CentosDevel = "devel"
+  show CentosTest = "test"
+  show CentosProd = "prod"
+
+data Release = EPEL Natural | EPELNext Natural | Centos Natural | Fedora Natural | ELN | Rawhide
+  deriving (Eq, Ord)
+
+-- | Read a Release name, otherwise return an error message
+eitherRelease :: String -> Either String Release
+eitherRelease "rawhide" = Right Rawhide
+-- FIXME add proper parsing:
+eitherRelease "epel8-next" = Right $ EPELNext 8
+eitherRelease "epel9-next" = Right $ EPELNext 9
+eitherRelease ('e':'p':'e':'l':n) | all isDigit n = let br = EPEL (read n) in Right br
+eitherRelease ('e':'l':n) | all isDigit n = let r = read n in Right (EPEL r)
+eitherRelease ('c':n) | all isDigit n = let r = read n in Right (Centos r)
+eitherRelease ('C':n) | all isDigit n = let r = read n in Right (Centos r)
+eitherRelease "eln" = Right ELN
+eitherRelease (ns) | all isDigit ns = let r = read ns in Right (Fedora r)
+eitherRelease cs = Left $ cs ++ " is not a known os release"
+
+-- | Read a Fedora Release name
+readRelease :: String -> Maybe Release
+readRelease bs =
+  case eitherRelease bs of
+    Left _ -> Nothing
+    Right br -> Just br
+
+instance Show Release where
+  show Rawhide = "rawhide"
+  show (Fedora n) = "f" ++ show n
+  show (EPEL n) = (if n <= 6 then "el" else "epel") ++ show n
+  show (EPELNext n) = "epel" ++ show n ++ "-next"
+  show ELN = "eln"
+  show (Centos n) = "centos-stream-" ++ show n

@@ -37,7 +37,6 @@ executable fedora-repoquery
                        cached-json-file,
                        directory,
                        extra,
-                       fedora-dists >= 2.1,
                        filepath,
                        http-client,
                        http-directory >= 0.1.4 && (< 0.1.6 || >= 0.1.8),
@@ -84,3 +83,15 @@ executable fedora-repoquery
 --                        -Wpartial-fields
 --   if impl(ghc >= 8.10)
 --     ghc-options:       -Wunused-packages
+
+test-suite test
+    main-is: tests.hs
+    type: exitcode-stdio-1.0
+    hs-source-dirs: test
+
+    default-language: Haskell2010
+
+    ghc-options:   -Wall
+    build-depends: base >= 4 && < 5
+                 , simple-cmd
+    build-tool-depends: fedora-repoquery:fedora-repoquery

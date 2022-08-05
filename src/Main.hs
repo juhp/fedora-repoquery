@@ -19,7 +19,6 @@ import Options.Applicative (eitherReader)
 import SimpleCmdArgs
 import System.IO (BufferMode(NoBuffering), hSetBuffering, stdout)
 
-import Distribution.Fedora.Branch
 --import Distribution.Fedora.Repoquery
 #if !MIN_VERSION_simple_cmd_args(0,1,7)
 import Options.Applicative (maybeReader, ReadM)
@@ -31,7 +30,7 @@ import Paths_fedora_repoquery (version)
 import Query
 import Types
 
-data Command = Query Branch [String] | CacheSize | CacheEmpties | List
+data Command = Query Release [String] | CacheSize | CacheEmpties | List
 
 main :: IO ()
 main = do
@@ -40,23 +39,22 @@ main = do
     "Tool for querying Fedora repos for packages." $
     runMain
     <$> (flagWith' Quiet 'q' "quiet" "Avoid output to stderr" <|> flagWith Normal Verbose 'v' "verbose" "Show stderr from dnf repoquery")
-    <*> (flagWith' RepoKoji 'K' "koji" "Use Koji buildroot" <|>
-         (flagWith' RepoCentosStream 'c' "centos-stream" "Use Centos Stream repo" <*>
-          (flagLongWith' Devel "devel" "Use centos-stream development compose" <|>
-           flagLongWith Prod Test "test" "Use centos-stream test compose [default: production]")
-          ) <|>
-         (RepoFedora <$> ((Mirror <$> strOptionWith 'm' "mirror" "URL" ("Fedora mirror [default: " ++ downloadServer ++ "]")) <|>
-                           flagWith DownloadFpo DlFpo 'D' "dl" "Use dl.fp.o")))
+    <*> (RepoSource
+          <$> switchWith 'K' "koji" "Use Koji buildroot"
+          <*> (flagLongWith' CentosDevel "centos-devel" "Use centos-stream development compose" <|>
+               flagLongWith CentosProd CentosTest "test" "Use centos-stream test compose [default: production]")
+          <*> ((Mirror <$> strOptionWith 'm' "mirror" "URL" ("Fedora mirror [default: " ++ downloadServer ++ "]")) <|>
+               flagWith DownloadFpo DlFpo 'D' "dl" "Use dl.fp.o"))
     <*> (flagWith' Source 's' "source" "Query source repos" <|>
          optionalWith (eitherReader readArch) 'a' "arch" "ARCH" "Specify arch [default: x86_64]" X86_64)
     <*> switchWith 'd' "debug" "Show some debug output"
     <*> (flagWith' CacheSize 'z' "cache-size" "Show total dnf repo metadata cache disksize"
          <|> flagWith' CacheEmpties 'e' "cache-clean-empty" "Remove empty dnf caches"
-         <|> flagWith' List 'l' "list" "List versions"
-         <|> Query <$> argumentWith branchM "RELEASE" <*> many (strArg "[REPOQUERY_OPTS] [PACKAGE]..."))
+         <|> flagWith' List 'l' "list" "List Fedora versions"
+         <|> Query <$> argumentWith releaseM "RELEASE" <*> many (strArg "[REPOQUERY_OPTS] [PACKAGE]..."))
   where
-    branchM :: ReadM Branch
-    branchM = maybeReader readBranch
+    releaseM :: ReadM Release
+    releaseM = maybeReader readRelease
 
 runMain :: Verbosity -> RepoSource -> Arch -> Bool -> Command -> IO ()
 runMain verbose reposource arch debug command = do
@@ -64,7 +62,7 @@ runMain verbose reposource arch debug command = do
     CacheSize -> cacheSize
     CacheEmpties -> cleanEmptyCaches
     List -> listVersionsCmd verbose reposource
-    Query branch args -> do
+    Query release args -> do
       if null args
-      then showReleaseCmd branch reposource arch
-      else repoqueryCmd debug verbose branch reposource arch args
+      then showReleaseCmd debug reposource release arch
+      else repoqueryCmd debug verbose release reposource arch args

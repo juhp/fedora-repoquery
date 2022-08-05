@@ -2,6 +2,7 @@
 
 module Query (
   getServer,
+  getFedoraServer,
   repoqueryCmd,
   showReleaseCmd,
   downloadServer
@@ -13,7 +14,6 @@ import Data.Either
 import Data.Maybe
 import qualified Data.List as L
 import Data.Time.LocalTime (utcToLocalZonedTime)
-import Distribution.Fedora.Branch
 import Fedora.Bodhi
 import Network.HTTP.Directory
 import SimpleCmd
@@ -27,14 +27,14 @@ import Common (warning)
 import Types
 import URL
 
-showReleaseCmd :: Branch  -> RepoSource -> Arch -> IO ()
-showReleaseCmd branch reposource arch =
-  void $ showRelease Normal False branch reposource arch
+showReleaseCmd :: Bool -> RepoSource -> Release  -> Arch -> IO ()
+showReleaseCmd debug reposource release arch =
+  void $ showRelease debug Normal False reposource release arch
 
-repoqueryCmd :: Bool -> Verbosity -> Branch -> RepoSource -> Arch -> [String]
+repoqueryCmd :: Bool -> Verbosity -> Release -> RepoSource -> Arch -> [String]
              -> IO ()
-repoqueryCmd debug verbose branch reposource arch args = do
-  repoConfigs <- showRelease verbose True branch reposource arch
+repoqueryCmd debug verbose release reposource arch args = do
+  repoConfigs <- showRelease debug verbose True reposource release arch
   let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","-qf","--queryformat"]) args
       queryformat = "%{repoid}: %{name}-%{version}-%{release}.%{arch}"
   -- LANG=C.utf8
@@ -44,11 +44,11 @@ repoqueryCmd debug verbose branch reposource arch args = do
                 -- https://bugzilla.redhat.com/show_bug.cgi?id=1876828
                 ["--disableplugin=subscription-manager" | rhsm] ++
                 (if qfAllowed then ["--qf", queryformat] else []) ++
-                ["--setopt=module_platform_id=platform:" ++ show branch] ++
+                ["--setopt=module_platform_id=platform:" ++ show release] ++
                 concatMap renderRepoConfig repoConfigs ++
                 args
   when debug $
-    putStrLn $ unwords $ "\ndnf" : map show cmdargs
+    warning $ unwords $ "\ndnf" : map show cmdargs
   res <- cmdLines "dnf" cmdargs
   unless (null res) $ do
     unless (verbose == Quiet) $ warning ""
@@ -76,56 +76,61 @@ repoqueryCmd debug verbose branch reposource arch args = do
          then b : deleteRepos rs bs
          else deleteRepos rs bs
 
--- majorVersion :: Branch -> String
+-- majorVersion :: Release -> String
 -- majorVersion (Fedora n) = show n
 -- majorVersion Rawhide = "rawhide"
 
-repoConfigArgs :: URL -> RepoSource -> Arch -> Branch
+repoConfigArgs :: URL -> RepoSource -> Arch -> Release
                -> String -> (String,(URL,[String]))
-repoConfigArgs url (RepoFedora mirror) arch branch repo =
+-- non-koji
+repoConfigArgs url (RepoSource False _chan mirror) arch release repo =
   let archsuffix = if arch == X86_64 then "" else "-" ++ showArch arch
-      reponame = repo ++ "-" ++ show branch ++ archsuffix ++
+      reponame = repo ++ "-" ++ show release ++ archsuffix ++
                  case mirror of
                    DownloadFpo -> ""
                    Mirror serv ->
                      '-' : subRegex (mkRegex "https?://") serv ""
                    DlFpo -> "-dl.fpo"
-      mpath = case branch of
+      mpath = case release of
                 EPEL _n -> Just [showArch arch,""]
                 EPELNext _n -> Just [showArch arch,""]
                 _ -> Nothing
   in (reponame, (url, fromMaybe [repo, showArch arch, if arch == Source then "tree" else "os", ""] mpath))
-repoConfigArgs url RepoKoji arch branch repo =
+-- koji
+repoConfigArgs url (RepoSource True _chan _mirror) arch release repo =
   let (compose,path) =
-        case branch of
-          Rawhide -> (["repos", show branch, "latest"],"")
-          _ -> (["repos", show branch ++ "-build/latest"],"")
-      reponame = repo ++ "-" ++ show branch ++ "-build" ++
+        case release of
+          Rawhide -> (["repos", show release, "latest"],"")
+          _ -> (["repos", show release ++ "-build/latest"],"")
+      reponame = repo ++ "-" ++ show release ++ "-build" ++
                  if arch == X86_64 then "" else "-" ++ showArch arch
   in (reponame, (url +//+ compose, [path, showArch arch, ""]))
-repoConfigArgs url (RepoCentosStream chan) arch branch repo =
-  let (compose,path) = (["composes", channel chan, "latest-CentOS-Stream", "compose"], repo)
-      reponame = repo ++ "-Centos-" ++ show branch ++ "-Stream" ++ "-" ++ show chan ++ if arch == X86_64 then "" else "-" ++ showArch arch
-  in (reponame, (url +//+ compose, [path, showArch arch, "os/"]))
+-- repoConfigArgs url (RepoCentosStream chan) arch release repo =
+--   let (compose,path) = (["composes", channel chan, "latest-CentOS-Stream", "compose"], repo)
+--       reponame = repo ++ "-Centos-" ++ show release ++ "-Stream" ++ "-" ++ show chan ++ if arch == X86_64 then "" else "-" ++ showArch arch
+--   in (reponame, (url +//+ compose, [path, showArch arch, "os/"]))
 
 renderRepoConfig :: (String, URL) -> [String]
 renderRepoConfig (name, url) =
   ["--repofrompath", name ++ "," ++ renderUrl url, "--repo", name]
 
-showRelease :: Verbosity -> Bool -> Branch -> RepoSource -> Arch
+showRelease :: Bool -> Verbosity -> Bool -> RepoSource -> Release -> Arch
             -> IO [(String, URL)]
-showRelease verbose warn branch reposource arch = do
+showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) release arch = do
   mgr <- httpManager
-  path <- getReleasePath reposource branch
-  url <- getServer mgr reposource path
+  path <- getReleasePath reposource release
+  url <- getServer mgr reposource release path
+  when debug $ putStrLn $ renderUrl url
   let repos =
-        case reposource of
-          RepoFedora _ -> ["Everything"]
-          RepoKoji -> ["koji-fedora"]
-          RepoCentosStream _ -> ["BaseOS", "AppStream", "CRB"]
-      repoConfigs = map (repoConfigArgs url reposource arch branch) repos
+        case release of
+          -- RepoKoji -> ["koji-fedora"]
+          Centos _ -> ["BaseOS", "AppStream", "PowerTools"]
+          ELN -> ["BaseOS", "AppStream", "CRB"]
+          _ -> ["Everything"]
+      repoConfigs = map (repoConfigArgs url reposource arch release) repos
       (url',path') = snd (head repoConfigs)
       baserepo = url' +//+ path'
+  when debug $ putStrLn $ renderUrl baserepo
   ok <- httpExists mgr (renderUrl baserepo)
   if ok
     then do
@@ -133,16 +138,17 @@ showRelease verbose warn branch reposource arch = do
       forM_ (L.nub (map (fst . snd) repoConfigs)) $ \ topurl -> do
       mtime <- do
         let composeinfo =
-              topurl +//+ case reposource of
-                           RepoKoji -> ["repo.json"]
-                           RepoCentosStream _ ->
-                             ["metadata","composeinfo.json"]
-                           RepoFedora _ ->
-                             case branch of
-                               Rawhide -> ["COMPOSE_ID"]
-                               Fedora _ -> ["COMPOSE_ID"]
-                               EPEL _ -> ["state"]
-                               EPELNext _ -> ["state"]
+              topurl +//+ if koji
+                          then ["repo.json"]
+                          else
+                            case release of
+                              Centos _ -> ["COMPOSE_ID"] -- ["metadata","composeinfo.json"]
+                              Rawhide -> ["COMPOSE_ID"]
+                              Fedora _ -> ["COMPOSE_ID"]
+                              EPEL _ -> ["state"]
+                              EPELNext _ -> ["state"]
+                              ELN -> ["metadata","composeinfo.json"]
+                              -- Centos _ -> ["state?"]
         exists <- httpExists mgr (renderUrl composeinfo)
         if exists
           then httpLastModified mgr (renderUrl composeinfo)
@@ -159,33 +165,44 @@ showRelease verbose warn branch reposource arch = do
 downloadServer :: String
 downloadServer = "https://download.fedoraproject.org/pub"
 
-getServer :: Manager -> RepoSource -> [FilePath] -> IO URL
-getServer mgr reposource path =
-  case reposource of
-    RepoKoji ->
-      return $ URL "http://kojipkgs.fedoraproject.org"
-    RepoCentosStream _ ->
-      return $ URL "https://odcs.stream.centos.org"
-    RepoFedora mirror ->
-      case mirror of
-        DownloadFpo -> do
-          redir <- httpRedirect mgr (renderUrl (URL downloadServer +//+ path))
-          case redir of
-            Nothing -> return (URL downloadServer +//+ path)
-            Just actual -> return $ URL (B.unpack actual)
-        -- FIXME how to handle any path
-        Mirror serv -> return $ URL serv
-        DlFpo -> return $ URL "https://dl.fedoraproject.org/pub" +//+ path
+getServer :: Manager -> RepoSource -> Release -> [FilePath] -> IO URL
+getServer mgr reposource@(RepoSource koji chan _mirror) release path =
+  case release of
+    Centos 9 ->
+      return $ URL $
+      if koji
+      then "https://odcs.stream.centos.org"
+      else "http://mirror.stream.centos.org/9-stream"
+    Centos 8 -> return $ URL "http://mirror.centos.org/centos/8-stream"
+    ELN -> return $ URL "https://odcs.fedoraproject.org/composes" +//+ [channel chan, "latest-Fedora-ELN", "compose"]
+    _ -> getFedoraServer mgr reposource path
+
+getFedoraServer :: Manager -> RepoSource -> [FilePath] -> IO URL
+getFedoraServer mgr (RepoSource koji _ mirror) path =
+  if koji
+  then return $ URL "http://kojipkgs.fedoraproject.org"
+  else
+    case mirror of
+      DownloadFpo -> do
+        redir <- httpRedirect mgr (renderUrl (URL downloadServer +//+ path))
+        case redir of
+          Nothing -> return (URL downloadServer +//+ path)
+          Just actual -> return $ URL (B.unpack actual)
+      -- FIXME how to handle any path
+      Mirror serv -> return $ URL serv
+      DlFpo -> return $ URL "https://dl.fedoraproject.org/pub" +//+ path
 
 -- FIXME is fedora download specific
-getReleasePath :: RepoSource -> Branch -> IO [String]
-getReleasePath _reposource branch =
-  case branch of
+getReleasePath :: RepoSource -> Release -> IO [String]
+getReleasePath _reposource release =
+  case release of
     Rawhide -> return ["fedora/linux/development/rawhide/"]
     Fedora n -> do
       pending <- mapMaybe (lookupKey "branch") <$> getCachedJSONQuery "fedora-bodhi-releases-pending" "fedora-bodhi-releases-pending" (bodhiReleases (makeKey "state" "pending")) 1000
-      if show branch `elem` pending
-      then return ["fedora/linux/development", show n, ""]
-      else return ["fedora/linux/releases", show n, ""]
+      if show release `elem` pending
+        then return ["fedora/linux/development", show n, ""]
+        else return ["fedora/linux/releases", show n, ""]
     EPEL n -> return ["epel", show n, "Everything/"]
     EPELNext n -> return ["epel", "next", show n, "Everything/"]
+    ELN -> return ["eln"]
+    Centos _ -> return ["centos"]
