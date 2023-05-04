@@ -2,9 +2,9 @@
 
 Usage examples:
 
-`fedora-repoquery rawhide firefox`
+`fdrq rawhide firefox`
 
-`fedora-repoquery f36 --requires podman`
+`fdrq f38 --requires podman`
 
 etc
 

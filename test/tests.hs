@@ -6,7 +6,7 @@ fdrq args = do
   putStrLn ""
   putStrLn $ "# " ++ head args
   let debug = ["-d" | False]
-  (ok, out, err) <- cmdFull "fedora-repoquery" (debug ++ args) ""
+  (ok, out, err) <- cmdFull "fdrq" (debug ++ args) ""
   if null err
     then if null out
          then error' "no output"
