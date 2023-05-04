@@ -3,8 +3,8 @@ version:             0.1.0
 synopsis:            Fedora repoquery tool
 description:
         CLI tool for querying the location and version of Fedora packages
-license:             BSD3
-license-file:        LICENSE
+license:             GPL-3
+license-file:        COPYING
 author:              Jens Petersen <juhpetersen@gmail.com>
 maintainer:          Jens Petersen <juhpetersen@gmail.com>
 copyright:           2021  Jens Petersen <juhpetersen@gmail.com>
