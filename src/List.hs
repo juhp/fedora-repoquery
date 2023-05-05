@@ -10,7 +10,7 @@ import Network.HTTP.Directory
 --import SimpleCmd (error')
 
 import Common
-import Query (getFedoraServer)
+import Query (getFedoraServer, fedoraTop)
 import Types
 import URL
 
@@ -22,7 +22,9 @@ listVersionsCmd :: Verbosity -> RepoSource -> IO ()
 --   error' "listing Koji versions not supported"
 listVersionsCmd verbose reposource = do
   mgr <- httpManager
-  -- FIXME handle others
-  url <- getFedoraServer mgr reposource ["fedora", "linux", "releases"]
-  unless (verbose == Quiet) $ warning $! "<" ++ renderUrl url ++ ">"
-  httpDirectory mgr (renderUrl url) >>= mapM_ (T.putStrLn . noTrailingSlash)
+  -- FIXME handle non-fedora versions (eg epel)
+  (url,_) <- getFedoraServer False mgr reposource fedoraTop ["releases"]
+  let rurl = renderUrl url
+  unless (verbose == Quiet) $ warning $! "<" ++ rurl ++ ">"
+  -- FIXME filter very old releases
+  httpDirectory mgr rurl >>= mapM_ (T.putStrLn . noTrailingSlash)

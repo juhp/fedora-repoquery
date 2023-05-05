@@ -18,7 +18,7 @@ fdrq args = do
 tests :: [[String]]
 tests =
   [["rawhide", "coreutils"]
-  ,["36", "fontconfig"]
+  ,["37", "fontconfig"]
   ,["eln", "ibus"]
   ,["epel9", "ghc"]
   ,["c9", "kernel"]

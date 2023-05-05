@@ -5,6 +5,7 @@ module Types (
   readArch,
   showArch,
   Mirror(..),
+  Natural,
   RepoSource(..),
   CentosChannel(..),
   channel,
@@ -55,6 +56,7 @@ showArch I386 = "i386"
 data Mirror = DownloadFpo | DlFpo | Mirror String
   deriving Eq
 
+-- True for koji
 data RepoSource = RepoSource Bool CentosChannel Mirror
   deriving Eq
 
@@ -85,7 +87,8 @@ eitherRelease ('e':'l':n) | all isDigit n = let r = read n in Right (EPEL r)
 eitherRelease ('c':n) | all isDigit n = let r = read n in Right (Centos r)
 eitherRelease ('C':n) | all isDigit n = let r = read n in Right (Centos r)
 eitherRelease "eln" = Right ELN
-eitherRelease (ns) | all isDigit ns = let r = read ns in Right (Fedora r)
+eitherRelease ('f':ns) | all isDigit ns = let r = read ns in Right (Fedora r)
+eitherRelease ns | all isDigit ns = let r = read ns in Right (Fedora r)
 eitherRelease cs = Left $ cs ++ " is not a known os release"
 
 -- | Read a Fedora Release name
@@ -101,4 +104,4 @@ instance Show Release where
   show (EPEL n) = (if n <= 6 then "el" else "epel") ++ show n
   show (EPELNext n) = "epel" ++ show n ++ "-next"
   show ELN = "eln"
-  show (Centos n) = "centos-stream-" ++ show n
+  show (Centos n) = 'c' : show n ++ "s"
