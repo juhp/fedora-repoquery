@@ -68,9 +68,9 @@ repoVersion release repo =
     _ -> ""
 
 repoConfigArgs :: RepoSource -> Arch -> Release
-               -> (String,URL) -> IO (String,(URL,[String]))
+               -> (String,URL) -> (String,(URL,[String]))
 -- non-koji
-repoConfigArgs (RepoSource False _chan mirror) arch release (repo,url) = do
+repoConfigArgs (RepoSource False _chan mirror) arch release (repo,url) =
   -- FIXME default to system arch
   let archsuffix = if arch == X86_64 then "" else "-" ++ showArch arch
       reponame = repoVersion release repo ++ archsuffix ++
@@ -79,14 +79,15 @@ repoConfigArgs (RepoSource False _chan mirror) arch release (repo,url) = do
                    Mirror serv ->
                      '-' : subRegex (mkRegex "https?://") serv ""
                    DlFpo -> "-dl.fpo"
-  path <- case release of
-            Centos _ -> return $ [repo, showArch arch] ++ (if arch == Source then ["tree"] else ["os"])
-            ELN -> return $ [repo, showArch arch] ++ (if arch == Source then ["tree"] else ["os"])
-            EPEL _n -> return ["Everything", showArch arch]
-            EPELNext _n -> return ["Everything", showArch arch]
-            Fedora _ -> return $ ["Everything", showArch arch] ++ (if arch == Source then ["tree"] else ["os" | repo /= "updates"])
-            Rawhide -> return ["Everything", showArch arch, if arch == Source then "tree" else "os"]
-  return (reponame, (url, path))
+      path =
+        case release of
+          Centos _ -> [repo, showArch arch] ++ (if arch == Source then ["tree"] else ["os"])
+          ELN -> [repo, showArch arch] ++ (if arch == Source then ["tree"] else ["os"])
+          EPEL _n -> ["Everything", showArch arch]
+          EPELNext _n -> ["Everything", showArch arch]
+          Fedora _ -> ["Everything", showArch arch] ++ (if arch == Source then ["tree"] else ["os" | repo /= "updates"])
+          Rawhide -> ["Everything", showArch arch, if arch == Source then "tree" else "os"]
+  in (reponame, (url, path))
 -- koji
 repoConfigArgs (RepoSource True _chan _mirror) arch release (repo,url) =
   let (compose,path) =
@@ -95,7 +96,7 @@ repoConfigArgs (RepoSource True _chan _mirror) arch release (repo,url) =
           _ -> (["repos", show release ++ "-build/latest"],"")
       reponame = repo ++ "-" ++ show release ++ "-build" ++
                  if arch == X86_64 then "" else "-" ++ showArch arch
-  in return (reponame, (url +//+ compose, [path, showArch arch, ""]))
+  in (reponame, (url +//+ compose, [path, showArch arch, ""]))
 -- repoConfigArgs url (RepoCentosStream chan) arch release repo =
 --   let (compose,path) = (["composes", channel chan, "latest-CentOS-Stream", "compose"], repo)
 --       reponame = repo ++ "-Centos-" ++ show release ++ "-Stream" ++ "-" ++ show chan ++ if arch == X86_64 then "" else "-" ++ showArch arch
@@ -127,9 +128,9 @@ showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) releas
                 ("updates", url +//+ ["updates",show n])]
       EPEL _n -> return [("epel",urlpath)]
       EPELNext _n -> return [("epelnext",urlpath)]
-  repoConfigs <- mapM (repoConfigArgs reposource arch release) repos
-  forM repoConfigs $ \(repo,(url',path')) -> do
-    let baserepo = url' +//+ path'
+  forM repos $ \repourl -> do
+    let (reponame,(url',path')) = repoConfigArgs reposource arch release repourl
+        baserepo = url' +//+ path'
     when debug $ do
       putStrLn $ "url" +-+ renderUrl url'
       putStrLn $ renderUrl baserepo
@@ -137,7 +138,6 @@ showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) releas
     if ok
       then do
       unless (verbose == Quiet) $ do
---        forM_ (L.nub (map (fst . snd) repoConfigs)) $ \ topurl -> do
         mtime <- do
           let composeinfo =
                 if koji
@@ -149,9 +149,9 @@ showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) releas
                     EPEL _ -> url' +//+ ["Everything", "state"]
                     EPELNext _ -> url' +//+ ["Everything", "state"]
                     Fedora _ -> url' +//+
-                                if "updates" `L.isPrefixOf` repo
-                                then ["COMPOSE_ID"]
-                                else ["Everything", "state"]
+                                if "updates" `L.isSuffixOf` reponame
+                                then ["Everything", "state"]
+                                else ["COMPOSE_ID"]
                     Rawhide -> url' +//+ ["COMPOSE_ID"]
           when debug $ putStrLn $ renderUrl composeinfo
           exists <- httpExists mgr (renderUrl composeinfo)
@@ -161,7 +161,7 @@ showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) releas
         whenJust mtime $ \utc -> do
           date <- utcToLocalZonedTime utc
           (if warn then warning else putStrLn) $ show date ++ " <" ++ renderUrl url' ++ ">"
-      return (repo, url' +//+ path')
+      return (reponame, url' +//+ path')
       else
         error' $ renderUrl baserepo ++ " not found"
 
