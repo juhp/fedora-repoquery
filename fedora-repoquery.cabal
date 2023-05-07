@@ -23,6 +23,7 @@ source-repository head
 
 executable fdrq
   main-is:             Main.hs
+  autogen-modules:     Paths_fedora_repoquery
   other-modules:       Paths_fedora_repoquery
                        Cache
                        Common
