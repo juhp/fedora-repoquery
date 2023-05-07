@@ -7,7 +7,7 @@ license:             GPL-3
 license-file:        COPYING
 author:              Jens Petersen <juhpetersen@gmail.com>
 maintainer:          Jens Petersen <juhpetersen@gmail.com>
-copyright:           2021  Jens Petersen <juhpetersen@gmail.com>
+copyright:           2021-2023  Jens Petersen <juhpetersen@gmail.com>
 category:            Utility
 homepage:            https://github.com/juhp/fedora-repoquery
 bug-reports:         https://github.com/juhp/fedora-repoquery/issues
