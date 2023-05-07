@@ -5,8 +5,8 @@ fdrq :: [String] -> IO ()
 fdrq args = do
   putStrLn ""
   putStrLn $ "# " ++ head args
-  let debug = ["-d" | False]
-  (ok, out, err) <- cmdFull "fdrq" (debug ++ args) ""
+  let debug = False
+  (ok, out, err) <- cmdFull "fdrq" (["-d" | debug] ++ args) ""
   if null err
     then if null out
          then error' "no output"
