@@ -191,7 +191,7 @@ getURL debug mgr reposource@(RepoSource koji chan _mirror) release =
     -- FIXME hardcoded
     Fedora n | n < 36 ->
                return
-               (URL "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases", [show n])
+               (URL "https://archives.fedoraproject.org/pub/archive/fedora/linux", ["releases", show n])
     Rawhide -> getFedoraServer debug mgr reposource fedoraTop ["development", "rawhide"]
     Fedora n -> do
       pending <- pendingFedoraRelease n
