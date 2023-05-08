@@ -39,7 +39,7 @@ main = do
     <*> (RepoSource
           <$> switchWith 'K' "koji" "Use Koji buildroot"
           <*> (flagLongWith' CentosDevel "centos-devel" "Use centos-stream development compose" <|>
-               flagLongWith CentosProd CentosTest "test" "Use centos-stream test compose [default: production]")
+               flagLongWith CentosProd CentosTest "centos-test" "Use centos-stream test compose [default: production]")
           <*> ((Mirror <$> strOptionWith 'm' "mirror" "URL" ("Fedora mirror [default: " ++ downloadServer ++ "]")) <|>
                flagWith DownloadFpo DlFpo 'D' "dl" "Use dl.fp.o"))
     <*> (flagWith' Source 's' "source" "Query source repos" <|>
