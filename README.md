@@ -9,20 +9,28 @@ Usage examples:
 
 `fdrq f38 --requires podman`
 
+`fdrq epel9 ghc`
+
+`fdrq c9 bash`
+
+`fdrq eln kernel`
+
 etc
 
 ```shellsession
 $ fdrq --version
-0.1.0
+0.1.1
 $ fdrq --help
-Fedora repoquery tool
+fedora-repoquery tool for querying Fedora repos for packages.
 
 Usage: fdrq [--version] [(-q|--quiet) | (-v|--verbose)] [-K|--koji]
             [--centos-devel | --test] [(-m|--mirror URL) | (-D|--dl)]
             [(-s|--source) | (-a|--arch ARCH)] [-d|--debug]
             ((-z|--cache-size) | (-e|--cache-clean-empty) | (-l|--list) |
               RELEASE [[REPOQUERY_OPTS] [PACKAGE]...])
-  Tool for querying Fedora repos for packages.
+  where RELEASE is {fN or N (fedora), 'rawhide', epelN, epelN-next, cN (centos
+  stream), 'eln'}, with N the release version number.
+  https://github.com/juhp/fedora-repoquery#readme
 
 Available options:
   -h,--help                Show this help text
