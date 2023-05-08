@@ -16,6 +16,7 @@ import Control.Applicative (
 #if !MIN_VERSION_simple_cmd_args(0,1,7)
 import Options.Applicative (eitherReader, maybeReader, ReadM)
 #endif
+import SimpleCmd ((+-+))
 import SimpleCmdArgs
 import System.IO (BufferMode(NoBuffering), hSetBuffering, stdout)
 
@@ -32,8 +33,9 @@ data Command = Query Release [String] | CacheSize | CacheEmpties | List
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
-  simpleCmdArgs' (Just version) "Fedora repoquery tool"
-    "Tool for querying Fedora repos for packages." $
+  simpleCmdArgs' (Just version) "fedora-repoquery tool for querying Fedora repos for packages."
+    ("where RELEASE is {fN or N (fedora), 'rawhide', epelN, epelN-next, cN (centos stream), 'eln'}, with N the release version number." +-+
+     "https://github.com/juhp/fedora-repoquery#readme") $
     runMain
     <$> (flagWith' Quiet 'q' "quiet" "Avoid output to stderr" <|> flagWith Normal Verbose 'v' "verbose" "Show stderr from dnf repoquery")
     <*> (RepoSource
