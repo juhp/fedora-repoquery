@@ -125,11 +125,11 @@ showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) releas
         return $
           if pending
           then [("development", urlpath)]
-          else [("releases", urlpath),
-                ("updates", url +//+ ["updates",show n])] ++
+          else ("releases", urlpath) :
+               ("updates", url +//+ ["updates",show n]) :
                [("updates-testing", url +//+ ["updates","testing",show n]) | testing]
       EPEL n -> return $
-                 [("epel",urlpath)] ++
+                 ("epel",urlpath) :
                  [("epel-testing",url +//+ ["testing", show n]) | testing]
       EPELNext _n -> return [("epelnext",urlpath)]
   forM repos $ \repourl -> do
