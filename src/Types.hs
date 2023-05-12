@@ -7,7 +7,7 @@ module Types (
   Mirror(..),
   Natural,
   RepoSource(..),
-  CentosChannel(..),
+  Channel(..),
   channel,
   Verbosity(..),
   Release(..),
@@ -57,21 +57,21 @@ data Mirror = DownloadFpo | DlFpo | Mirror String
   deriving Eq
 
 -- True for koji
-data RepoSource = RepoSource Bool CentosChannel Mirror
+data RepoSource = RepoSource Bool Channel Mirror
   deriving Eq
 
-data CentosChannel = CentosDevel | CentosTest | CentosProd
+data Channel = ChanDevel | ChanTest | ChanProd
   deriving Eq
 
-channel :: CentosChannel -> String
-channel CentosDevel = "development"
-channel CentosTest = "test"
-channel CentosProd = "production"
+channel :: Channel -> String
+channel ChanDevel = "development"
+channel ChanTest = "test"
+channel ChanProd = "production"
 
-instance Show CentosChannel where
-  show CentosDevel = "devel"
-  show CentosTest = "test"
-  show CentosProd = "prod"
+instance Show Channel where
+  show ChanDevel = "devel"
+  show ChanTest = "test"
+  show ChanProd = "prod"
 
 data Release = EPEL Natural | EPELNext Natural | Centos Natural | Fedora Natural | ELN | Rawhide
   deriving (Eq, Ord)

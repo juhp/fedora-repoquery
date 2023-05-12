@@ -40,8 +40,8 @@ main = do
     <$> (flagWith' Quiet 'q' "quiet" "Avoid output to stderr" <|> flagWith Normal Verbose 'v' "verbose" "Show stderr from dnf repoquery")
     <*> (RepoSource
           <$> switchWith 'K' "koji" "Use Koji buildroot"
-          <*> (flagLongWith' CentosDevel "centos-devel" "Use centos-stream development compose" <|>
-               flagLongWith CentosProd CentosTest "centos-test" "Use centos-stream test compose [default: production]")
+          <*> (flagLongWith' ChanDevel "devel-channel" "Use eln development compose" <|>
+               flagLongWith ChanProd ChanTest "test-channel" "Use eln test compose [default: production]")
           <*> ((Mirror <$> strOptionWith 'm' "mirror" "URL" ("Fedora mirror [default: " ++ downloadServer ++ "]")) <|>
                flagWith DownloadFpo DlFpo 'D' "dl" "Use dl.fp.o"))
     <*> (flagWith' Source 's' "source" "Query source repos" <|>

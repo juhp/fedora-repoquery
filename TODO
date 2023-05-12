@@ -1,3 +1,4 @@
+- centos-stream channels
 - modular
 - use plain dnf repoquery for system version
 - accept version alias for rawhide (eg f39)
