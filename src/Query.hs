@@ -83,7 +83,7 @@ repoConfigArgs (RepoSource False _chan mirror) arch release (repo,url) =
         case release of
           Centos _ -> [repo, showArch arch] ++ (if arch == Source then ["tree"] else ["os"])
           ELN -> [repo, showArch arch] ++ (if arch == Source then ["tree"] else ["os"])
-          EPEL _n -> ["Everything", showArch arch]
+          EPEL n -> (if n >= 7 then ("Everything" :) else id) [showArch arch]
           EPELNext _n -> ["Everything", showArch arch]
           Fedora _ -> ["Everything", showArch arch] ++ (if arch == Source then ["tree"] else ["os" | repo /= "updates"])
           Rawhide -> ["Everything", showArch arch, if arch == Source then "tree" else "os"]
@@ -192,6 +192,9 @@ getURL debug mgr reposource@(RepoSource koji chan _mirror) release arch =
     Centos _ -> error' "old Centos is not supported yet"
     ELN ->
       return (URL "https://odcs.fedoraproject.org/composes", [channel chan, "latest-Fedora-ELN", "compose"])
+    EPEL n | n < 7 ->
+               return
+               (URL "https://archives.fedoraproject.org/pub/archive/epel", [show n])
     EPEL n -> getFedoraServer debug mgr reposource epelTop [show n]
     EPELNext n -> getFedoraServer debug mgr reposource (epelTop ++ ["next"]) [show n]
     -- FIXME hardcoded
