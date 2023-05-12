@@ -46,6 +46,7 @@ main = do
                flagWith DownloadFpo DlFpo 'D' "dl" "Use dl.fp.o"))
     <*> (flagWith' Source 's' "source" "Query source repos" <|>
          optionalWith (eitherReader readArch) 'a' "arch" "ARCH" "Specify arch [default: x86_64]" X86_64)
+    <*> switchWith 't' "testing" "Fedora updates-testing"
     <*> switchWith 'd' "debug" "Show some debug output"
     <*> (flagWith' CacheSize 'z' "cache-size" "Show total dnf repo metadata cache disksize"
          <|> flagWith' CacheEmpties 'e' "cache-clean-empty" "Remove empty dnf caches"
@@ -55,13 +56,13 @@ main = do
     releaseM :: ReadM Release
     releaseM = maybeReader readRelease
 
-runMain :: Verbosity -> RepoSource -> Arch -> Bool -> Command -> IO ()
-runMain verbose reposource arch debug command = do
+runMain :: Verbosity -> RepoSource -> Arch -> Bool -> Bool -> Command -> IO ()
+runMain verbose reposource arch testing debug command = do
   case command of
     CacheSize -> cacheSize
     CacheEmpties -> cleanEmptyCaches
     List -> listVersionsCmd verbose reposource
     Query release args -> do
       if null args
-      then showReleaseCmd debug reposource release arch
-      else repoqueryCmd debug verbose release reposource arch args
+      then showReleaseCmd debug reposource release arch testing
+      else repoqueryCmd debug verbose release reposource arch testing args

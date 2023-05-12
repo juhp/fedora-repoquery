@@ -26,14 +26,14 @@ import Common (warning)
 import Types
 import URL
 
-showReleaseCmd :: Bool -> RepoSource -> Release  -> Arch -> IO ()
-showReleaseCmd debug reposource release arch =
-  void $ showRelease debug Normal False reposource release arch
+showReleaseCmd :: Bool -> RepoSource -> Release  -> Arch -> Bool -> IO ()
+showReleaseCmd debug reposource release arch testing =
+  void $ showRelease debug Normal False reposource release arch testing
 
-repoqueryCmd :: Bool -> Verbosity -> Release -> RepoSource -> Arch -> [String]
-             -> IO ()
-repoqueryCmd debug verbose release reposource arch args = do
-  repoConfigs <- showRelease debug verbose True reposource release arch
+repoqueryCmd :: Bool -> Verbosity -> Release -> RepoSource -> Arch -> Bool
+             -> [String] -> IO ()
+repoqueryCmd debug verbose release reposource arch testing args = do
+  repoConfigs <- showRelease debug verbose True reposource release arch testing
   let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","-qf","--queryformat"]) args
       queryformat = "%{name}-%{version}-%{release}.%{arch} (%{repoid})"
   -- LANG=C.utf8
@@ -64,7 +64,8 @@ repoVersion release repo =
   case release of
     Centos _ -> '-':repo
     ELN -> '-':repo
-    Fedora _ | repo == "updates" -> '-':repo
+    EPEL _ -> if repo == "epel-testing" then "-testing" else ""
+    Fedora _ | repo /= "releases" -> '-':repo
     _ -> ""
 
 repoConfigArgs :: RepoSource -> Arch -> Release
@@ -85,7 +86,7 @@ repoConfigArgs (RepoSource False _chan mirror) arch release (repo,url) =
           ELN -> [repo, showArch arch] ++ (if arch == Source then ["tree"] else ["os"])
           EPEL n -> (if n >= 7 then ("Everything" :) else id) [showArch arch]
           EPELNext _n -> ["Everything", showArch arch]
-          Fedora _ -> ["Everything", showArch arch] ++ (if arch == Source then ["tree"] else ["os" | repo /= "updates"])
+          Fedora _ -> ["Everything", showArch arch] ++ (if arch == Source then ["tree"] else ["os" | repo == "releases"])
           Rawhide -> ["Everything", showArch arch, if arch == Source then "tree" else "os"]
   in (reponame, (url, path))
 -- koji
@@ -107,8 +108,8 @@ renderRepoConfig (name, url) =
   ["--repofrompath", name ++ "," ++ renderUrl url, "--repo", name]
 
 showRelease :: Bool -> Verbosity -> Bool -> RepoSource -> Release -> Arch
-            -> IO [(String, URL)]
-showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) release arch = do
+            -> Bool -> IO [(String, URL)]
+showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) release arch testing = do
   mgr <- httpManager
   (url,path) <- getURL debug mgr reposource release arch
   let urlpath = url +//+ path
@@ -125,8 +126,11 @@ showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) releas
           if pending
           then [("development", urlpath)]
           else [("releases", urlpath),
-                ("updates", url +//+ ["updates",show n])]
-      EPEL _n -> return [("epel",urlpath)]
+                ("updates", url +//+ ["updates",show n])] ++
+               [("updates-testing", url +//+ ["updates","testing",show n]) | testing]
+      EPEL n -> return $
+                 [("epel",urlpath)] ++
+                 [("epel-testing",url +//+ ["testing", show n]) | testing]
       EPELNext _n -> return [("epelnext",urlpath)]
   forM repos $ \repourl -> do
     let (reponame,(url',path')) = repoConfigArgs reposource arch release repourl
@@ -149,7 +153,8 @@ showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) releas
                     EPEL _ -> url' +//+ ["Everything", "state"]
                     EPELNext _ -> url' +//+ ["Everything", "state"]
                     Fedora _ -> url' +//+
-                                if "updates" `L.isSuffixOf` reponame
+                                if "updates" `L.isSuffixOf` reponame ||
+                                   "updates-testing" `L.isSuffixOf` reponame
                                 then ["Everything", "state"]
                                 else ["COMPOSE_ID"]
                     Rawhide -> url' +//+ ["COMPOSE_ID"]
