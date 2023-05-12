@@ -188,17 +188,17 @@ getURL debug mgr reposource@(RepoSource koji chan _mirror) release =
     Centos _ -> error' "old Centos is not supported yet"
     ELN ->
       return (URL "https://odcs.fedoraproject.org/composes", [channel chan, "latest-Fedora-ELN", "compose"])
+    EPEL n -> getFedoraServer debug mgr reposource epelTop [show n]
+    EPELNext n -> getFedoraServer debug mgr reposource (epelTop ++ ["next"]) [show n]
     -- FIXME hardcoded
     Fedora n | n < 36 ->
                return
                (URL "https://archives.fedoraproject.org/pub/archive/fedora/linux", ["releases", show n])
-    Rawhide -> getFedoraServer debug mgr reposource fedoraTop ["development", "rawhide"]
     Fedora n -> do
       pending <- pendingFedoraRelease n
       getFedoraServer debug mgr reposource fedoraTop
         [if pending then "development" else "releases", show n]
-    EPEL n -> getFedoraServer debug mgr reposource epelTop [show n]
-    EPELNext n -> getFedoraServer debug mgr reposource (epelTop ++ ["next"]) [show n]
+    Rawhide -> getFedoraServer debug mgr reposource fedoraTop ["development", "rawhide"]
 
 pendingFedoraRelease :: Natural -> IO Bool
 pendingFedoraRelease n = do
