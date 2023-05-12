@@ -4,7 +4,7 @@ import SimpleCmd
 fdrq :: [String] -> IO ()
 fdrq args = do
   putStrLn ""
-  putStrLn $ "# " ++ head args
+  putStrLn $ "# " ++ unwords args
   let debug = False
   (ok, out, err) <- cmdFull "fdrq" (["-d" | debug] ++ args) ""
   if null err
@@ -18,7 +18,8 @@ fdrq args = do
 tests :: [[String]]
 tests =
   [["rawhide", "coreutils"]
-  ,["37", "fontconfig"]
+  ,["38", "fontconfig"]
+  ,["-t", "37", "podman"]
   ,["eln", "ibus"]
   ,["epel9", "ghc"]
   ,["c9", "kernel"]
