@@ -26,14 +26,15 @@ import Common (warning)
 import Types
 import URL
 
-showReleaseCmd :: Bool -> RepoSource -> Release  -> Arch -> Bool -> IO ()
-showReleaseCmd debug reposource release arch testing =
-  void $ showRelease debug Normal False reposource release arch testing
+showReleaseCmd :: Bool -> RepoSource -> Release  -> Arch -> Maybe Arch -> Bool
+               -> IO ()
+showReleaseCmd debug reposource release sysarch march testing =
+  void $ showRelease debug Normal False reposource release sysarch march testing
 
-repoqueryCmd :: Bool -> Verbosity -> Release -> RepoSource -> Arch -> Bool
-             -> [String] -> IO ()
-repoqueryCmd debug verbose release reposource arch testing args = do
-  repoConfigs <- showRelease debug verbose True reposource release arch testing
+repoqueryCmd :: Bool -> Verbosity -> Release -> RepoSource -> Arch
+             -> Maybe Arch -> Bool -> [String] -> IO ()
+repoqueryCmd debug verbose release reposource sysarch march testing args = do
+  repoConfigs <- showRelease debug verbose True reposource release sysarch march testing
   let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","-qf","--queryformat"]) args
       queryformat = "%{name}-%{version}-%{release}.%{arch} (%{repoid})"
   -- LANG=C.utf8
@@ -68,12 +69,12 @@ repoVersion release repo =
     Fedora _ | repo /= "releases" -> '-':repo
     _ -> ""
 
-repoConfigArgs :: RepoSource -> Arch -> Release
-               -> (String,URL) -> (String,(URL,[String]))
+repoConfigArgs :: RepoSource -> Arch -> Maybe Arch -> Release -> (String,URL)
+               -> (String,(URL,[String]))
 -- non-koji
-repoConfigArgs (RepoSource False _chan mirror) arch release (repo,url) =
-  -- FIXME default to system arch
-  let archsuffix = if arch == X86_64 then "" else "-" ++ showArch arch
+repoConfigArgs (RepoSource False _chan mirror) sysarch march release (repo,url) =
+  let arch = fromMaybe sysarch march
+      archsuffix = if arch == sysarch then "" else "-" ++ showArch arch
       reponame = repoVersion release repo ++ archsuffix ++
                  case mirror of
                    DownloadFpo -> ""
@@ -90,17 +91,18 @@ repoConfigArgs (RepoSource False _chan mirror) arch release (repo,url) =
           Rawhide -> ["Everything", showArch arch, if arch == Source then "tree" else "os"]
   in (reponame, (url, path))
 -- koji
-repoConfigArgs (RepoSource True _chan _mirror) arch release (repo,url) =
+repoConfigArgs (RepoSource True _chan _mirror) sysarch march release (repo,url) =
   let (compose,path) =
         case release of
           Rawhide -> (["repos", show release, "latest"],"")
           _ -> (["repos", show release ++ "-build/latest"],"")
+      arch = fromMaybe sysarch march
       reponame = repo ++ "-" ++ show release ++ "-build" ++
-                 if arch == X86_64 then "" else "-" ++ showArch arch
+                 if arch == sysarch then "" else "-" ++ showArch arch
   in (reponame, (url +//+ compose, [path, showArch arch, ""]))
 -- repoConfigArgs url (RepoCentosStream chan) arch release repo =
 --   let (compose,path) = (["composes", channel chan, "latest-CentOS-Stream", "compose"], repo)
---       reponame = repo ++ "-Centos-" ++ show release ++ "-Stream" ++ "-" ++ show chan ++ if arch == X86_64 then "" else "-" ++ showArch arch
+--       reponame = repo ++ "-Centos-" ++ show release ++ "-Stream" ++ "-" ++ show chan ++ if arch == sysarch then "" else "-" ++ showArch arch
 --   in (reponame, (url +//+ compose, [path, showArch arch, "os/"]))
 
 renderRepoConfig :: (String, URL) -> [String]
@@ -108,9 +110,10 @@ renderRepoConfig (name, url) =
   ["--repofrompath", name ++ "," ++ renderUrl url, "--repo", name]
 
 showRelease :: Bool -> Verbosity -> Bool -> RepoSource -> Release -> Arch
-            -> Bool -> IO [(String, URL)]
-showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) release arch testing = do
+            -> Maybe Arch -> Bool -> IO [(String, URL)]
+showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) release sysarch march testing = do
   mgr <- httpManager
+  let arch = fromMaybe sysarch march
   (url,path) <- getURL debug mgr reposource release arch
   let urlpath = url +//+ path
   when debug $ putStrLn $ renderUrl urlpath
@@ -133,7 +136,7 @@ showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) releas
                  [("epel-testing",url +//+ ["testing", show n]) | testing]
       EPELNext _n -> return [("epelnext",urlpath)]
   forM repos $ \repourl -> do
-    let (reponame,(url',path')) = repoConfigArgs reposource arch release repourl
+    let (reponame,(url',path')) = repoConfigArgs reposource sysarch march release repourl
         baserepo = url' +//+ path'
     when debug $ do
       putStrLn $ "url" +-+ renderUrl url'

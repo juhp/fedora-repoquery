@@ -52,6 +52,7 @@ Available options:
   -e,--cache-clean-empty   Remove empty dnf caches
   -l,--list                List Fedora versions
 ```
+The default arch is the system arch.
 
 ## Installation
 fedora-repoquery can be installed from

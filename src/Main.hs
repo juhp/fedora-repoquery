@@ -16,7 +16,7 @@ import Control.Applicative (
 #if !MIN_VERSION_simple_cmd_args(0,1,7)
 import Options.Applicative (eitherReader, maybeReader, ReadM)
 #endif
-import SimpleCmd ((+-+))
+import SimpleCmd (cmd, (+-+))
 import SimpleCmdArgs
 import System.IO (BufferMode(NoBuffering), hSetBuffering, stdout)
 
@@ -33,10 +33,11 @@ data Command = Query Release [String] | CacheSize | CacheEmpties | List
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
+  sysarch <- readArch <$> cmd "rpm" ["--eval", "%{_arch}"]
   simpleCmdArgs' (Just version) "fedora-repoquery tool for querying Fedora repos for packages."
     ("where RELEASE is {fN or N (fedora), 'rawhide', epelN, epelN-next, cN (centos stream), 'eln'}, with N the release version number." +-+
      "https://github.com/juhp/fedora-repoquery#readme") $
-    runMain
+    runMain sysarch
     <$> (flagWith' Quiet 'q' "quiet" "Avoid output to stderr" <|> flagWith Normal Verbose 'v' "verbose" "Show stderr from dnf repoquery")
     <*> (RepoSource
           <$> switchWith 'K' "koji" "Use Koji buildroot"
@@ -44,8 +45,8 @@ main = do
                flagLongWith ChanProd ChanTest "test-channel" "Use eln test compose [default: production]")
           <*> ((Mirror <$> strOptionWith 'm' "mirror" "URL" ("Fedora mirror [default: " ++ downloadServer ++ "]")) <|>
                flagWith DownloadFpo DlFpo 'D' "dl" "Use dl.fp.o"))
-    <*> (flagWith' Source 's' "source" "Query source repos" <|>
-         optionalWith (eitherReader readArch) 'a' "arch" "ARCH" "Specify arch [default: x86_64]" X86_64)
+    <*> optional (flagWith' Source 's' "source" "Query source repos" <|>
+                  optionWith (eitherReader eitherArch) 'a' "arch" "ARCH" ("Specify arch [default:" +-+ showArch sysarch ++ "]"))
     <*> switchWith 't' "testing" "Fedora updates-testing"
     <*> switchWith 'd' "debug" "Show some debug output"
     <*> (flagWith' CacheSize 'z' "cache-size" "Show total dnf repo metadata cache disksize"
@@ -56,13 +57,13 @@ main = do
     releaseM :: ReadM Release
     releaseM = maybeReader readRelease
 
-runMain :: Verbosity -> RepoSource -> Arch -> Bool -> Bool -> Command -> IO ()
-runMain verbose reposource arch testing debug command = do
+runMain :: Arch -> Verbosity -> RepoSource -> Maybe Arch -> Bool -> Bool -> Command -> IO ()
+runMain sysarch verbose reposource march testing debug command = do
   case command of
     CacheSize -> cacheSize
     CacheEmpties -> cleanEmptyCaches
-    List -> listVersionsCmd verbose reposource
+    List -> listVersionsCmd verbose reposource sysarch
     Query release args -> do
       if null args
-      then showReleaseCmd debug reposource release arch testing
-      else repoqueryCmd debug verbose release reposource arch testing args
+      then showReleaseCmd debug reposource release sysarch march testing
+      else repoqueryCmd debug verbose release reposource sysarch march testing args

@@ -2,6 +2,7 @@
 
 module Types (
   Arch(..),
+  eitherArch,
   readArch,
   showArch,
   Mirror(..),
@@ -17,6 +18,7 @@ module Types (
 import Data.Char (isDigit)
 import Data.List.Extra
 import Numeric.Natural
+import SimpleCmd (error')
 
 --import Distribution.Fedora.Repoquery
 
@@ -32,8 +34,8 @@ data Arch = Source
           | I386
   deriving Eq
 
-readArch :: String -> Either String Arch
-readArch s =
+eitherArch :: String -> Either String Arch
+eitherArch s =
   case lower s of
     "source" -> Right Source
     "x86_64" -> Right X86_64
@@ -43,6 +45,10 @@ readArch s =
     "ppc64le" -> Right PPC64LE
     "i386" -> Right I386
     _ -> Left $ "unknown arch: " ++ s
+
+readArch :: String -> Arch
+readArch =
+  either error' id . eitherArch
 
 showArch :: Arch -> String
 showArch Source = "source"
