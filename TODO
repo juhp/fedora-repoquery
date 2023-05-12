@@ -3,7 +3,5 @@
 - use plain dnf repoquery for system version
 - accept version alias for rawhide (eg f39)
 - --all-archs
-- secondary ppc64le and s390x:
-  https://dl.fedoraproject.org/pub/fedora-secondary/development/rawhide/Everything/
 - query multiple versions
 - read COMPOSE_ID

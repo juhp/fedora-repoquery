@@ -23,7 +23,7 @@ listVersionsCmd :: Verbosity -> RepoSource -> IO ()
 listVersionsCmd verbose reposource = do
   mgr <- httpManager
   -- FIXME handle non-fedora versions (eg epel)
-  (url,_) <- getFedoraServer False mgr reposource fedoraTop ["releases"]
+  (url,_) <- getFedoraServer False mgr reposource (fedoraTop X86_64) ["releases"]
   let rurl = renderUrl url
   unless (verbose == Quiet) $ warning $! "<" ++ rurl ++ ">"
   -- FIXME filter very old releases

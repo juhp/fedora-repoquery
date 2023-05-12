@@ -110,7 +110,7 @@ showRelease :: Bool -> Verbosity -> Bool -> RepoSource -> Release -> Arch
             -> IO [(String, URL)]
 showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) release arch = do
   mgr <- httpManager
-  (url,path) <- getURL debug mgr reposource release
+  (url,path) <- getURL debug mgr reposource release arch
   let urlpath = url +//+ path
   when debug $ putStrLn $ renderUrl urlpath
   repos <-
@@ -168,14 +168,18 @@ showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) releas
 downloadServer :: String
 downloadServer = "https://download.fedoraproject.org/pub"
 
-fedoraTop :: [String]
-fedoraTop = ["fedora", "linux"]
+fedoraTop :: Arch -> [String]
+fedoraTop arch =
+  -- FIXME support older archs
+  if arch `elem` [PPC64LE, S390X]
+  then ["fedora-secondary"]
+  else ["fedora", "linux"]
 
 epelTop :: [String]
 epelTop = ["epel"]
 
-getURL :: Bool -> Manager -> RepoSource -> Release -> IO (URL,[String])
-getURL debug mgr reposource@(RepoSource koji chan _mirror) release =
+getURL :: Bool -> Manager -> RepoSource -> Release -> Arch -> IO (URL,[String])
+getURL debug mgr reposource@(RepoSource koji chan _mirror) release arch =
   case release of
     Centos 9 ->
       let url = URL $
@@ -193,12 +197,13 @@ getURL debug mgr reposource@(RepoSource koji chan _mirror) release =
     -- FIXME hardcoded
     Fedora n | n < 36 ->
                return
-               (URL "https://archives.fedoraproject.org/pub/archive/fedora/linux", ["releases", show n])
+               (URL "https://archives.fedoraproject.org/pub/archive" +//+ fedoraTop arch, ["releases", show n])
+    -- FIXME handle rawhide version
     Fedora n -> do
       pending <- pendingFedoraRelease n
-      getFedoraServer debug mgr reposource fedoraTop
+      getFedoraServer debug mgr reposource (fedoraTop arch)
         [if pending then "development" else "releases", show n]
-    Rawhide -> getFedoraServer debug mgr reposource fedoraTop ["development", "rawhide"]
+    Rawhide -> getFedoraServer debug mgr reposource (fedoraTop arch) ["development", "rawhide"]
 
 pendingFedoraRelease :: Natural -> IO Bool
 pendingFedoraRelease n = do
