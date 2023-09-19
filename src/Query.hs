@@ -120,8 +120,12 @@ showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) releas
   repos <-
     case release of
       -- RepoKoji -> ["koji-fedora"]
-      Centos n -> return [("BaseOS",urlpath), ("AppStream",url), (if n >= 9 then "CRB" else "PowerTools",url)]
-      ELN -> return [("BaseOS",urlpath), ("AppStream",urlpath), ("CRB",urlpath)]
+      Centos n -> return [("BaseOS",urlpath),
+                          ("AppStream",url),
+                          (if n >= 9 then "CRB" else "PowerTools",url)]
+      ELN -> return [("BaseOS",urlpath),
+                     ("AppStream",urlpath),
+                     ("CRB",urlpath)]
       Rawhide -> return [("development", urlpath)]
       Fedora n -> do
         pending <- pendingFedoraRelease n
