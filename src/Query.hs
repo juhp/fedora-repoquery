@@ -87,7 +87,7 @@ repoConfigArgs (RepoSource False _chan mirror) sysarch march release (repo,url) 
           ELN -> [repo, showArch arch] ++ (if arch == Source then ["tree"] else ["os"])
           EPEL n -> (if n >= 7 then ("Everything" :) else id) [showArch arch]
           EPELNext _n -> ["Everything", showArch arch]
-          Fedora _ -> ["Everything", showArch arch] ++ (if arch == Source then ["tree"] else ["os" | repo == "releases"])
+          Fedora _ -> ["Everything", showArch arch] ++ (if arch == Source then ["tree"] else ["os" | repo `elem` ["releases","development"]])
           Rawhide -> ["Everything", showArch arch, if arch == Source then "tree" else "os"]
   in (reponame, (url, path))
 -- koji
