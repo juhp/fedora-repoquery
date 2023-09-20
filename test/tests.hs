@@ -1,29 +1,34 @@
+import Data.Maybe (fromMaybe, isNothing, maybeToList)
 import Control.Monad (unless)
 import SimpleCmd
 
-fdrq :: [String] -> IO ()
-fdrq args = do
+fdrq :: ([String],Maybe String) -> IO ()
+fdrq (args,mpkg) = do
   putStrLn ""
-  putStrLn $ "# " ++ unwords args
+  putStrLn $ "# " ++ unwords args +-+ fromMaybe "" mpkg
   let debug = False
-  (ok, out, err) <- cmdFull "fdrq" (["-d" | debug] ++ args) ""
+  (ok, out, err) <- cmdFull "fdrq" (["-d" | debug] ++ args ++ maybeToList mpkg) ""
   if null err
-    then if null out
-         then error' "no output"
-         else unless (length args == 1) $ error' "stderr empty"
+    then unless (isNothing mpkg) $ putStrLn "stderr empty"
     else putStrLn err
-  putStrLn out
+  if null out
+    then unless (isNothing mpkg) $ error' "no output"
+    else putStrLn out
   unless ok $ error' "failed"
 
-tests :: [[String]]
+tests :: [([String],Maybe String)]
 tests =
-  [["rawhide", "coreutils"]
-  ,["38", "fontconfig"]
-  ,["-t", "37", "podman"]
-  ,["eln", "ibus"]
-  ,["epel9", "ghc"]
-  ,["c9", "kernel"]
-  ,["c8", "pandoc"]
+  [(["rawhide"], Nothing)
+  ,(["39"], Nothing)
+  ,(["38"], Nothing)
+  ,(["rawhide"], Just "coreutils")
+  ,(["39"], Just "bash")
+  ,(["38"], Just "fontconfig")
+  ,(["-t", "38"], Just "podman")
+  ,(["eln"], Just "ibus")
+  ,(["epel9"], Just "ghc")
+  ,(["c9"], Just "kernel")
+  ,(["c8"], Just "pandoc")
   ]
 
 main :: IO ()
