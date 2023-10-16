@@ -12,6 +12,9 @@ import Control.Monad.Extra
 import qualified Data.ByteString.Char8 as B
 import qualified Data.List.Extra as L
 import Data.Maybe
+#if !MIN_VERSION_base(4,11,0)
+import Data.Monoid ((<>))
+#endif
 import Data.Time.LocalTime (utcToLocalZonedTime)
 import Fedora.Bodhi
 import Network.HTTP.Directory
