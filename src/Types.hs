@@ -82,6 +82,9 @@ instance Show Channel where
 data Release = EPEL Natural | EPELNext Natural | Centos Natural | Fedora Natural | ELN | Rawhide
   deriving (Eq, Ord)
 
+newestRHEL :: Natural
+newestRHEL = 10
+
 -- | Read a Release name, otherwise return an error message
 eitherRelease :: String -> Either String Release
 eitherRelease "rawhide" = Right Rawhide
@@ -94,7 +97,8 @@ eitherRelease ('c':n) | all isDigit n = let r = read n in Right (Centos r)
 eitherRelease ('C':n) | all isDigit n = let r = read n in Right (Centos r)
 eitherRelease "eln" = Right ELN
 eitherRelease ('f':ns) | all isDigit ns = let r = read ns in Right (Fedora r)
-eitherRelease ns | all isDigit ns = let r = read ns in Right (Fedora r)
+eitherRelease ns | all isDigit ns = let r = read ns in
+                     Right $ (if r <= newestRHEL then Centos else Fedora) r
 eitherRelease cs = Left $ cs ++ " is not a known os release"
 
 -- | Read a Fedora Release name
