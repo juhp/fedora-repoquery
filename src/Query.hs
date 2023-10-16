@@ -79,7 +79,7 @@ repoConfigArgs (RepoSource False _chan mirror) sysarch march release (repo,url) 
                  case mirror of
                    DownloadFpo -> ""
                    Mirror serv ->
-                     '-' : subRegex (mkRegex "https?://") serv ""
+                     '-' : takeWhile (/= '/') (subRegex (mkRegex "https?://") serv "")
                    DlFpo -> "-dl.fpo"
       path =
         case release of
