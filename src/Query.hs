@@ -89,7 +89,7 @@ repoConfigArgs (RepoSource False _chan mirror) sysarch march release (repo,url) 
           EPELNext _n -> ["Everything", showArch arch]
           Fedora _ -> ["Everything", showArch arch] ++ (if arch == Source then ["tree"] else ["os" | repo `elem` ["releases","development"]])
           Rawhide -> ["Everything", showArch arch, if arch == Source then "tree" else "os"]
-  in (reponame, (url, path))
+  in (reponame, (url, path ++ ["/"]))
 -- koji
 repoConfigArgs (RepoSource True _chan _mirror) sysarch march release (repo,url) =
   let (compose,path) =
