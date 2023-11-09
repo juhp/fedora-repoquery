@@ -1,5 +1,16 @@
 # Revision history for fedora-repoquery
 
+## 0.3 (2023-11-09)
+- Query: no --qf with --changelog
+- small OS versions now map to centos-stream
+- use hostname not full url for mirror repo name
+- repo urls should end with a slash
+- improve tests to fail if no results
+- map failing yzyu.jp http/3 mirror to main one
+- development/39 also needs os/
+- showRelease: reformat Centos and ELN repos
+- default to system arch and introduce sysarch and march
+
 ## 0.2 (2023-05-12)
 - support fedora and epel testing repos
 - fix fedora archive urls

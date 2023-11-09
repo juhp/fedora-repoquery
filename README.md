@@ -6,29 +6,32 @@ which caches repodata separately per release.
 ## Usage
 Usage examples:
 
-`fdrq rawhide firefox`
+- `fdrq rawhide firefox`
 
-`fdrq 38 --requires podman`
+- `fdrq 38 --requires podman`
 
-`fdrq epel9 ghc`
+- `fdrq epel9 ghc`
 
-`fdrq c9 bash`
+- `fdrq c9 bash`
 
-`fdrq eln kernel`
+- `fdrq eln kernel`
 
 etc
 
-```shellsession
-$ fdrq --version
+`$ fdrq --version`
+```
 0.2
-$ fdrq --help
+```
+`$ fdrq --help`
+```
 fedora-repoquery tool for querying Fedora repos for packages.
 
-Usage: fdrq [--version] [(-q|--quiet) | (-v|--verbose)] [-K|--koji]
-            [--devel-channel | --test-channel] [(-m|--mirror URL) | (-D|--dl)]
-            [(-s|--source) | (-a|--arch ARCH)] [-t|--testing] [-d|--debug]
-            ((-z|--cache-size) | (-e|--cache-clean-empty) | (-l|--list) |
+Usage: fdrq [--version] [(-q|--quiet) | (-v|--verbose)] [-K|--koji] 
+            [--devel-channel | --test-channel] [(-m|--mirror URL) | (-D|--dl)] 
+            [(-s|--source) | (-a|--arch ARCH)] [-t|--testing] [-d|--debug] 
+            ((-z|--cache-size) | (-e|--cache-clean-empty) | (-l|--list) | 
               RELEASE [[REPOQUERY_OPTS] [PACKAGE]...])
+
   where RELEASE is {fN or N (fedora), 'rawhide', epelN, epelN-next, cN (centos
   stream), 'eln'}, with N the release version number.
   https://github.com/juhp/fedora-repoquery#readme
