@@ -213,7 +213,7 @@ getURL debug mgr reposource@(RepoSource koji chan _mirror) release arch =
     EPEL n -> getFedoraServer debug mgr reposource epelTop [show n]
     EPELNext n -> getFedoraServer debug mgr reposource (epelTop ++ ["next"]) [show n]
     -- FIXME hardcoded
-    Fedora n | n < 36 ->
+    Fedora n | n < 37 ->
                return
                (URL "https://archives.fedoraproject.org/pub/archive" +//+ fedoraTop arch, ["releases", show n])
     -- FIXME handle rawhide version
