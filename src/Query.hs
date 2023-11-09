@@ -38,7 +38,7 @@ repoqueryCmd :: Bool -> Verbosity -> Release -> RepoSource -> Arch
              -> Maybe Arch -> Bool -> [String] -> IO ()
 repoqueryCmd debug verbose release reposource sysarch march testing args = do
   repoConfigs <- showRelease debug verbose True reposource release sysarch march testing
-  let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","-qf","--queryformat"]) args
+  let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","-qf","--queryformat", "--changelog"]) args
       queryformat = "%{name}-%{version}-%{release}.%{arch} (%{repoid})"
   -- LANG=C.utf8
   rhsm <- doesFileExist "/etc/dnf/plugins/subscription-manager.conf"
