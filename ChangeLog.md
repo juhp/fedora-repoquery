@@ -1,5 +1,9 @@
 # Revision history for fedora-repoquery
 
+## 0.3.1 (2024-02-12)
+- use dnf5 when available
+- add --all-archs to query across all 64bit architectures
+
 ## 0.3 (2023-11-09)
 - Query: no --qf with --changelog
 - small OS versions now map to centos-stream

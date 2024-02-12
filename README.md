@@ -8,7 +8,7 @@ Usage examples:
 
 - `fdrq rawhide firefox`
 
-- `fdrq 38 --requires podman`
+- `fdrq 39 --requires podman`
 
 - `fdrq epel9 ghc`
 
@@ -20,7 +20,7 @@ etc
 
 `$ fdrq --version`
 ```
-0.2
+0.3.1
 ```
 `$ fdrq --help`
 ```
@@ -28,7 +28,8 @@ fedora-repoquery tool for querying Fedora repos for packages.
 
 Usage: fdrq [--version] [(-q|--quiet) | (-v|--verbose)] [-K|--koji] 
             [--devel-channel | --test-channel] [(-m|--mirror URL) | (-D|--dl)] 
-            [(-s|--source) | (-a|--arch ARCH)] [-t|--testing] [-d|--debug] 
+            [(-s|--source) | (-A|--all-archs) | [-a|--arch ARCH]] [-t|--testing]
+            [-d|--debug] 
             ((-z|--cache-size) | (-e|--cache-clean-empty) | (-l|--list) | 
               RELEASE [[REPOQUERY_OPTS] [PACKAGE]...])
 
@@ -48,6 +49,7 @@ Available options:
                            https://download.fedoraproject.org/pub]
   -D,--dl                  Use dl.fp.o
   -s,--source              Query source repos
+  -A,--all-archs           Query all (64 bit) arch repos
   -a,--arch ARCH           Specify arch [default: x86_64]
   -t,--testing             Fedora updates-testing
   -d,--debug               Show some debug output

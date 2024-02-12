@@ -35,6 +35,7 @@ showReleaseCmd :: Bool -> RepoSource -> Release  -> Arch -> Maybe Arch -> Bool
 showReleaseCmd debug reposource release sysarch march testing =
   void $ showRelease debug Normal False reposource release sysarch march testing
 
+-- FIXME --no-redirect?
 repoqueryCmd :: Bool -> Verbosity -> Release -> RepoSource -> Arch
              -> [Arch] -> Bool -> [String] -> IO ()
 repoqueryCmd debug verbose release reposource sysarch archs testing args = do

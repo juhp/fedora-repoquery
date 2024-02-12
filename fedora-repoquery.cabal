@@ -1,5 +1,5 @@
 name:                fedora-repoquery
-version:             0.3
+version:             0.3.1
 synopsis:            Fedora repoquery tool
 description:
         CLI tool for querying the location and version of Fedora packages
@@ -7,7 +7,7 @@ license:             GPL-3
 license-file:        COPYING
 author:              Jens Petersen <juhpetersen@gmail.com>
 maintainer:          Jens Petersen <juhpetersen@gmail.com>
-copyright:           2021-2023  Jens Petersen <juhpetersen@gmail.com>
+copyright:           2021-2024  Jens Petersen <juhpetersen@gmail.com>
 category:            Utility
 homepage:            https://github.com/juhp/fedora-repoquery
 bug-reports:         https://github.com/juhp/fedora-repoquery/issues
@@ -21,6 +21,7 @@ tested-with:         GHC == 8.4
                      ||  == 9.0
                      ||  == 9.2
                      ||  == 9.4
+                     ||  == 9.6
 
 source-repository head
   type:                git
