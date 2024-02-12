@@ -36,31 +36,33 @@ showReleaseCmd debug reposource release sysarch march testing =
   void $ showRelease debug Normal False reposource release sysarch march testing
 
 repoqueryCmd :: Bool -> Verbosity -> Release -> RepoSource -> Arch
-             -> Maybe Arch -> Bool -> [String] -> IO ()
-repoqueryCmd debug verbose release reposource sysarch march testing args = do
-  repoConfigs <- showRelease debug verbose True reposource release sysarch march testing
-  let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","-qf","--queryformat", "--changelog"]) args
-  mdnf5 <- findExecutable "dnf5"
-  let queryformat =
-        "%{name}-%{version}-%{release}.%{arch} (%{repoid})" ++
-        if isJust mdnf5 then "\n" else ""
-  -- LANG=C.utf8
-  rhsm <- doesFileExist "/etc/dnf/plugins/subscription-manager.conf"
-  let cmdargs = "repoquery" :
-                ["--quiet" | verbose /= Verbose] ++
-                -- https://bugzilla.redhat.com/show_bug.cgi?id=1876828
-                ["--disableplugin=subscription-manager" | rhsm] ++
-                (if qfAllowed then ["--qf", queryformat] else []) ++
-                ["--setopt=module_platform_id=platform:" ++ show release] ++
-                concatMap renderRepoConfig repoConfigs ++
-                args
-  let dnf = fromMaybe "/usr/bin/dnf" mdnf5
-  when debug $
-    warning $ unwords $ ('\n' : takeBaseName dnf) : map show cmdargs
-  res <- cmdLines dnf cmdargs
-  unless (null res) $ do
-    unless (verbose == Quiet) $ warning ""
-    putStrLn $ L.intercalate "\n" res
+             -> [Arch] -> Bool -> [String] -> IO ()
+repoqueryCmd debug verbose release reposource sysarch archs testing args = do
+  forM_ (if null archs then [sysarch] else archs) $ \arch -> do
+    repoConfigs <- showRelease debug verbose True reposource release sysarch (Just arch) testing
+    let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","-qf","--queryformat", "--changelog"]) args
+    mdnf5 <- findExecutable "dnf5"
+    let queryformat =
+          "%{name}-%{version}-%{release}.%{arch} (%{repoid})" ++
+          if isJust mdnf5 then "\n" else ""
+    -- LANG=C.utf8
+    rhsm <- doesFileExist "/etc/dnf/plugins/subscription-manager.conf"
+    let cmdargs = "repoquery" :
+                  ["--quiet" | verbose /= Verbose] ++
+                  -- https://bugzilla.redhat.com/show_bug.cgi?id=1876828
+                  ["--disableplugin=subscription-manager" | rhsm] ++
+                  (if qfAllowed then ["--qf", queryformat] else []) ++
+                  -- drop modules for F39+
+                  ["--setopt=module_platform_id=platform:" ++ show release] ++
+                  concatMap renderRepoConfig repoConfigs ++
+                  args
+    let dnf = fromMaybe "/usr/bin/dnf" mdnf5
+    when debug $
+      warning $ unwords $ ('\n' : takeBaseName dnf) : map show cmdargs
+    res <- cmdLines dnf cmdargs
+    unless (null res) $ do
+      unless (verbose == Quiet) $ warning ""
+      putStrLn $ L.intercalate "\n" res
 
 -- majorVersion :: Release -> String
 -- majorVersion (Fedora n) = show n

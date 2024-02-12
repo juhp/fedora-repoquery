@@ -13,6 +13,7 @@ import Control.Applicative (
 #endif
   )
 #endif
+import Control.Monad (forM_)
 #if !MIN_VERSION_simple_cmd_args(0,1,7)
 import Options.Applicative (eitherReader, maybeReader, ReadM)
 #endif
@@ -45,8 +46,9 @@ main = do
                flagLongWith ChanProd ChanTest "test-channel" "Use eln test compose [default: production]")
           <*> ((Mirror <$> strOptionWith 'm' "mirror" "URL" ("Fedora mirror [default: " ++ downloadServer ++ "]")) <|>
                flagWith DownloadFpo DlFpo 'D' "dl" "Use dl.fp.o"))
-    <*> optional (flagWith' Source 's' "source" "Query source repos" <|>
-                  optionWith (eitherReader eitherArch) 'a' "arch" "ARCH" ("Specify arch [default:" +-+ showArch sysarch ++ "]"))
+    <*> (flagWith' [Source] 's' "source" "Query source repos" <|>
+         flagWith' allArchs 'A' "all-archs" "Query all (64 bit) arch repos" <|>
+         many (optionWith (eitherReader eitherArch) 'a' "arch" "ARCH" ("Specify arch [default:" +-+ showArch sysarch ++ "]")))
     <*> switchWith 't' "testing" "Fedora updates-testing"
     <*> switchWith 'd' "debug" "Show some debug output"
     <*> (flagWith' CacheSize 'z' "cache-size" "Show total dnf repo metadata cache disksize"
@@ -57,13 +59,15 @@ main = do
     releaseM :: ReadM Release
     releaseM = maybeReader readRelease
 
-runMain :: Arch -> Verbosity -> RepoSource -> Maybe Arch -> Bool -> Bool -> Command -> IO ()
-runMain sysarch verbose reposource march testing debug command = do
+runMain :: Arch -> Verbosity -> RepoSource -> [Arch] -> Bool -> Bool -> Command -> IO ()
+runMain sysarch verbose reposource archs testing debug command = do
   case command of
     CacheSize -> cacheSize
     CacheEmpties -> cleanEmptyCaches
     List -> listVersionsCmd verbose reposource sysarch
     Query release args -> do
       if null args
-      then showReleaseCmd debug reposource release sysarch march testing
-      else repoqueryCmd debug verbose release reposource sysarch march testing args
+        then if null archs
+             then showReleaseCmd debug reposource release sysarch Nothing testing
+             else forM_ archs $ \arch -> showReleaseCmd debug reposource release sysarch (Just arch) testing
+      else repoqueryCmd debug verbose release reposource sysarch archs testing args

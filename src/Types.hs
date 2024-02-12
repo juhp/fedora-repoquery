@@ -2,6 +2,7 @@
 
 module Types (
   Arch(..),
+  allArchs,
   eitherArch,
   readArch,
   showArch,
@@ -29,10 +30,13 @@ data Arch = Source
           | X86_64
           | AARCH64
           | ARMV7HL
-          | S390X
           | PPC64LE
+          | S390X
           | I386
   deriving Eq
+
+allArchs :: [Arch]
+allArchs = [X86_64, AARCH64, PPC64LE, S390X]
 
 eitherArch :: String -> Either String Arch
 eitherArch s =
