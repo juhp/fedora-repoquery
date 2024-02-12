@@ -20,7 +20,8 @@ import Fedora.Bodhi
 import Network.HTTP.Directory
 import SimpleCmd
 import System.Cached.JSON
-import System.Directory (doesFileExist)
+import System.Directory (doesFileExist, findExecutable)
+import System.FilePath (takeBaseName)
 import Text.Regex
 
 #if !MIN_VERSION_simple_cmd(0,2,0)
@@ -39,7 +40,10 @@ repoqueryCmd :: Bool -> Verbosity -> Release -> RepoSource -> Arch
 repoqueryCmd debug verbose release reposource sysarch march testing args = do
   repoConfigs <- showRelease debug verbose True reposource release sysarch march testing
   let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","-qf","--queryformat", "--changelog"]) args
-      queryformat = "%{name}-%{version}-%{release}.%{arch} (%{repoid})"
+  mdnf5 <- findExecutable "dnf5"
+  let queryformat =
+        "%{name}-%{version}-%{release}.%{arch} (%{repoid})" ++
+        if isJust mdnf5 then "\n" else ""
   -- LANG=C.utf8
   rhsm <- doesFileExist "/etc/dnf/plugins/subscription-manager.conf"
   let cmdargs = "repoquery" :
@@ -50,9 +54,10 @@ repoqueryCmd debug verbose release reposource sysarch march testing args = do
                 ["--setopt=module_platform_id=platform:" ++ show release] ++
                 concatMap renderRepoConfig repoConfigs ++
                 args
+  let dnf = fromMaybe "/usr/bin/dnf" mdnf5
   when debug $
-    warning $ unwords $ "\ndnf" : map show cmdargs
-  res <- cmdLines "dnf" cmdargs
+    warning $ unwords $ ('\n' : takeBaseName dnf) : map show cmdargs
+  res <- cmdLines dnf cmdargs
   unless (null res) $ do
     unless (verbose == Quiet) $ warning ""
     putStrLn $ L.intercalate "\n" res
