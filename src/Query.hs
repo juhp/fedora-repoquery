@@ -41,7 +41,7 @@ repoqueryCmd :: Bool -> Verbosity -> Release -> RepoSource -> Arch
 repoqueryCmd debug verbose release reposource sysarch archs testing args = do
   forM_ (if null archs then [sysarch] else archs) $ \arch -> do
     repoConfigs <- showRelease debug verbose True reposource release sysarch (Just arch) testing
-    let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","-qf","--queryformat", "--changelog"]) args
+    let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","-qf","--queryformat", "--changelog", "--provides"]) args
     mdnf5 <- findExecutable "dnf5"
     let queryformat =
           "%{name}-%{version}-%{release}.%{arch} (%{repoid})" ++
