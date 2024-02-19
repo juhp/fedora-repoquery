@@ -154,7 +154,6 @@ showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) releas
     let (reponame,(url',path')) = repoConfigArgs reposource sysarch march release repourl
         baserepo = url' +//+ path'
     when debug $ do
-      putStrLn $ "url" +-+ renderUrl url'
       putStrLn $ renderUrl baserepo
     ok <- httpExists mgr $ trailingSlash $ renderUrl baserepo
     if ok
