@@ -19,14 +19,17 @@ fdrq (args,mpkg) = do
 tests :: [([String],Maybe String)]
 tests =
   [(["rawhide"], Nothing)
+  ,(["40"], Nothing)
   ,(["39"], Nothing)
   ,(["38"], Nothing)
   ,(["rawhide"], Just "coreutils")
+  ,(["40"], Just "gtk4")
   ,(["39"], Just "bash")
   ,(["38"], Just "fontconfig")
-  ,(["-t", "38"], Just "podman")
+  ,(["-t", "39"], Just "podman")
   ,(["eln"], Just "ibus")
   ,(["epel9"], Just "ghc")
+  ,(["c10"], Just "bash")
   ,(["c9"], Just "kernel")
   ,(["c8"], Just "pandoc")
   ]

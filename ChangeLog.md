@@ -1,5 +1,10 @@
 # Revision history for fedora-repoquery
 
+## 0.3.2 (2024-02-19)
+- enable centos 10 stream (still alpha)
+- Query: disable --qf for --provides
+- minor debug tweaks
+
 ## 0.3.1 (2024-02-12)
 - use dnf5 when available
 - add --all-archs to query across all 64bit architectures
