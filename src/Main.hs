@@ -59,12 +59,13 @@ main = do
     releaseM :: ReadM Release
     releaseM = maybeReader readRelease
 
-runMain :: Arch -> Verbosity -> RepoSource -> [Arch] -> Bool -> Bool -> Command -> IO ()
+runMain :: Arch -> Verbosity -> RepoSource -> [Arch] -> Bool -> Bool
+        -> Command -> IO ()
 runMain sysarch verbose reposource archs testing debug command = do
   case command of
     CacheSize -> cacheSize
     CacheEmpties -> cleanEmptyCaches
-    List -> listVersionsCmd verbose reposource sysarch
+    List -> listVersionsCmd debug verbose reposource sysarch
     Query release args -> do
       if null args
         then if null archs
