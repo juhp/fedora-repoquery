@@ -166,6 +166,7 @@ showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) releas
                 then url' +//+ ["repo.json"]
                 else
                   case release of
+                    Centos 10 -> url' +//+ ["metadata","composeinfo.json"]
                     Centos _ -> url' +//+ ["COMPOSE_ID"] -- ["metadata","composeinfo.json"]
                     ELN -> url' +//+ ["metadata","composeinfo.json"]
                     EPEL _ -> url' +//+ ["Everything", "state"]
@@ -204,15 +205,22 @@ epelTop = ["epel"]
 getURL :: Bool -> Manager -> RepoSource -> Release -> Arch -> IO (URL,[String])
 getURL debug mgr reposource@(RepoSource koji chan _mirror) release arch =
   case release of
-    Centos 9 ->
-      let url = URL $
-            if koji
-            then "https://odcs.stream.centos.org"
-            else "https://mirror.stream.centos.org/9-stream/"
-      in return (url,[])
-    Centos 8 ->
-      return (URL "http://mirror.centos.org/centos/8-stream/", [])
-    Centos _ -> error' "old Centos is not supported yet"
+    Centos n ->
+      case n of
+        10 ->
+          let url = URL $
+                if koji
+                then "https://odcs.stream.centos.org/stream-10"
+                else "https://composes.stream.centos.org/stream-10/production/latest-CentOS-Stream/compose/"
+          in return (url,[])
+        9 ->
+          let url = URL $
+                if koji
+                then "https://odcs.stream.centos.org"
+                else "https://mirror.stream.centos.org/9-stream/"
+          in return (url,[])
+        8 -> return (URL "http://mirror.centos.org/centos/8-stream/", [])
+        _ -> error' "old Centos is not supported yet"
     ELN ->
       return (URL "https://odcs.fedoraproject.org/composes", [channel chan, "latest-Fedora-ELN", "compose"])
     EPEL n | n < 7 ->
