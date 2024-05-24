@@ -251,16 +251,16 @@ getFedoraServer debug mgr (RepoSource koji _ mirror) top path =
             warning $ "no redirect for" +-+ rurl
             return (URL downloadServer +//+ top,path)
           Just actual -> do
-            let actual' =
-                  case B.stripPrefix "https://ftp.yzyu.jp/" actual of
-                    Nothing -> actual
-                    Just rest -> "https://ftp.yz.yamagata-u.ac.jp/" <> rest
+            -- let actual' =
+            --       case B.stripPrefix "https://ftp.yzyu.jp/" actual of
+            --         Nothing -> actual
+            --         Just rest -> "https://ftp.yz.yamagata-u.ac.jp/" <> rest
             when debug $ do
               warning rurl
               warning $ "redirected to" +-+ show actual
-            when (actual /= actual') $
-              warning $ "replacing" +-+ B.unpack actual
-            return (URL $ removeSubpath path $ B.unpack actual', path)
+            -- when (actual /= actual') $
+            --   warning $ "replacing" +-+ B.unpack actual
+            return (URL $ removeSubpath path $ B.unpack actual{-'-}, path)
       -- FIXME how to handle any path
       Mirror serv -> return (URL serv,path)
       DlFpo -> return (URL "https://dl.fedoraproject.org/pub" +//+ top, path)
