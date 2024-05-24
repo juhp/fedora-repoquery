@@ -1,9 +1,6 @@
 - Centos+EPEL
 - centos-stream channels
-- modular
 - use plain dnf repoquery for system version
-- accept version alias for rawhide (eg f39)
-- --all-archs
 - query multiple versions
 - read COMPOSE_ID
 

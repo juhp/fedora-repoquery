@@ -279,7 +279,7 @@ activeFedoraRelease n = do
     Just rel -> return $ Right rel
     Nothing ->
       let ordered = L.sort $ map releaseVersion active
-      in return $ Left $ read $ head $ ordered
+      in return $ Left $ read $ head ordered
 
 pendingFedoraRelease :: Natural -> IO Bool
 pendingFedoraRelease n = do

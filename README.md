@@ -1,32 +1,67 @@
 # fedora-repoquery
 
-A work-in-progress wrapper for dnf repoquery,
+A fedora release version wrapper of dnf repoquery,
 which caches repodata separately per release.
 
 ## Usage
 Usage examples:
 
-- `fdrq rawhide firefox`
+`$ fdrq rawhide firefox`
 
-- `fdrq 39 --requires podman`
-
-- `fdrq epel9 ghc`
-
-- `fdrq c9 bash`
-
-- `fdrq eln kernel`
-
-etc
-
-`$ fdrq --version`
 ```
-0.3.2
+firefox-126.0-7.fc41.x86_64 (fedora-rawhide)
+```
+
+`$ fdrq 40 --requires filesystem`
+
+```
+setup
+```
+
+`$ fdrq epel9 ghc`
+
+```
+ghc-8.10.7-116.el9.x86_64 (epel9)
+```
+
+`$ fdrq c10 bash`
+
+```
+bash-5.2.26-3.el10.x86_64 (c10s-BaseOS)
+```
+
+`$ fdrq eln kernel`
+
+```
+kernel-6.10.0-0.rc0.20240523gitc760b3725e52.12.eln136.x86_64 (eln-BaseOS)
+```
+
+etc.
+
+The above output is generated with mdsh which suppresses the stderr
+that includes mirror repo urls with compose timestamps, like this:
+```
+$ fdrq rawhide fedrq
+2024-05-23 16:41:58 +08 <https://mirror.freedif.org/fedora/fedora/linux/development/rawhide>
+
+fedrq-1.1.0-1.fc41.noarch (fedora-rawhide)
+```
+
+Also note that dnf5 currently still outputs repo update messages to stdout
+but it is a lot faster than dnf4.
+
+## Help
+`$ fdrq --version`
+
+```
+0.4
 ```
 `$ fdrq --help`
+
 ```
 fedora-repoquery tool for querying Fedora repos for packages.
 
-Usage: fdrq [--version] [(-q|--quiet) | (-v|--verbose)] [-K|--koji] 
+Usage: fdrq [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] [-K|--koji] 
             [--devel-channel | --test-channel] [(-m|--mirror URL) | (-D|--dl)] 
             [(-s|--source) | (-A|--all-archs) | [-a|--arch ARCH]] [-t|--testing]
             [-d|--debug] 
@@ -40,6 +75,7 @@ Usage: fdrq [--version] [(-q|--quiet) | (-v|--verbose)] [-K|--koji]
 Available options:
   -h,--help                Show this help text
   --version                Show version
+  -4,--dnf4                Use dnf4 instead of dnf5 (if available)
   -q,--quiet               Avoid output to stderr
   -v,--verbose             Show stderr from dnf repoquery
   -K,--koji                Use Koji buildroot
@@ -67,7 +103,7 @@ fedora-repoquery can be installed from
 Use `stack install fedora-repoquery` or `cabal install fedora-repoquery`
 to build the latest release.
 
-To build from git: `stack install` or `cabal install`.
+To build from git: `stack install` or `cabal install` or `cabal-rpm install`.
 
 ## Contributing
 fedora-repoquery is distributed under the GPL license version 3 or later.

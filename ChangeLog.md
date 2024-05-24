@@ -1,5 +1,13 @@
 # Revision history for fedora-repoquery
 
+## 0.4 (2024-05-24)
+- add --dnf4 option to use dnf4 (actually /usr/bin/dnf-3) instead of dnf5
+- rawhide and oldest active releases are now determined/cached via Bodhi API
+- can now query with rawhide version (eg 41 currently)
+- --requires do not allow --qf
+- --list now shows active fedora releases
+- for centos and eln only check compose via BaseOS repo
+
 ## 0.3.2 (2024-02-19)
 - enable centos 10 stream (still alpha)
 - Query: disable --qf for --provides
