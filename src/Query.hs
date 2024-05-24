@@ -188,10 +188,10 @@ showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) releas
             else return Nothing
         whenJust mtime $ \utc -> do
           date <- utcToLocalZonedTime utc
-          (if warn then warning else putStrLn) $ show date ++ " <" ++ renderUrl url' ++ ">"
+          (if warn then warning else putStrLn) $ show date +-+ "<" ++ renderUrl url' ++ ">"
       return (reponame, url' +//+ path')
       else
-        error' $ renderUrl baserepo ++ " not found"
+      error' $ renderUrl baserepo +-+ "not found"
 
 downloadServer :: String
 downloadServer = "https://download.fedoraproject.org/pub"
