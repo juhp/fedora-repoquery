@@ -132,22 +132,21 @@ getURL debug mgr reposource@(RepoSource koji chan _mirror) release arch =
           if n < oldest
           then
           return
-          (URL "https://archives.fedoraproject.org/pub/archive" +//+ fedoraTop arch, ["releases", show n])
+          (URL "https://archives.fedoraproject.org/pub/archive" +//+ fedoraTop, ["releases", show n])
           else error' $ "unknown fedora release:" +-+ show n
         Right rel ->
           let pending = releaseState rel == "pending"
               rawhide = pending && releaseBranch rel == "rawhide"
               releasestr = if rawhide then "rawhide" else show n
-          in getFedoraServer debug mgr reposource (fedoraTop arch)
+          in getFedoraServer debug mgr reposource fedoraTop
              [if pending then "development" else "releases", releasestr]
-    Rawhide -> getFedoraServer debug mgr reposource (fedoraTop arch) ["development", "rawhide"]
-
-fedoraTop :: Arch -> [String]
-fedoraTop arch =
-  -- FIXME support older archs
-  if arch `elem` [PPC64LE, S390X]
-  then ["fedora-secondary"]
-  else ["fedora", "linux"]
+    Rawhide -> getFedoraServer debug mgr reposource fedoraTop ["development", "rawhide"]
+  where
+    fedoraTop =
+      -- FIXME support older archs
+      if arch `elem` [PPC64LE, S390X]
+      then ["fedora-secondary"]
+      else ["fedora", "linux"]
 
 repoConfigArgs :: RepoSource -> Arch -> Maybe Arch -> Release -> (String,URL)
                -> (String,(URL,[String]))
