@@ -16,17 +16,27 @@ fdrq (args,mpkg) = do
     else putStrLn out
   unless ok $ error' "failed"
 
+-- copied from dl-fedora
+branched :: Int
+branched = 40
+current, previous, prevprev, rawhide :: String
+current = show branched
+previous = show (branched - 1)
+prevprev = show (branched - 2)
+rawhide = show (branched + 1)
+
 tests :: [([String],Maybe String)]
 tests =
   [(["rawhide"], Nothing)
-  ,(["40"], Nothing)
-  ,(["39"], Nothing)
-  ,(["38"], Nothing)
+  ,([current], Nothing)
+  ,([previous], Nothing)
+  ,([prevprev], Nothing)
   ,(["rawhide"], Just "coreutils")
-  ,(["40"], Just "gtk4")
-  ,(["39"], Just "bash")
-  ,(["38"], Just "fontconfig")
-  ,(["-t", "39"], Just "podman")
+  ,([rawhide], Just "coreutils")
+  ,([current], Just "gtk4")
+  ,([previous], Just "bash")
+  ,([prevprev], Just "fontconfig")
+  ,(["-t", previous], Just "podman")
   ,(["eln"], Just "ibus")
   ,(["epel9"], Just "ghc")
   ,(["c10"], Just "bash")
