@@ -7,6 +7,7 @@
 - --requires do not allow --qf
 - --list now shows active fedora releases
 - for centos and eln only check compose via BaseOS repo
+- map version 11 to eln
 
 ## 0.3.2 (2024-02-19)
 - enable centos 10 stream (still alpha)
