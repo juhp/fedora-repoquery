@@ -1,11 +1,11 @@
 {-# LANGUAGE CPP, OverloadedStrings #-}
 
 module Query (
-  getFedoraServer,
   repoqueryCmd,
   showReleaseCmd,
   downloadServer,
-  fedoraTop
+  activeFedoraReleases,
+  BodhiRelease(..)
   ) where
 
 import Control.Monad.Extra

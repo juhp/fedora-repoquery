@@ -66,7 +66,7 @@ runMain sysarch dnf4 verbose reposource archs testing debug command = do
   case command of
     CacheSize -> cacheSize
     CacheEmpties -> cleanEmptyCaches
-    List -> listVersionsCmd debug verbose reposource sysarch
+    List -> listVersionsCmd
     Query release args -> do
       if null args
         then if null archs
