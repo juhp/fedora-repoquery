@@ -242,37 +242,41 @@ getURL debug mgr reposource@(RepoSource koji chan _mirror) release arch =
           else error' $ "unknown fedora release:" +-+ show n
         Right rel ->
           let pending = releaseState rel == "pending"
-              rawhide = pending && releaseRawhide rel
+              rawhide = pending && releaseBranch rel == "rawhide"
               releasestr = if rawhide then "rawhide" else show n
           in getFedoraServer debug mgr reposource (fedoraTop arch)
              [if pending then "development" else "releases", releasestr]
     Rawhide -> getFedoraServer debug mgr reposource (fedoraTop arch) ["development", "rawhide"]
 
 data BodhiRelease =
-  Release {releaseVersion :: String,
+  Release {releaseVersion :: String, -- to handle eln
            releaseState ::  String,
-           releaseRawhide :: Bool
+           releaseBranch :: String
           }
   deriving Eq
+
+activeFedoraReleases :: IO [BodhiRelease]
+activeFedoraReleases =
+  L.nub . mapMaybe maybeRelease <$> getCachedJSONQuery "fedora-repoquery" "fedora-bodhi-releases-active" (bodhiReleases (makeKey "exclude_archived" "1")) 1000
+  where
+    maybeRelease obj = do
+      version <- lookupKey "version" obj
+      state <- lookupKey "state" obj
+      branch <- lookupKey "branch" obj
+      return $ Release version state branch
 
 -- Left is oldest active version
 activeFedoraRelease :: Natural -> IO (Either Natural BodhiRelease)
 -- F37 not archived yet: https://pagure.io/releng/issue/12124
-activeFedoraRelease 37 = return $ Right $ Release "37" "current" False
+activeFedoraRelease 37 = return $ Right $ Release "37" "current" "f37"
 activeFedoraRelease n = do
-  active <- L.nub . mapMaybe maybeRelease <$> getCachedJSONQuery "fedora-repoquery" "fedora-bodhi-releases-active" (bodhiReleases (makeKey "exclude_archived" "1")) 1000
+  active <- activeFedoraReleases
   when (null active) $ error' "failed to find active releases with Bodhi API"
   case L.find (\r -> releaseVersion r == show n) active of
     Just rel -> return $ Right rel
     Nothing ->
       let ordered = L.sort $ map releaseVersion active
       in return $ Left $ read $ head $ ordered
-  where
-    maybeRelease obj = do
-      version <- lookupKey "version" obj
-      state <- lookupKey "state" obj
-      branch <- lookupKey "branch" obj
-      return $ Release version state $ (branch :: String) == "rawhide"
 
 pendingFedoraRelease :: Natural -> IO Bool
 pendingFedoraRelease n = do
