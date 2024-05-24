@@ -232,21 +232,56 @@ getURL debug mgr reposource@(RepoSource koji chan _mirror) release arch =
                (URL "https://archives.fedoraproject.org/pub/archive/epel", [show n])
     EPEL n -> getFedoraServer debug mgr reposource epelTop [show n]
     EPELNext n -> getFedoraServer debug mgr reposource (epelTop ++ ["next"]) [show n]
-    -- FIXME hardcoded
-    Fedora n | n < 37 ->
-               return
-               (URL "https://archives.fedoraproject.org/pub/archive" +//+ fedoraTop arch, ["releases", show n])
-    -- FIXME handle rawhide version
     Fedora n -> do
-      pending <- pendingFedoraRelease n
-      getFedoraServer debug mgr reposource (fedoraTop arch)
-        [if pending then "development" else "releases", show n]
+      ebodhirelease <- activeFedoraRelease n
+      case ebodhirelease of
+        Left oldest ->
+          if n < oldest
+          then
+          return
+          (URL "https://archives.fedoraproject.org/pub/archive" +//+ fedoraTop arch, ["releases", show n])
+          else error' $ "unknown fedora release:" +-+ show n
+        Right rel ->
+          let pending = releaseState rel == "pending"
+              rawhide = pending && releaseRawhide rel
+              releasestr = if rawhide then "rawhide" else show n
+          in getFedoraServer debug mgr reposource (fedoraTop arch)
+             [if pending then "development" else "releases", releasestr]
     Rawhide -> getFedoraServer debug mgr reposource (fedoraTop arch) ["development", "rawhide"]
+
+data BodhiRelease =
+  Release {releaseVersion :: String,
+           releaseState ::  String,
+           releaseRawhide :: Bool
+          }
+  deriving Eq
+
+-- Left is oldest active version
+activeFedoraRelease :: Natural -> IO (Either Natural BodhiRelease)
+-- F37 not archived yet: https://pagure.io/releng/issue/12124
+activeFedoraRelease 37 = return $ Right $ Release "37" "current" False
+activeFedoraRelease n = do
+  active <- L.nub . mapMaybe maybeRelease <$> getCachedJSONQuery "fedora-repoquery" "fedora-bodhi-releases-active" (bodhiReleases (makeKey "exclude_archived" "1")) 1000
+  when (null active) $ error' "failed to find active releases with Bodhi API"
+  case L.find (\r -> releaseVersion r == show n) active of
+    Just rel -> return $ Right rel
+    Nothing ->
+      let ordered = L.sort $ map releaseVersion active
+      in return $ Left $ read $ head $ ordered
+  where
+    maybeRelease obj = do
+      version <- lookupKey "version" obj
+      state <- lookupKey "state" obj
+      branch <- lookupKey "branch" obj
+      return $ Release version state $ (branch :: String) == "rawhide"
 
 pendingFedoraRelease :: Natural -> IO Bool
 pendingFedoraRelease n = do
-  pending <- mapMaybe (lookupKey "branch") <$> getCachedJSONQuery "fedora-bodhi-releases-pending" "fedora-bodhi-releases-pending" (bodhiReleases (makeKey "state" "pending")) 1000
-  return $ show (Fedora n) `elem` pending
+  eactive <- activeFedoraRelease n
+  return $
+    case eactive of
+      Left _ -> False
+      Right rel -> releaseState rel == "pending"
 
 getFedoraServer :: Bool -> Manager -> RepoSource -> [String] -> [String]
                 -> IO (URL,[String])
