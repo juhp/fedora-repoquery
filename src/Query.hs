@@ -133,31 +133,34 @@ showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) releas
   (url,path) <- getURL debug mgr reposource release arch
   let urlpath = url +//+ path
   when debug $ print $ renderUrl urlpath
-  repos <-
+  (basicrepos,morerepos) <-
     case release of
       -- RepoKoji -> ["koji-fedora"]
-      Centos n -> return [("BaseOS",urlpath),
-                          ("AppStream",url),
-                          (if n >= 9 then "CRB" else "PowerTools",url)]
-      ELN -> return [("BaseOS",urlpath),
-                     ("AppStream",urlpath),
-                     ("CRB",urlpath)]
-      Rawhide -> return [("development", urlpath)]
+      Centos n -> return ([("BaseOS",urlpath)],
+                          [("AppStream",url),(if n >= 9 then "CRB" else "PowerTools",url)])
+      ELN -> return ([("BaseOS",urlpath)],
+                     [("AppStream",urlpath),("CRB",urlpath)])
+      Rawhide -> return ([("development", urlpath)],[])
       Fedora n -> do
         pending <- pendingFedoraRelease n
         return $
           if pending
-          then [("development", urlpath)]
-          else ("releases", urlpath) :
-               ("updates", url +//+ ["updates",show n]) :
-               [("updates-testing", url +//+ ["updates","testing",show n]) | testing]
-      EPEL n -> return $
-                 ("epel",urlpath) :
-                 [("epel-testing",url +//+ ["testing", show n]) | testing]
-      EPELNext _n -> return [("epelnext",urlpath)]
-  forM repos $ \repourl -> do
-    let (reponame,(url',path')) = repoConfigArgs reposource sysarch march release repourl
-        baserepo = url' +//+ path'
+          then ([("development", urlpath)],[])
+          else (("releases", urlpath) :
+                ("updates", url +//+ ["updates",show n]) :
+                [("updates-testing", url +//+ ["updates","testing",show n]) | testing],
+                [])
+      EPEL n -> return
+                (("epel",urlpath) :
+                 [("epel-testing",url +//+ ["testing", show n]) | testing],
+                 [])
+      EPELNext _n -> return ([("epelnext",urlpath)],[])
+  let basicrepourls =
+        map (repoConfigArgs reposource sysarch march release) basicrepos
+      morerepourls =
+        map (repoConfigArgs reposource sysarch march release) morerepos
+  forM_ basicrepourls $ \(reponame,(url',path')) -> do
+    let baserepo = url' +//+ path'
     when debug $ print $ renderUrl baserepo
     ok <- httpExists mgr $ trailingSlash $ renderUrl baserepo
     if ok
@@ -188,9 +191,9 @@ showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) releas
         whenJust mtime $ \utc -> do
           date <- utcToLocalZonedTime utc
           (if warn then warning else putStrLn) $ show date +-+ "<" ++ renderUrl url' ++ ">"
-      return (reponame, url' +//+ path')
       else
       error' $ renderUrl baserepo +-+ "not found"
+  return $ map (fmap (uncurry (+//+))) $ basicrepourls ++ morerepourls
 
 downloadServer :: String
 downloadServer = "https://download.fedoraproject.org/pub"
