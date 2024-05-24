@@ -154,7 +154,7 @@ repoConfigArgs :: RepoSource -> Arch -> Maybe Arch -> Release -> (String,URL)
 repoConfigArgs (RepoSource False _chan mirror) sysarch march release (repo,url) =
   let arch = fromMaybe sysarch march
       archsuffix = if arch == sysarch then "" else "-" ++ showArch arch
-      reponame = repoVersion release repo ++ archsuffix ++
+      reponame = repoVersion ++ archsuffix ++
                  case mirror of
                    DownloadFpo -> ""
                    Mirror serv ->
@@ -169,6 +169,19 @@ repoConfigArgs (RepoSource False _chan mirror) sysarch march release (repo,url) 
           Fedora _ -> ["Everything", showArch arch] ++ (if arch == Source then ["tree"] else ["os" | repo `elem` ["releases","development"]])
           Rawhide -> ["Everything", showArch arch, if arch == Source then "tree" else "os"]
   in (reponame, (url, path ++ ["/"]))
+  where
+    repoVersion :: String
+    repoVersion =
+      if release == Rawhide
+      then "fedora-rawhide"
+      else
+        show release ++
+        case release of
+          Centos _ -> '-':repo
+          ELN -> '-':repo
+          EPEL _ -> if repo == "epel-testing" then "-testing" else ""
+          Fedora _ | repo /= "releases" -> '-':repo
+          _ -> ""
 -- koji
 repoConfigArgs (RepoSource True _chan _mirror) sysarch march release (repo,url) =
   let (compose,path) =
@@ -183,17 +196,6 @@ repoConfigArgs (RepoSource True _chan _mirror) sysarch march release (repo,url) 
 --   let (compose,path) = (["composes", channel chan, "latest-CentOS-Stream", "compose"], repo)
 --       reponame = repo ++ "-Centos-" ++ show release ++ "-Stream" ++ "-" ++ show chan ++ if arch == sysarch then "" else "-" ++ showArch arch
 --   in (reponame, (url +//+ compose, [path, showArch arch, "os/"]))
-
-repoVersion :: Release -> String -> String
-repoVersion Rawhide _ = "fedora-rawhide"
-repoVersion release repo =
-  show release ++
-  case release of
-    Centos _ -> '-':repo
-    ELN -> '-':repo
-    EPEL _ -> if repo == "epel-testing" then "-testing" else ""
-    Fedora _ | repo /= "releases" -> '-':repo
-    _ -> ""
 
 getFedoraServer :: Bool -> Manager -> RepoSource -> [String] -> [String]
                 -> IO (URL,[String])
