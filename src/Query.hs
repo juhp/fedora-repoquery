@@ -36,13 +36,17 @@ showReleaseCmd debug reposource release sysarch march testing =
   void $ showRelease debug Normal False reposource release sysarch march testing
 
 -- FIXME --no-redirect?
-repoqueryCmd :: Bool -> Verbosity -> Release -> RepoSource -> Arch
+-- FIXME error if no testing repo
+repoqueryCmd :: Bool -> Bool -> Verbosity -> Release -> RepoSource -> Arch
              -> [Arch] -> Bool -> [String] -> IO ()
-repoqueryCmd debug verbose release reposource sysarch archs testing args = do
+repoqueryCmd dnf4 debug verbose release reposource sysarch archs testing args = do
   forM_ (if null archs then [sysarch] else archs) $ \arch -> do
     repoConfigs <- showRelease debug verbose True reposource release sysarch (Just arch) testing
     let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","-qf","--queryformat", "--changelog", "--provides", "--requires"]) args
-    mdnf5 <- findExecutable "dnf5"
+    -- dnf5 writes repo update output to stdout
+    -- https://github.com/rpm-software-management/dnf5/issues/1361
+    -- but seems to cache better
+    mdnf5 <- if dnf4 then return Nothing else findExecutable "dnf5"
     let queryformat =
           "%{name}-%{version}-%{release}.%{arch} (%{repoid})" ++
           if isJust mdnf5 then "\n" else ""
@@ -57,7 +61,8 @@ repoqueryCmd debug verbose release reposource sysarch archs testing args = do
                   ["--setopt=module_platform_id=platform:" ++ show release] ++
                   concatMap renderRepoConfig repoConfigs ++
                   args
-    let dnf = fromMaybe "/usr/bin/dnf" mdnf5
+    -- FIXME drop "/usr/bin/"?
+    let dnf = fromMaybe "/usr/bin/dnf-3" mdnf5
     when debug $
       warning $ unwords $ ('\n' : takeBaseName dnf) : map show cmdargs
     res <- cmdLines dnf cmdargs
@@ -118,7 +123,7 @@ repoConfigArgs (RepoSource True _chan _mirror) sysarch march release (repo,url) 
 
 renderRepoConfig :: (String, URL) -> [String]
 renderRepoConfig (name, url) =
-  ["--repofrompath", name ++ "," ++ renderUrl url, "--repo", name]
+  ["--repofrompath=" ++ name ++ "," ++ renderUrl url, "--repo=" ++ name, "--setopt=" ++ name ++ ".metadata_expire=6h" ]
 
 showRelease :: Bool -> Verbosity -> Bool -> RepoSource -> Release -> Arch
             -> Maybe Arch -> Bool -> IO [(String, URL)]

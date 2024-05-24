@@ -39,7 +39,8 @@ main = do
     ("where RELEASE is {fN or N (fedora), 'rawhide', epelN, epelN-next, cN (centos stream), 'eln'}, with N the release version number." +-+
      "https://github.com/juhp/fedora-repoquery#readme") $
     runMain sysarch
-    <$> (flagWith' Quiet 'q' "quiet" "Avoid output to stderr" <|> flagWith Normal Verbose 'v' "verbose" "Show stderr from dnf repoquery")
+    <$> switchWith '4' "dnf4" "Use dnf4 instead of dnf5 (if available)"
+    <*> (flagWith' Quiet 'q' "quiet" "Avoid output to stderr" <|> flagWith Normal Verbose 'v' "verbose" "Show stderr from dnf repoquery")
     <*> (RepoSource
           <$> switchWith 'K' "koji" "Use Koji buildroot"
           <*> (flagLongWith' ChanDevel "devel-channel" "Use eln development compose" <|>
@@ -59,9 +60,9 @@ main = do
     releaseM :: ReadM Release
     releaseM = maybeReader readRelease
 
-runMain :: Arch -> Verbosity -> RepoSource -> [Arch] -> Bool -> Bool
+runMain :: Arch -> Bool -> Verbosity -> RepoSource -> [Arch] -> Bool -> Bool
         -> Command -> IO ()
-runMain sysarch verbose reposource archs testing debug command = do
+runMain sysarch dnf4 verbose reposource archs testing debug command = do
   case command of
     CacheSize -> cacheSize
     CacheEmpties -> cleanEmptyCaches
@@ -71,4 +72,4 @@ runMain sysarch verbose reposource archs testing debug command = do
         then if null archs
              then showReleaseCmd debug reposource release sysarch Nothing testing
              else forM_ archs $ \arch -> showReleaseCmd debug reposource release sysarch (Just arch) testing
-      else repoqueryCmd debug verbose release reposource sysarch archs testing args
+      else repoqueryCmd dnf4 debug verbose release reposource sysarch archs testing args
