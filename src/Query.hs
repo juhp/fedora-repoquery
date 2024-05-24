@@ -132,7 +132,7 @@ showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) releas
   let arch = fromMaybe sysarch march
   (url,path) <- getURL debug mgr reposource release arch
   let urlpath = url +//+ path
-  when debug $ putStrLn $ renderUrl urlpath
+  when debug $ print $ renderUrl urlpath
   repos <-
     case release of
       -- RepoKoji -> ["koji-fedora"]
@@ -158,8 +158,7 @@ showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) releas
   forM repos $ \repourl -> do
     let (reponame,(url',path')) = repoConfigArgs reposource sysarch march release repourl
         baserepo = url' +//+ path'
-    when debug $ do
-      putStrLn $ renderUrl baserepo
+    when debug $ print $ renderUrl baserepo
     ok <- httpExists mgr $ trailingSlash $ renderUrl baserepo
     if ok
       then do
@@ -181,7 +180,7 @@ showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) releas
                                 then ["Everything", "state"]
                                 else ["COMPOSE_ID"]
                     Rawhide -> url' +//+ ["COMPOSE_ID"]
-          when debug $ putStrLn $ renderUrl composeinfo
+          when debug $ print $ renderUrl composeinfo
           exists <- httpExists mgr (renderUrl composeinfo)
           if exists
             then httpLastModified mgr (renderUrl composeinfo)
