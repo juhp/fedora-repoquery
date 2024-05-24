@@ -21,12 +21,11 @@ import SimpleCmd (cmd, (+-+))
 import SimpleCmdArgs
 import System.IO (BufferMode(NoBuffering), hSetBuffering, stdout)
 
---import Distribution.Fedora.Repoquery
-
-import Cache
-import List
+import Cache (cacheSize, cleanEmptyCaches)
+import List (listVersionsCmd)
 import Paths_fedora_repoquery (version)
-import Query
+import Query (repoqueryCmd)
+import ShowRelease (showReleaseCmd, downloadServer)
 import Types
 
 data Command = Query Release [String] | CacheSize | CacheEmpties | List

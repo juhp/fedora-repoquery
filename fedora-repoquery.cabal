@@ -37,6 +37,7 @@ executable fdrq
                        Common
                        List
                        Query
+                       ShowRelease
                        Types
                        URL
   hs-source-dirs:      src
