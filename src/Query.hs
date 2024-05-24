@@ -11,6 +11,7 @@ import SimpleCmd (cmdLines)
 import System.Directory (doesFileExist, findExecutable)
 import System.FilePath (takeBaseName)
 
+import Arch
 import Common (warning)
 import ShowRelease (showRelease)
 import Types

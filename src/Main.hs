@@ -17,23 +17,25 @@ import Control.Monad (forM_)
 #if !MIN_VERSION_simple_cmd_args(0,1,7)
 import Options.Applicative (eitherReader, maybeReader, ReadM)
 #endif
-import SimpleCmd (cmd, (+-+))
+import SimpleCmd ((+-+))
 import SimpleCmdArgs
 import System.IO (BufferMode(NoBuffering), hSetBuffering, stdout)
 
+import Arch
 import Cache (cacheSize, cleanEmptyCaches)
 import List (listVersionsCmd)
 import Paths_fedora_repoquery (version)
 import Query (repoqueryCmd)
 import ShowRelease (showReleaseCmd, downloadServer)
-import Types
+import Types (Channel(..), Mirror(..), Release, RepoSource(..), Verbosity(..),
+              readRelease)
 
 data Command = Query Release [String] | CacheSize | CacheEmpties | List
 
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
-  sysarch <- readArch <$> cmd "rpm" ["--eval", "%{_arch}"]
+  sysarch <- getSystemArch
   simpleCmdArgs' (Just version) "fedora-repoquery tool for querying Fedora repos for packages."
     ("where RELEASE is {fN or N (fedora), 'rawhide', epelN, epelN-next, cN (centos stream), 'eln'}, with N the release version number." +-+
      "https://github.com/juhp/fedora-repoquery#readme") $

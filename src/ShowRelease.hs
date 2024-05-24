@@ -19,6 +19,7 @@ import Network.HTTP.Directory (httpExists, httpLastModified,httpManager,
 import SimpleCmd (error', (+-+))
 import Text.Regex (mkRegex, subRegex)
 
+import Arch
 import BodhiRelease
 import Common (warning)
 import Types
