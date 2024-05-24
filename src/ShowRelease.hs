@@ -12,15 +12,14 @@ where
 import Control.Monad.Extra (forM_, unless, void, when, whenJust)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.List as L
-import Data.Maybe (fromMaybe, mapMaybe)
+import Data.Maybe (fromMaybe)
 import Data.Time.LocalTime (utcToLocalZonedTime)
-import Fedora.Bodhi (bodhiReleases, lookupKey, makeKey)
-import System.Cached.JSON (getCachedJSONQuery)
 import Network.HTTP.Directory (httpExists, httpLastModified,httpManager,
                                httpRedirect, Manager, trailingSlash)
 import SimpleCmd (error', (+-+))
 import Text.Regex (mkRegex, subRegex)
 
+import BodhiRelease
 import Common (warning)
 import Types
 import URL
@@ -149,44 +148,6 @@ fedoraTop arch =
   if arch `elem` [PPC64LE, S390X]
   then ["fedora-secondary"]
   else ["fedora", "linux"]
-
-data BodhiRelease =
-  Release {releaseVersion :: String, -- to handle eln
-           releaseState ::  String,
-           releaseBranch :: String
-          }
-  deriving Eq
-
--- Left is oldest active version
-activeFedoraRelease :: Natural -> IO (Either Natural BodhiRelease)
--- F37 not archived yet: https://pagure.io/releng/issue/12124
-activeFedoraRelease 37 = return $ Right $ Release "37" "current" "f37"
-activeFedoraRelease n = do
-  active <- activeFedoraReleases
-  when (null active) $ error' "failed to find active releases with Bodhi API"
-  case L.find (\r -> releaseVersion r == show n) active of
-    Just rel -> return $ Right rel
-    Nothing ->
-      let ordered = L.sort $ map releaseVersion active
-      in return $ Left $ read $ head ordered
-
-activeFedoraReleases :: IO [BodhiRelease]
-activeFedoraReleases =
-  L.nub . mapMaybe maybeRelease <$> getCachedJSONQuery "fedora-repoquery" "fedora-bodhi-releases-active" (bodhiReleases (makeKey "exclude_archived" "1")) 1000
-  where
-    maybeRelease obj = do
-      version <- lookupKey "version" obj
-      state <- lookupKey "state" obj
-      branch <- lookupKey "branch" obj
-      return $ Release version state branch
-
-pendingFedoraRelease :: Natural -> IO Bool
-pendingFedoraRelease n = do
-  eactive <- activeFedoraRelease n
-  return $
-    case eactive of
-      Left _ -> False
-      Right rel -> releaseState rel == "pending"
 
 repoConfigArgs :: RepoSource -> Arch -> Maybe Arch -> Release -> (String,URL)
                -> (String,(URL,[String]))
