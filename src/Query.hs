@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Query (
   repoqueryCmd,
@@ -7,9 +7,6 @@ module Query (
 import Control.Monad.Extra
 import qualified Data.List.Extra as L
 import Data.Maybe (isJust, fromMaybe)
-#if !MIN_VERSION_base(4,11,0)
-import Data.Monoid ((<>))
-#endif
 import SimpleCmd (cmdLines)
 import System.Directory (doesFileExist, findExecutable)
 import System.FilePath (takeBaseName)

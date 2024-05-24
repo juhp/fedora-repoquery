@@ -11,7 +11,7 @@ where
 
 import Control.Monad.Extra (forM_, unless, void, when, whenJust)
 import qualified Data.ByteString.Char8 as B
-import qualified Data.List as L
+import Data.List.Extra
 import Data.Maybe (fromMaybe)
 import Data.Time.LocalTime (utcToLocalZonedTime)
 import Network.HTTP.Directory (httpExists, httpLastModified,httpManager,
@@ -82,8 +82,8 @@ showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) releas
                     EPEL _ -> url' +//+ ["Everything", "state"]
                     EPELNext _ -> url' +//+ ["Everything", "state"]
                     Fedora _ -> url' +//+
-                                if "updates" `L.isSuffixOf` reponame ||
-                                   "updates-testing" `L.isSuffixOf` reponame
+                                if "updates" `isSuffixOf` reponame ||
+                                   "updates-testing" `isSuffixOf` reponame
                                 then ["Everything", "state"]
                                 else ["COMPOSE_ID"]
                     Rawhide -> url' +//+ ["COMPOSE_ID"]
@@ -206,22 +206,22 @@ getFedoraServer debug mgr (RepoSource koji _ mirror) top path =
       DownloadFpo -> do
         let url = URL downloadServer +//+ top ++ path
             rurl = renderUrl url
-        redir <- httpRedirect mgr rurl
+        redir <- fmap B.unpack <$> httpRedirect mgr rurl
         case redir of
           Nothing -> do
             warning $ "no redirect for" +-+ rurl
             return (URL downloadServer +//+ top,path)
           Just actual -> do
-            -- let actual' =
-            --       case B.stripPrefix "https://ftp.yzyu.jp/" actual of
-            --         Nothing -> actual
-            --         Just rest -> "https://ftp.yz.yamagata-u.ac.jp/" <> rest
             when debug $ do
               warning rurl
               warning $ "redirected to" +-+ show actual
-            -- when (actual /= actual') $
-            --   warning $ "replacing" +-+ B.unpack actual
-            return (URL $ removeSubpath path $ B.unpack actual{-'-}, path)
+            let actualstr =
+                  if "https://ftp.yzyu.jp/" `isPrefixOf` actual
+                  then replace "https://" "http://" actual
+                  else actual
+            when (actual /= actualstr) $
+              warning $ "replacing to" +-+ actualstr
+            return (URL $ removeSubpath path actualstr, path)
       -- FIXME how to handle any path
       Mirror serv -> return (URL serv,path)
       DlFpo -> return (URL "https://dl.fedoraproject.org/pub" +//+ top, path)
