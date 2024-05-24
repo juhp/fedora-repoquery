@@ -2,11 +2,11 @@
 
 ## 0.4 (2024-05-24)
 - add --dnf4 option to use dnf4 (actually /usr/bin/dnf-3) instead of dnf5
-- rawhide and oldest active releases are now determined/cached via Bodhi API
-- can now query with rawhide version (eg 41 currently)
-- --requires do not allow --qf
-- --list now shows active fedora releases
-- for centos and eln only check compose via BaseOS repo
+- oldest and newest active releases are now determined/cached via Bodhi API
+- can now query with rawhide by version (eg 41 currently)
+- disable --qf for --requires
+- --list now only shows active fedora releases
+- for centos and eln only check compose for the BaseOS repo
 - map version 11 to eln
 
 ## 0.3.2 (2024-02-19)

@@ -2,8 +2,9 @@ name:                fedora-repoquery
 version:             0.4
 synopsis:            Fedora repoquery tool
 description:
-        A CLI tool for querying Fedora packages
-        including their version and repo location
+        A CLI tool for repoquerying Fedora packages:
+        by default it displays their version and repo location
+        with compose timestamp
 license:             GPL-3
 license-file:        COPYING
 author:              Jens Petersen <juhpetersen@gmail.com>
