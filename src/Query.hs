@@ -17,6 +17,23 @@ import ShowRelease (showRelease)
 import Types
 import URL (URL, renderUrl)
 
+-- from dnf5 repoquery.cpp
+pkg_attrs_options :: [String]
+pkg_attrs_options =
+  map ("--" ++)
+  [
+    "conflicts",
+    "depends",
+    "enhances",
+    "obsoletes",
+    "provides",
+    "recommends",
+    "requires",
+    "requires_pre",
+    "suggests",
+    "supplements"
+  ]
+
 -- FIXME --no-redirect?
 -- FIXME error if no testing repo
 repoqueryCmd :: Bool -> Bool -> Verbosity -> Release -> RepoSource -> Arch
@@ -24,7 +41,7 @@ repoqueryCmd :: Bool -> Bool -> Verbosity -> Release -> RepoSource -> Arch
 repoqueryCmd dnf4 debug verbose release reposource sysarch archs testing args = do
   forM_ (if null archs then [sysarch] else archs) $ \arch -> do
     repoConfigs <- showRelease debug verbose True reposource release sysarch (Just arch) testing
-    let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","-qf","--queryformat", "--changelog", "--provides", "--requires"]) args
+    let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","-qf","--queryformat", "--changelog"] ++ pkg_attrs_options) args
     -- dnf5 writes repo update output to stdout
     -- https://github.com/rpm-software-management/dnf5/issues/1361
     -- but seems to cache better
