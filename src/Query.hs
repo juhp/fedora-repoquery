@@ -19,9 +19,9 @@ import ShowRelease (showRelease)
 import Types
 import URL (URL, renderUrl)
 
--- from dnf5 repoquery.cpp
-pkg_attrs_options :: [String]
-pkg_attrs_options =
+-- from dnf5 repoquery.cpp pkg_attrs_options
+pkgAttrsOptions :: [String]
+pkgAttrsOptions =
   map ("--" ++)
   [
     "conflicts",
@@ -46,7 +46,7 @@ repoqueryCmd dnf4 debug verbose nourlcheck release reposource sysarch archs test
       if release == System
       then return []
       else showRelease debug verbose True nourlcheck reposource release sysarch (Just arch) testing
-    let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","--qf","--queryformat", "--changelog"] ++ pkg_attrs_options) args
+    let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","--qf","--queryformat", "--changelog"] ++ pkgAttrsOptions) args
     -- dnf5 writes repo update output to stdout
     -- https://github.com/rpm-software-management/dnf5/issues/1361
     -- but seems to cache better
@@ -91,7 +91,7 @@ repoqueryCmd dnf4 debug verbose nourlcheck release reposource sysarch archs test
                                              then as
                                              else x : (y ++ "\n") : rest
                                   Nothing -> as
-                              | True = x : tweakQf (y:rest)
+                              | otherwise = x : tweakQf (y:rest)
         tweakQf xs = xs
 
 renderRepoConfig :: (String, URL) -> [String]
