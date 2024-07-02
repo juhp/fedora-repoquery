@@ -5,8 +5,10 @@ module Query (
   ) where
 
 import Control.Monad.Extra
+import Data.Char (isSpace)
 import qualified Data.List.Extra as L
 import Data.Maybe (isJust, fromMaybe)
+import Safe (lastMay)
 import SimpleCmd (cmdLines)
 import System.Directory (doesFileExist, findExecutable)
 import System.FilePath (takeBaseName)
@@ -59,7 +61,7 @@ repoqueryCmd dnf4 debug verbose release reposource sysarch archs testing args = 
                   -- drop modules for F39+
                   ["--setopt=module_platform_id=platform:" ++ show release] ++
                   concatMap renderRepoConfig repoConfigs ++
-                  args
+                  tweakedArgs (isJust mdnf5)
     -- FIXME drop "/usr/bin/"?
     let dnf = fromMaybe "/usr/bin/dnf-3" mdnf5
     when debug $
@@ -68,6 +70,25 @@ repoqueryCmd dnf4 debug verbose release reposource sysarch archs testing args = 
     unless (null res) $ do
       unless (verbose == Quiet) $ warning ""
       putStrLn $ L.intercalate "\n" res
+  where
+    tweakedArgs dnf5 =
+      if not dnf5
+      then args
+      else tweakQf $ map tweakInfo args
+      where
+        -- dnf5 only has --info not -i
+        tweakInfo "-i" = "--info"
+        tweakInfo arg = arg
+
+        -- dnf5 doesn't append \n to queryformat
+        tweakQf as@(x:y:rest) | x `elem` ["--qf","--queryformat"] =
+                                case lastMay y of
+                                  Just sp -> if isSpace sp
+                                             then as
+                                             else x : (y ++ "\n") : rest
+                                  Nothing -> as
+                              | True = x : tweakQf (y:rest)
+        tweakQf xs = xs
 
 renderRepoConfig :: (String, URL) -> [String]
 renderRepoConfig (name, url) =

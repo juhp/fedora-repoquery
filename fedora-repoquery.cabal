@@ -54,6 +54,7 @@ executable fdrq
                        http-client,
                        http-directory >= 0.1.4 && (< 0.1.6 || >= 0.1.8),
                        regex-compat,
+                       safe,
                        simple-cmd,
                        simple-cmd-args,
                        time
