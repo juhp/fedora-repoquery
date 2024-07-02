@@ -165,7 +165,7 @@ repoConfigArgs (RepoSource False _chan mirror) sysarch march release (repo,url) 
         case release of
           Centos _ -> [repo, showArch arch] ++ (if arch == Source then ["tree"] else ["os"])
           ELN -> [repo, showArch arch] ++ (if arch == Source then ["tree"] else ["os"])
-          EPEL n -> (if n >= 7 then ("Everything" :) else id) [showArch arch]
+          EPEL n -> (if n >= 8 then ("Everything" :) else id) [showArch arch] ++ ["tree" | arch == Source]
           EPELNext _n -> ["Everything", showArch arch]
           Fedora _ -> ["Everything", showArch arch] ++ (if arch == Source then ["tree"] else ["os" | repo `elem` ["releases","development"]])
           Rawhide -> ["Everything", showArch arch, if arch == Source then "tree" else "os"]
