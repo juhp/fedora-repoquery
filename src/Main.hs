@@ -14,6 +14,7 @@ import Control.Applicative (
   )
 #endif
 import Control.Monad (forM_)
+import Data.List.HT (spanJust)
 #if !MIN_VERSION_simple_cmd_args(0,1,7)
 import Options.Applicative (eitherReader, maybeReader, ReadM)
 #endif
@@ -27,10 +28,10 @@ import List (listVersionsCmd)
 import Paths_fedora_repoquery (version)
 import Query (repoqueryCmd)
 import ShowRelease (showReleaseCmd, downloadServer)
-import Types (Channel(..), Mirror(..), Release, RepoSource(..), Verbosity(..),
+import Types (Channel(..), Mirror(..), RepoSource(..), Verbosity(..),
               readRelease)
 
-data Command = Query Release [String] | CacheSize | CacheEmpties | List
+data Command = Query [String] | CacheSize | CacheEmpties | List
 
 main :: IO ()
 main = do
@@ -56,10 +57,7 @@ main = do
     <*> (flagWith' CacheSize 'z' "cache-size" "Show total dnf repo metadata cache disksize"
          <|> flagWith' CacheEmpties 'e' "cache-clean-empty" "Remove empty dnf caches"
          <|> flagWith' List 'l' "list" "List Fedora versions"
-         <|> Query <$> argumentWith releaseM "RELEASE" <*> many (strArg "[REPOQUERY_OPTS] [PACKAGE]..."))
-  where
-    releaseM :: ReadM Release
-    releaseM = maybeReader readRelease
+         <|> Query <$> some (strArg "RELEASE... [REPOQUERY_OPTS]... [PACKAGE]..."))
 
 runMain :: Arch -> Bool -> Verbosity -> RepoSource -> [Arch] -> Bool -> Bool
         -> Command -> IO ()
@@ -68,8 +66,11 @@ runMain sysarch dnf4 verbose reposource archs testing debug command = do
     CacheSize -> cacheSize
     CacheEmpties -> cleanEmptyCaches
     List -> listVersionsCmd
-    Query release args -> do
-      if null args
+    Query relargs ->
+      let (releases,args) = spanJust readRelease relargs
+      in
+        forM_ releases $ \release ->
+        if null args
         then if null archs
              then showReleaseCmd debug reposource release sysarch Nothing testing
              else forM_ archs $ \arch -> showReleaseCmd debug reposource release sysarch (Just arch) testing
