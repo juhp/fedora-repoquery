@@ -7,4 +7,3 @@ extra-deps:
   - http-query-0.1.0
   - http-directory-0.1.8
   - simple-cmd-args-0.1.8
-  - utility-ht-0.0.16

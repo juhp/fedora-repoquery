@@ -8,4 +8,3 @@ extra-deps:
   - http-directory-0.1.8
   - simple-cmd-args-0.1.8
   - simple-cmd-0.2.0
-  - utility-ht-0.0.16

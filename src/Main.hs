@@ -14,7 +14,8 @@ import Control.Applicative (
   )
 #endif
 import Control.Monad (forM_)
-import Data.List.HT (spanJust)
+import Data.Either (partitionEithers)
+import Data.Tuple (swap)
 #if !MIN_VERSION_simple_cmd_args(0,1,7)
 import Options.Applicative (eitherReader, maybeReader, ReadM)
 #endif
@@ -29,7 +30,7 @@ import Paths_fedora_repoquery (version)
 import Query (repoqueryCmd)
 import ShowRelease (showReleaseCmd, downloadServer)
 import Types (Channel(..), Mirror(..), Release (System), RepoSource(..), Verbosity(..),
-              readRelease)
+              eitherRelease)
 
 data Command = Query [String] | CacheSize | CacheEmpties | List
 
@@ -69,7 +70,8 @@ runMain sysarch dnf4 verbose nourlchecks reposource archs testing debug command 
     CacheEmpties -> cleanEmptyCaches
     List -> listVersionsCmd
     Query relargs ->
-      let (releases,args) = spanJust readRelease relargs
+      -- spanJust from utility-ht nicer but this gets us enough
+      let (releases,args) = swap $ partitionEithers $ map eitherRelease relargs
       in
         forM_ (if null releases then [System] else releases) $ \release ->
         if null args

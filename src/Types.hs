@@ -8,7 +8,7 @@ module Types (
   channel,
   Verbosity(..),
   Release(..),
-  readRelease
+  eitherRelease
   ) where
 
 import Data.Char (isDigit)
@@ -65,14 +65,7 @@ eitherRelease ns | all isDigit ns = let r = read ns in
                        LT -> Centos r
                        EQ -> ELN
                        GT -> Fedora r
-eitherRelease cs = Left $ cs ++ " is not a known os release"
-
--- | Read a Fedora Release name
-readRelease :: String -> Maybe Release
-readRelease bs =
-  case eitherRelease bs of
-    Left _ -> Nothing
-    Right br -> Just br
+eitherRelease cs = Left cs
 
 instance Show Release where
   show Rawhide = "rawhide"
