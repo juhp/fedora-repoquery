@@ -38,11 +38,11 @@ pkg_attrs_options =
 
 -- FIXME --no-redirect?
 -- FIXME error if no testing repo
-repoqueryCmd :: Bool -> Bool -> Verbosity -> Release -> RepoSource -> Arch
-             -> [Arch] -> Bool -> [String] -> IO ()
-repoqueryCmd dnf4 debug verbose release reposource sysarch archs testing args = do
+repoqueryCmd :: Bool -> Bool -> Verbosity -> Bool -> Release -> RepoSource
+             -> Arch -> [Arch] -> Bool -> [String] -> IO ()
+repoqueryCmd dnf4 debug verbose quick release reposource sysarch archs testing args = do
   forM_ (if null archs then [sysarch] else archs) $ \arch -> do
-    repoConfigs <- showRelease debug verbose True reposource release sysarch (Just arch) testing
+    repoConfigs <- showRelease debug verbose True quick reposource release sysarch (Just arch) testing
     let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","--qf","--queryformat", "--changelog"] ++ pkg_attrs_options) args
     -- dnf5 writes repo update output to stdout
     -- https://github.com/rpm-software-management/dnf5/issues/1361
@@ -68,7 +68,7 @@ repoqueryCmd dnf4 debug verbose release reposource sysarch archs testing args = 
       warning $ unwords $ ('\n' : takeBaseName dnf) : map show cmdargs
     res <- cmdLines dnf cmdargs
     unless (null res) $ do
-      unless (verbose == Quiet) $ warning ""
+      unless (verbose == Quiet || quick) $ warning ""
       putStrLn $ L.intercalate "\n" res
   where
     tweakedArgs dnf5 =

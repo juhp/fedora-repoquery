@@ -28,11 +28,11 @@ import URL
 showReleaseCmd :: Bool -> RepoSource -> Release  -> Arch -> Maybe Arch -> Bool
                -> IO ()
 showReleaseCmd debug reposource release sysarch march testing =
-  void $ showRelease debug Normal False reposource release sysarch march testing
+  void $ showRelease debug Normal False False reposource release sysarch march testing
 
-showRelease :: Bool -> Verbosity -> Bool -> RepoSource -> Release -> Arch
-            -> Maybe Arch -> Bool -> IO [(String, URL)]
-showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) release sysarch march testing = do
+showRelease :: Bool -> Verbosity -> Bool -> Bool -> RepoSource -> Release
+            -> Arch -> Maybe Arch -> Bool -> IO [(String, URL)]
+showRelease debug verbose warn quick reposource@(RepoSource koji _chan _mirror) release sysarch march testing = do
   mgr <- httpManager
   let arch = fromMaybe sysarch march
   (url,path) <- getURL debug mgr reposource release arch
@@ -67,37 +67,38 @@ showRelease debug verbose warn reposource@(RepoSource koji _chan _mirror) releas
   forM_ basicrepourls $ \(reponame,(url',path')) -> do
     let baserepo = url' +//+ path'
     when debug $ print $ renderUrl baserepo
-    ok <- httpExists mgr $ trailingSlash $ renderUrl baserepo
-    if ok
-      then do
-      unless (verbose == Quiet) $ do
-        mtime <- do
-          let composeinfo =
-                if koji
-                then url' +//+ ["repo.json"]
-                else
-                  case release of
-                    Centos 10 -> url' +//+ ["metadata","composeinfo.json"]
-                    Centos _ -> url' +//+ ["COMPOSE_ID"] -- ["metadata","composeinfo.json"]
-                    ELN -> url' +//+ ["metadata","composeinfo.json"]
-                    EPEL _ -> url' +//+ ["Everything", "state"]
-                    EPELNext _ -> url' +//+ ["Everything", "state"]
-                    Fedora _ -> url' +//+
-                                if "updates" `isSuffixOf` reponame ||
-                                   "updates-testing" `isSuffixOf` reponame
-                                then ["Everything", "state"]
-                                else ["COMPOSE_ID"]
-                    Rawhide -> url' +//+ ["COMPOSE_ID"]
-          when debug $ print $ renderUrl composeinfo
-          exists <- httpExists mgr (renderUrl composeinfo)
-          if exists
-            then httpLastModified mgr (renderUrl composeinfo)
-            else return Nothing
-        whenJust mtime $ \utc -> do
-          date <- utcToLocalZonedTime utc
-          (if warn then warning else putStrLn) $ show date +-+ "<" ++ renderUrl url' ++ ">"
-      else
-      error' $ renderUrl baserepo +-+ "not found"
+    unless quick $ do
+      ok <- httpExists mgr $ trailingSlash $ renderUrl baserepo
+      if ok
+        then do
+        unless (verbose == Quiet) $ do
+          mtime <- do
+            let composeinfo =
+                  if koji
+                  then url' +//+ ["repo.json"]
+                  else
+                    case release of
+                      Centos 10 -> url' +//+ ["metadata","composeinfo.json"]
+                      Centos _ -> url' +//+ ["COMPOSE_ID"] -- ["metadata","composeinfo.json"]
+                      ELN -> url' +//+ ["metadata","composeinfo.json"]
+                      EPEL _ -> url' +//+ ["Everything", "state"]
+                      EPELNext _ -> url' +//+ ["Everything", "state"]
+                      Fedora _ -> url' +//+
+                                  if "updates" `isSuffixOf` reponame ||
+                                     "updates-testing" `isSuffixOf` reponame
+                                  then ["Everything", "state"]
+                                  else ["COMPOSE_ID"]
+                      Rawhide -> url' +//+ ["COMPOSE_ID"]
+            when debug $ print $ renderUrl composeinfo
+            exists <- httpExists mgr (renderUrl composeinfo)
+            if exists
+              then httpLastModified mgr (renderUrl composeinfo)
+              else return Nothing
+          whenJust mtime $ \utc -> do
+            date <- utcToLocalZonedTime utc
+            (if warn then warning else putStrLn) $ show date +-+ "<" ++ renderUrl url' ++ ">"
+        else
+        error' $ renderUrl baserepo +-+ "not found"
   return $ map (fmap (uncurry (+//+))) $ basicrepourls ++ morerepourls
 
 getURL :: Bool -> Manager -> RepoSource -> Release -> Arch -> IO (URL,[String])
