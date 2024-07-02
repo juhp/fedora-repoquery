@@ -41,7 +41,6 @@ tests =
   ,(["epel9"], Just "ghc")
   ,(["c10"], Just "bash")
   ,(["c9"], Just "kernel")
-  ,(["c8"], Just "pandoc")
   ]
 
 main :: IO ()
