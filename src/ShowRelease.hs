@@ -60,6 +60,7 @@ showRelease debug verbose warn quick reposource@(RepoSource koji _chan _mirror) 
                  [("epel-testing",url +//+ ["testing", show n]) | testing],
                  [])
       EPELNext _n -> return ([("epelnext",urlpath)],[])
+      System -> error' "showRelease: system unsupported"
   let basicrepourls =
         map (repoConfigArgs reposource sysarch march release) basicrepos
       morerepourls =
@@ -71,7 +72,7 @@ showRelease debug verbose warn quick reposource@(RepoSource koji _chan _mirror) 
       ok <- httpExists mgr $ trailingSlash $ renderUrl baserepo
       if ok
         then do
-        unless (verbose == Quiet) $ do
+        unless (verbose == Quiet || release == System) $ do
           mtime <- do
             let composeinfo =
                   if koji
@@ -89,6 +90,7 @@ showRelease debug verbose warn quick reposource@(RepoSource koji _chan _mirror) 
                                   then ["Everything", "state"]
                                   else ["COMPOSE_ID"]
                       Rawhide -> url' +//+ ["COMPOSE_ID"]
+                      System -> error' "system not supported"
             when debug $ print $ renderUrl composeinfo
             exists <- httpExists mgr (renderUrl composeinfo)
             if exists
@@ -143,6 +145,7 @@ getURL debug mgr reposource@(RepoSource koji chan _mirror) release arch =
           in getFedoraServer debug mgr reposource fedoraTop
              [if pending then "development" else "releases", releasestr]
     Rawhide -> getFedoraServer debug mgr reposource fedoraTop ["development", "rawhide"]
+    System -> error' "getURL: system unsupported"
   where
     fedoraTop =
       -- FIXME support older archs
@@ -170,6 +173,7 @@ repoConfigArgs (RepoSource False _chan mirror) sysarch march release (repo,url) 
           EPELNext _n -> ["Everything", showArch arch]
           Fedora _ -> ["Everything", showArch arch] ++ (if arch == Source then ["tree"] else ["os" | repo `elem` ["releases","development"]])
           Rawhide -> ["Everything", showArch arch, if arch == Source then "tree" else "os"]
+          System -> error' "repoConfigArgs: system unsupported"
   in (reponame, (url, path ++ ["/"]))
   where
     repoVersion :: String

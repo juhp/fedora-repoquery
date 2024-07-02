@@ -1,6 +1,5 @@
 - Centos+EPEL
 - centos-stream channels
-- use plain dnf repoquery for system version
 - read COMPOSE_ID
 
 - types for DIR and FILE urls to enforce trailing slash

@@ -39,7 +39,8 @@ instance Show Channel where
   show ChanTest = "test"
   show ChanProd = "prod"
 
-data Release = EPEL Natural | EPELNext Natural | Centos Natural | Fedora Natural | ELN | Rawhide
+data Release = EPEL Natural | EPELNext Natural | Centos Natural | Fedora Natural
+             | ELN | Rawhide | System
   deriving (Eq, Ord)
 
 elnVersion :: Natural
@@ -79,3 +80,4 @@ instance Show Release where
   show (EPELNext n) = "epel" ++ show n ++ "-next"
   show ELN = "eln"
   show (Centos n) = 'c' : show n ++ "s"
+  show System = "system"

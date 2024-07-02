@@ -42,7 +42,10 @@ repoqueryCmd :: Bool -> Bool -> Verbosity -> Bool -> Release -> RepoSource
              -> Arch -> [Arch] -> Bool -> [String] -> IO ()
 repoqueryCmd dnf4 debug verbose quick release reposource sysarch archs testing args = do
   forM_ (if null archs then [sysarch] else archs) $ \arch -> do
-    repoConfigs <- showRelease debug verbose True quick reposource release sysarch (Just arch) testing
+    repoConfigs <-
+      if release == System
+      then return []
+      else showRelease debug verbose True quick reposource release sysarch (Just arch) testing
     let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","--qf","--queryformat", "--changelog"] ++ pkg_attrs_options) args
     -- dnf5 writes repo update output to stdout
     -- https://github.com/rpm-software-management/dnf5/issues/1361
@@ -68,7 +71,7 @@ repoqueryCmd dnf4 debug verbose quick release reposource sysarch archs testing a
       warning $ unwords $ ('\n' : takeBaseName dnf) : map show cmdargs
     res <- cmdLines dnf cmdargs
     unless (null res) $ do
-      unless (verbose == Quiet || quick) $ warning ""
+      unless (verbose == Quiet || quick || release == System) $ warning ""
       putStrLn $ L.intercalate "\n" res
   where
     tweakedArgs dnf5 =

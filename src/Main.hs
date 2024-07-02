@@ -28,7 +28,7 @@ import List (listVersionsCmd)
 import Paths_fedora_repoquery (version)
 import Query (repoqueryCmd)
 import ShowRelease (showReleaseCmd, downloadServer)
-import Types (Channel(..), Mirror(..), RepoSource(..), Verbosity(..),
+import Types (Channel(..), Mirror(..), Release (System), RepoSource(..), Verbosity(..),
               readRelease)
 
 data Command = Query [String] | CacheSize | CacheEmpties | List
@@ -70,7 +70,7 @@ runMain sysarch dnf4 verbose quick reposource archs testing debug command = do
     Query relargs ->
       let (releases,args) = spanJust readRelease relargs
       in
-        forM_ releases $ \release ->
+        forM_ (if null releases then [System] else releases) $ \release ->
         if null args
         then if null archs
              then showReleaseCmd debug reposource release sysarch Nothing testing
