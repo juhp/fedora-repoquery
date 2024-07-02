@@ -1,5 +1,13 @@
 # Revision history for fedora-repoquery
 
+## 0.5 (2024-07-02)
+- allow multiple release args
+- with no release arg use system yum repos
+- add --quick to skip url http checks, also done when multiple releases
+- dnf5 --qf does not add "\n" so we do it if no trailing "space"
+- update cache dir commands to support also dnf5 xdg cache path
+- use dnf5 repoquery.cpp list of --qf conflicts
+
 ## 0.4 (2024-05-24)
 - add --dnf4 option to use dnf4 (actually /usr/bin/dnf-3) instead of dnf5
 - oldest and newest active releases are now determined/cached via Bodhi API

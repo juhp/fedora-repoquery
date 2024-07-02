@@ -48,6 +48,7 @@ elnVersion = 11
 
 -- | Read a Release name, otherwise return an error message
 eitherRelease :: String -> Either String Release
+-- FIXME: alias "raw" or "r"??
 eitherRelease "rawhide" = Right Rawhide
 -- FIXME add proper parsing:
 eitherRelease "epel8-next" = Right $ EPELNext 8

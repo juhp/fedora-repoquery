@@ -57,6 +57,7 @@ repoqueryCmd dnf4 debug verbose quick release reposource sysarch archs testing a
     -- LANG=C.utf8
     rhsm <- doesFileExist "/etc/dnf/plugins/subscription-manager.conf"
     let cmdargs = "repoquery" :
+                  -- for dnf5 does not suppress repodata downloading
                   ["--quiet" | verbose /= Verbose] ++
                   -- https://bugzilla.redhat.com/show_bug.cgi?id=1876828
                   ["--disableplugin=subscription-manager" | rhsm] ++

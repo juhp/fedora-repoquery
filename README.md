@@ -9,7 +9,7 @@ Usage examples:
 `$ fdrq rawhide firefox`
 
 ```
-firefox-126.0-7.fc41.x86_64 (fedora-rawhide)
+firefox-127.0.2-1.fc41.x86_64 (fedora-rawhide)
 ```
 
 `$ fdrq 40 --requires filesystem`
@@ -33,7 +33,7 @@ bash-5.2.26-3.el10.x86_64 (c10s-BaseOS)
 `$ fdrq eln kernel`
 
 ```
-kernel-6.10.0-0.rc0.20240523gitc760b3725e52.12.eln136.x86_64 (eln-BaseOS)
+kernel-6.10.0-0.rc6.50.eln141.x86_64 (eln-BaseOS)
 ```
 
 etc.
@@ -54,19 +54,20 @@ but it is a lot faster than dnf4.
 `$ fdrq --version`
 
 ```
-0.4
+0.5
 ```
 `$ fdrq --help`
 
 ```
 fedora-repoquery tool for querying Fedora repos for packages.
 
-Usage: fdrq [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] [-K|--koji] 
-            [--devel-channel | --test-channel] [(-m|--mirror URL) | (-D|--dl)] 
+Usage: fdrq [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] [--quick] 
+            [-K|--koji] [--devel-channel | --test-channel] 
+            [(-m|--mirror URL) | (-D|--dl)] 
             [(-s|--source) | (-A|--all-archs) | [-a|--arch ARCH]] [-t|--testing]
             [-d|--debug] 
             ((-z|--cache-size) | (-e|--cache-clean-empty) | (-l|--list) | 
-              RELEASE [[REPOQUERY_OPTS] [PACKAGE]...])
+              RELEASE... [REPOQUERY_OPTS]... [PACKAGE]...)
 
   where RELEASE is {fN or N (fedora), 'rawhide', epelN, epelN-next, cN (centos
   stream), 'eln'}, with N the release version number.
@@ -78,6 +79,7 @@ Available options:
   -4,--dnf4                Use dnf4 instead of dnf5 (if available)
   -q,--quiet               Avoid output to stderr
   -v,--verbose             Show stderr from dnf repoquery
+  --quick                  Skip http repo url checks
   -K,--koji                Use Koji buildroot
   --devel-channel          Use eln development compose
   --test-channel           Use eln test compose [default: production]
