@@ -7,25 +7,30 @@ import Control.Monad
 import Data.List.Extra
 import SimpleCmd
 import System.Directory
+import System.Environment.XDG.BaseDir (getUserCacheDir)
 import System.FilePath
+import System.FilePath.Glob
 
-cacheDir :: IO FilePath
-cacheDir = do
-  dirs <- lines <$> shell "ls -d /var/tmp/dnf-*"
-  case dirs of
-    [] -> error' "no /var/tmp/dnf-*/ cache found"
-    [d] -> return d
-    _ -> error' "More than one /var/tmp/dnf-*/ cache found"
+cacheDirs :: IO [FilePath]
+cacheDirs = do
+  dnf5cache <- getUserCacheDir "libdnf5"
+  exists <- doesDirectoryExist dnf5cache
+  olddirs <- glob "/var/tmp/dnf-*"
+  return $
+    (if exists then (dnf5cache :) else id) olddirs
 
 cacheSize :: IO ()
 cacheSize = do
-  cache <- cacheDir
-  cmd_ "du" ["-sh", cache]
+  caches <- cacheDirs
+  forM_ caches $ \cache ->
+    cmd_ "du" ["-sh", cache]
 
+-- FIXME offer deleting old repos
 cleanEmptyCaches :: IO ()
 cleanEmptyCaches = do
-  cache <- cacheDir
-  withCurrentDirectory cache $ do
+  caches <- cacheDirs
+  forM_ caches $ \cache ->
+    withCurrentDirectory cache $ do
     repocaches <- groupOn cachePrefix .
                   filter (\ f -> '.' `notElem` f && '-' `elem` f) <$>
                   listDirectory "."
@@ -43,7 +48,11 @@ cleanEmptyCaches = do
           putStrLn $ "removing " ++ r
           removeDirectory repodata
           removeDirectory r
-        else putStrLn ("removing " ++ r) >> removeDirectory r
+        else do
+        files <- listDirectory r
+        when (null files) $ do
+          putStrLn ("removing " ++ r)
+          removeDirectory r
       removeEmptyCaches rs
 
 -- "AppStream-8-312ff1df17be2171" -> "AppStream-8-"

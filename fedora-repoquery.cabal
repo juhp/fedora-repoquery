@@ -51,6 +51,7 @@ executable fdrq
                        directory,
                        extra,
                        filepath,
+                       Glob,
                        http-client,
                        http-directory >= 0.1.4 && (< 0.1.6 || >= 0.1.8),
                        regex-compat,
@@ -58,7 +59,8 @@ executable fdrq
                        simple-cmd,
                        simple-cmd-args,
                        time,
-                       utility-ht
+                       utility-ht >= 0.0.16,
+                       xdg-basedir
 
   default-language:    Haskell2010
   ghc-options:         -Wall
