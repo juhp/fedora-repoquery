@@ -61,7 +61,7 @@ but it is a lot faster than dnf4.
 ```
 fedora-repoquery tool for querying Fedora repos for packages.
 
-Usage: fdrq [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] [--quick] 
+Usage: fdrq [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] [--no-check]
             [-K|--koji] [--devel-channel | --test-channel] 
             [(-m|--mirror URL) | (-D|--dl)] 
             [(-s|--source) | (-A|--all-archs) | [-a|--arch ARCH]] [-t|--testing]
@@ -79,7 +79,7 @@ Available options:
   -4,--dnf4                Use dnf4 instead of dnf5 (if available)
   -q,--quiet               Avoid output to stderr
   -v,--verbose             Show stderr from dnf repoquery
-  --quick                  Skip http repo url checks
+  --no-check               Skip http repo url checks
   -K,--koji                Use Koji buildroot
   --devel-channel          Use eln development compose
   --test-channel           Use eln test compose [default: production]

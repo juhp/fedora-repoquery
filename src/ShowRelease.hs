@@ -32,7 +32,7 @@ showReleaseCmd debug reposource release sysarch march testing =
 
 showRelease :: Bool -> Verbosity -> Bool -> Bool -> RepoSource -> Release
             -> Arch -> Maybe Arch -> Bool -> IO [(String, URL)]
-showRelease debug verbose warn quick reposource@(RepoSource koji _chan _mirror) release sysarch march testing = do
+showRelease debug verbose warn nourlcheck reposource@(RepoSource koji _chan _mirror) release sysarch march testing = do
   mgr <- httpManager
   let arch = fromMaybe sysarch march
   (url,path) <- getURL debug mgr reposource release arch
@@ -68,7 +68,7 @@ showRelease debug verbose warn quick reposource@(RepoSource koji _chan _mirror) 
   forM_ basicrepourls $ \(reponame,(url',path')) -> do
     let baserepo = url' +//+ path'
     when debug $ print $ renderUrl baserepo
-    unless quick $ do
+    unless nourlcheck $ do
       ok <- httpExists mgr $ trailingSlash $ renderUrl baserepo
       if ok
         then do

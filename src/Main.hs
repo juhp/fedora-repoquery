@@ -42,8 +42,9 @@ main = do
      "https://github.com/juhp/fedora-repoquery#readme") $
     runMain sysarch
     <$> switchWith '4' "dnf4" "Use dnf4 instead of dnf5 (if available)"
-    <*> (flagWith' Quiet 'q' "quiet" "Avoid output to stderr" <|> flagWith Normal Verbose 'v' "verbose" "Show stderr from dnf repoquery")
-    <*> switchLongWith "quick" "Skip http repo url checks"
+    <*> (flagWith' Quiet 'q' "quiet" "Avoid output to stderr" <|>
+         flagWith Normal Verbose 'v' "verbose" "Show stderr from dnf repoquery")
+    <*> switchLongWith "no-check" "Skip http repo url checks"
     <*> (RepoSource
           <$> switchWith 'K' "koji" "Use Koji buildroot"
           <*> (flagLongWith' ChanDevel "devel-channel" "Use eln development compose" <|>
@@ -62,7 +63,7 @@ main = do
 
 runMain :: Arch -> Bool -> Verbosity -> Bool -> RepoSource -> [Arch] -> Bool -> Bool
         -> Command -> IO ()
-runMain sysarch dnf4 verbose quick reposource archs testing debug command = do
+runMain sysarch dnf4 verbose nourlchecks reposource archs testing debug command = do
   case command of
     CacheSize -> cacheSize
     CacheEmpties -> cleanEmptyCaches
@@ -77,4 +78,4 @@ runMain sysarch dnf4 verbose quick reposource archs testing debug command = do
              else forM_ archs $ \arch -> showReleaseCmd debug reposource release sysarch (Just arch) testing
         else
           let multiple = length releases > 1 || length archs > 1
-          in repoqueryCmd dnf4 debug verbose (quick || multiple) release reposource sysarch archs testing args
+          in repoqueryCmd dnf4 debug verbose (nourlchecks || multiple) release reposource sysarch archs testing args
