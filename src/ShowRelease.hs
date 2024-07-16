@@ -25,17 +25,17 @@ import Common (warning)
 import Types
 import URL
 
-showReleaseCmd :: Bool -> RepoSource -> Release  -> Arch -> Maybe Arch -> Bool
-               -> IO ()
-showReleaseCmd debug reposource release sysarch march testing =
-  void $ showRelease debug Normal False False reposource release sysarch march testing
+showReleaseCmd :: Bool -> Bool -> RepoSource -> Release  -> Arch -> Maybe Arch
+               -> Bool -> IO ()
+showReleaseCmd debug redirect reposource release sysarch march testing =
+  void $ showRelease debug redirect Normal False False reposource release sysarch march testing
 
-showRelease :: Bool -> Verbosity -> Bool -> Bool -> RepoSource -> Release
-            -> Arch -> Maybe Arch -> Bool -> IO [(String, URL)]
-showRelease debug verbose warn nourlcheck reposource@(RepoSource koji _chan _mirror) release sysarch march testing = do
+showRelease :: Bool -> Bool -> Verbosity -> Bool -> Bool -> RepoSource
+            -> Release -> Arch -> Maybe Arch -> Bool -> IO [(String, URL)]
+showRelease debug redirect verbose warn nourlcheck reposource@(RepoSource koji _chan _mirror) release sysarch march testing = do
   mgr <- httpManager
   let arch = fromMaybe sysarch march
-  (url,path) <- getURL debug mgr reposource release arch
+  (url,path) <- getURL debug redirect mgr reposource release arch
   let urlpath = url +//+ path
   when debug $ print $ renderUrl urlpath
   (basicrepos,morerepos) <-
@@ -103,8 +103,9 @@ showRelease debug verbose warn nourlcheck reposource@(RepoSource koji _chan _mir
         error' $ renderUrl baserepo +-+ "not found"
   return $ map (fmap (uncurry (+//+))) $ basicrepourls ++ morerepourls
 
-getURL :: Bool -> Manager -> RepoSource -> Release -> Arch -> IO (URL,[String])
-getURL debug mgr reposource@(RepoSource koji chan _mirror) release arch =
+getURL :: Bool -> Bool -> Manager -> RepoSource -> Release -> Arch
+       -> IO (URL,[String])
+getURL debug redirect mgr reposource@(RepoSource koji chan _mirror) release arch =
   case release of
     Centos n ->
       case n of
@@ -127,8 +128,8 @@ getURL debug mgr reposource@(RepoSource koji chan _mirror) release arch =
     EPEL n | n < 7 ->
                return
                (URL "https://archives.fedoraproject.org/pub/archive/epel", [show n])
-    EPEL n -> getFedoraServer debug mgr reposource ["epel"] [show n]
-    EPELNext n -> getFedoraServer debug mgr reposource ["epel","next"] [show n]
+    EPEL n -> getFedoraServer debug redirect mgr reposource ["epel"] [show n]
+    EPELNext n -> getFedoraServer debug redirect mgr reposource ["epel","next"] [show n]
     Fedora n -> do
       ebodhirelease <- activeFedoraRelease n
       case ebodhirelease of
@@ -142,9 +143,9 @@ getURL debug mgr reposource@(RepoSource koji chan _mirror) release arch =
           let pending = releaseState rel == "pending"
               rawhide = pending && releaseBranch rel == "rawhide"
               releasestr = if rawhide then "rawhide" else show n
-          in getFedoraServer debug mgr reposource fedoraTop
+          in getFedoraServer debug redirect mgr reposource fedoraTop
              [if pending then "development" else "releases", releasestr]
-    Rawhide -> getFedoraServer debug mgr reposource fedoraTop ["development", "rawhide"]
+    Rawhide -> getFedoraServer debug redirect mgr reposource fedoraTop ["development", "rawhide"]
     System -> error' "getURL: system unsupported"
   where
     fedoraTop =
@@ -203,9 +204,9 @@ repoConfigArgs (RepoSource True _chan _mirror) sysarch march release (repo,url) 
 --       reponame = repo ++ "-Centos-" ++ show release ++ "-Stream" ++ "-" ++ show chan ++ if arch == sysarch then "" else "-" ++ showArch arch
 --   in (reponame, (url +//+ compose, [path, showArch arch, "os/"]))
 
-getFedoraServer :: Bool -> Manager -> RepoSource -> [String] -> [String]
+getFedoraServer :: Bool -> Bool -> Manager -> RepoSource -> [String] -> [String]
                 -> IO (URL,[String])
-getFedoraServer debug mgr (RepoSource koji _ mirror) top path =
+getFedoraServer debug redirect mgr (RepoSource koji _ mirror) top path =
   if koji
   then return (URL "https://kojipkgs.fedoraproject.org",[])
   else
@@ -213,10 +214,14 @@ getFedoraServer debug mgr (RepoSource koji _ mirror) top path =
       DownloadFpo -> do
         let url = URL downloadServer +//+ top ++ path
             rurl = renderUrl url
-        redir <- fmap B.unpack <$> httpRedirect mgr rurl
+        redir <-
+          if redirect
+          then fmap B.unpack <$> httpRedirect mgr rurl
+          else return Nothing
         case redir of
           Nothing -> do
-            warning $ "no redirect for" +-+ rurl
+            when redirect $
+              warning $ "no redirect for" +-+ rurl
             return (URL downloadServer +//+ top,path)
           Just actual -> do
             when debug $ do
