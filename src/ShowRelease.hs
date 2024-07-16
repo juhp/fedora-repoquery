@@ -80,8 +80,8 @@ showRelease debug dynredir warn checkdate reposource@(RepoSource koji _chan _mir
                 EPEL _ -> url' +//+ ["Everything", "state"]
                 EPELNext _ -> url' +//+ ["Everything", "state"]
                 Fedora _ -> url' +//+
-                            if "updates" `isSuffixOf` reponame ||
-                               "updates-testing" `isSuffixOf` reponame
+                            if "updates" `isInfixOf` reponame ||
+                               "updates-testing" `isInfixOf` reponame
                             then ["Everything", "state"]
                             else ["COMPOSE_ID"]
                 Rawhide -> url' +//+ ["COMPOSE_ID"]
