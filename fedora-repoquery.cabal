@@ -1,5 +1,5 @@
 name:                fedora-repoquery
-version:             0.5
+version:             0.6
 synopsis:            Fedora repoquery tool
 description:
         A CLI tool for repoquerying Fedora packages:

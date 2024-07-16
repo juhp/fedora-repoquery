@@ -1,5 +1,12 @@
 # Revision history for fedora-repoquery
 
+## 0.6 (2024-07-16)
+- defaults to no datestamp output: --time replaces --no-check
+- further speed improvements by reducing http checks
+- add --redirect now to enable redirect re-use
+- update c8s url to Centos Vault
+- replace spanJust with simpler partitionEithers
+
 ## 0.5 (2024-07-02)
 - allow multiple release args
 - with no release arg use system yum repos

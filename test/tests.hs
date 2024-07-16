@@ -9,7 +9,7 @@ fdrq (args,mpkg) = do
   let debug = False
   (ok, out, err) <- cmdFull "fdrq" (["-d" | debug] ++ args ++ maybeToList mpkg) ""
   if null err
-    then unless (isNothing mpkg) $ putStrLn "stderr empty"
+    then unless (isNothing mpkg || "-T" `notElem` args) $ putStrLn "stderr empty"
     else putStrLn err
   if null out
     then unless (isNothing mpkg) $ error' "no output"
@@ -31,9 +31,9 @@ tests =
   ,([current], Nothing)
   ,([previous], Nothing)
   ,([prevprev], Nothing)
-  ,(["rawhide"], Just "coreutils")
-  ,([rawhide], Just "coreutils")
-  ,([current], Just "gtk4")
+  ,(["-T", "rawhide"], Just "coreutils")
+  ,(["-r", rawhide], Just "coreutils")
+  ,(["-T", current], Just "gtk4")
   ,([previous], Just "bash")
   ,([prevprev], Just "fontconfig")
   ,(["-t", previous], Just "podman")

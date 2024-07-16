@@ -9,7 +9,7 @@ Usage examples:
 `$ fdrq rawhide firefox`
 
 ```
-firefox-127.0.2-1.fc41.x86_64 (fedora-rawhide)
+firefox-128.0-2.fc41.x86_64 (fedora-rawhide)
 ```
 
 `$ fdrq 40 --requires filesystem`
@@ -27,24 +27,30 @@ ghc-8.10.7-116.el9.x86_64 (epel9)
 `$ fdrq c10 bash`
 
 ```
-bash-5.2.26-3.el10.x86_64 (c10s-BaseOS)
+bash-5.2.26-4.el10.x86_64 (c10s-BaseOS)
 ```
 
 `$ fdrq eln kernel`
 
 ```
-kernel-6.10.0-0.rc6.50.eln141.x86_64 (eln-BaseOS)
+kernel-6.10.0-64.eln141.x86_64 (eln-BaseOS)
 ```
 
 etc.
 
-The above output is generated with mdsh which suppresses the stderr
-that includes mirror repo urls with compose timestamps, like this:
+With the --time option the timestamp of repos is also shown:
 ```
-$ fdrq rawhide fedrq
-2024-05-23 16:41:58 +08 <https://mirror.freedif.org/fedora/fedora/linux/development/rawhide>
+$ 2024-07-16 19:45:44 +08 <https://mirror.freedif.org/fedora/fedora/linux/development/rawhide>
 
-fedrq-1.1.0-1.fc41.noarch (fedora-rawhide)
+fedrq-1.1.0-3.fc41.noarch (fedora-rawhide)
+```
+The repo timestamp(s) can also be output with no args after
+the release version:
+`$ fdrq 40`
+
+```
+2024-04-20 02:22:34 +08 <https://mirror.freedif.org/fedora/fedora/linux/releases/40>
+2024-07-16 12:29:35 +08 <https://mirror.freedif.org/fedora/fedora/linux/updates/40>
 ```
 
 Also note that dnf5 currently still outputs repo update messages to stdout
@@ -54,20 +60,20 @@ but it is a lot faster than dnf4.
 `$ fdrq --version`
 
 ```
-0.5
+0.6
 ```
 `$ fdrq --help`
 
 ```
 fedora-repoquery tool for querying Fedora repos for packages.
 
-Usage: fdrq [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] [--no-check]
-            [-K|--koji] [--devel-channel | --test-channel] 
-            [(-m|--mirror URL) | (-D|--dl)] 
+Usage: fdrq [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] 
+            [-r|--redirect] [-T|--time] [-K|--koji] 
+            [--devel-channel | --test-channel] [(-m|--mirror URL) | (-D|--dl)] 
             [(-s|--source) | (-A|--all-archs) | [-a|--arch ARCH]] [-t|--testing]
             [-d|--debug] 
             ((-z|--cache-size) | (-e|--cache-clean-empty) | (-l|--list) | 
-              RELEASE... [REPOQUERY_OPTS]... [PACKAGE]...)
+              [RELEASE]... [REPOQUERY_OPTS]... [PACKAGE]...)
 
   where RELEASE is {fN or N (fedora), 'rawhide', epelN, epelN-next, cN (centos
   stream), 'eln'}, with N the release version number.
@@ -79,7 +85,8 @@ Available options:
   -4,--dnf4                Use dnf4 instead of dnf5 (if available)
   -q,--quiet               Avoid output to stderr
   -v,--verbose             Show stderr from dnf repoquery
-  --no-check               Skip http repo url checks
+  -r,--redirect            Show and re-use redirected mirror
+  -T,--time                Show time-stamp of repos
   -K,--koji                Use Koji buildroot
   --devel-channel          Use eln development compose
   --test-channel           Use eln test compose [default: production]
