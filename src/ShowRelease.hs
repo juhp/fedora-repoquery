@@ -112,8 +112,8 @@ getURL debug redirect mgr reposource@(RepoSource koji chan _mirror) release arch
                 then "https://odcs.stream.centos.org"
                 else "https://mirror.stream.centos.org/9-stream/"
           in return (url,[])
-        8 -> return (URL "http://mirror.centos.org/centos/8-stream/", [])
-        _ -> error' "old Centos is not supported yet"
+        8 -> return (URL "http://vault.centos.org/8-stream/", [])
+        _ -> error' "old Centos is not supported"
     ELN ->
       return (URL "https://odcs.fedoraproject.org/composes", [channel chan, "latest-Fedora-ELN", "compose"])
     EPEL n | n < 7 ->
