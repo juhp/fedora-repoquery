@@ -67,9 +67,9 @@ but it is a lot faster than dnf4.
 ```
 fedora-repoquery tool for querying Fedora repos for packages.
 
-Usage: fdrq [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] 
-            [-r|--redirect] [-T|--time] [-K|--koji] 
-            [--devel-channel | --test-channel] [(-m|--mirror URL) | (-D|--dl)] 
+Usage: fdrq [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] [--dynamic] 
+            [-T|--time] [-K|--koji] [--devel-channel | --test-channel] 
+            [(-m|--mirror URL) | (-D|--dl)] 
             [(-s|--source) | (-A|--all-archs) | [-a|--arch ARCH]] [-t|--testing]
             [-d|--debug] 
             ((-z|--cache-size) | (-e|--cache-clean-empty) | (-l|--list) | 
@@ -85,7 +85,7 @@ Available options:
   -4,--dnf4                Use dnf4 instead of dnf5 (if available)
   -q,--quiet               Avoid output to stderr
   -v,--verbose             Show stderr from dnf repoquery
-  -r,--redirect            Show and re-use redirected mirror
+  --dynamic                Redirect each HTTP through mirror
   -T,--time                Show time-stamp of repos
   -K,--koji                Use Koji buildroot
   --devel-channel          Use eln development compose

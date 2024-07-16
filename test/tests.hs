@@ -32,7 +32,7 @@ tests =
   ,([previous], Nothing)
   ,([prevprev], Nothing)
   ,(["-T", "rawhide"], Just "coreutils")
-  ,(["-r", rawhide], Just "coreutils")
+  ,(["--dynamic", rawhide], Just "coreutils")
   ,(["-T", current], Just "gtk4")
   ,([previous], Just "bash")
   ,([prevprev], Just "fontconfig")

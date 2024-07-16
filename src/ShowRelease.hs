@@ -27,15 +27,15 @@ import URL
 
 showReleaseCmd :: Bool -> Bool -> RepoSource -> Release  -> Arch -> Maybe Arch
                -> Bool -> IO ()
-showReleaseCmd debug redirect reposource release sysarch march testing =
-  void $ showRelease debug redirect False True reposource release sysarch march testing
+showReleaseCmd debug dynredir reposource release sysarch march testing =
+  void $ showRelease debug dynredir False True reposource release sysarch march testing
 
 showRelease :: Bool -> Bool -> Bool -> Bool -> RepoSource
             -> Release -> Arch -> Maybe Arch -> Bool -> IO [(String, URL)]
-showRelease debug redirect warn checkdate reposource@(RepoSource koji _chan _mirror) release sysarch march testing = do
+showRelease debug dynredir warn checkdate reposource@(RepoSource koji _chan _mirror) release sysarch march testing = do
   mgr <- httpManager
   let arch = fromMaybe sysarch march
-  (url,path) <- getURL debug redirect mgr reposource release arch
+  (url,path) <- getURL debug dynredir mgr reposource release arch
   let urlpath = url +//+ path
   when debug $ print $ renderUrl urlpath
   (basicrepos,morerepos) <-
@@ -96,7 +96,7 @@ showRelease debug redirect warn checkdate reposource@(RepoSource koji _chan _mir
 
 getURL :: Bool -> Bool -> Manager -> RepoSource -> Release -> Arch
        -> IO (URL,[String])
-getURL debug redirect mgr reposource@(RepoSource koji chan _mirror) release arch =
+getURL debug dynredir mgr reposource@(RepoSource koji chan _mirror) release arch =
   case release of
     Centos n ->
       case n of
@@ -119,8 +119,8 @@ getURL debug redirect mgr reposource@(RepoSource koji chan _mirror) release arch
     EPEL n | n < 7 ->
                return
                (URL "https://archives.fedoraproject.org/pub/archive/epel", [show n])
-    EPEL n -> getFedoraServer debug redirect mgr reposource ["epel"] [show n]
-    EPELNext n -> getFedoraServer debug redirect mgr reposource ["epel","next"] [show n]
+    EPEL n -> getFedoraServer debug dynredir mgr reposource ["epel"] [show n]
+    EPELNext n -> getFedoraServer debug dynredir mgr reposource ["epel","next"] [show n]
     Fedora n -> do
       ebodhirelease <- activeFedoraRelease n
       case ebodhirelease of
@@ -134,9 +134,9 @@ getURL debug redirect mgr reposource@(RepoSource koji chan _mirror) release arch
           let pending = releaseState rel == "pending"
               rawhide = pending && releaseBranch rel == "rawhide"
               releasestr = if rawhide then "rawhide" else show n
-          in getFedoraServer debug redirect mgr reposource fedoraTop
+          in getFedoraServer debug dynredir mgr reposource fedoraTop
              [if pending then "development" else "releases", releasestr]
-    Rawhide -> getFedoraServer debug redirect mgr reposource fedoraTop ["development", "rawhide"]
+    Rawhide -> getFedoraServer debug dynredir mgr reposource fedoraTop ["development", "rawhide"]
     System -> error' "getURL: system unsupported"
   where
     fedoraTop =
@@ -197,7 +197,7 @@ repoConfigArgs (RepoSource True _chan _mirror) sysarch march release (repo,url) 
 
 getFedoraServer :: Bool -> Bool -> Manager -> RepoSource -> [String] -> [String]
                 -> IO (URL,[String])
-getFedoraServer debug redirect mgr (RepoSource koji _ mirror) top path =
+getFedoraServer debug dynredir mgr (RepoSource koji _ mirror) top path =
   if koji
   then return (URL "https://kojipkgs.fedoraproject.org",[])
   else
@@ -206,12 +206,12 @@ getFedoraServer debug redirect mgr (RepoSource koji _ mirror) top path =
         let url = URL downloadServer +//+ top ++ path
             rurl = renderUrl url
         redir <-
-          if redirect
-          then fmap B.unpack <$> httpRedirect mgr rurl
-          else return Nothing
+          if dynredir
+          then return Nothing
+          else fmap B.unpack <$> httpRedirect mgr rurl
         case redir of
           Nothing -> do
-            when redirect $
+            unless dynredir $
               warning $ "no redirect for" +-+ rurl
             return (URL downloadServer +//+ top,path)
           Just actual -> do

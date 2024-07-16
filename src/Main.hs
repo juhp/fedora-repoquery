@@ -45,7 +45,7 @@ main = do
     <$> switchWith '4' "dnf4" "Use dnf4 instead of dnf5 (if available)"
     <*> (flagWith' Quiet 'q' "quiet" "Avoid output to stderr" <|>
          flagWith Normal Verbose 'v' "verbose" "Show stderr from dnf repoquery")
-    <*> switchWith 'r' "redirect" "Show and re-use redirected mirror"
+    <*> switchLongWith "dynamic" "Redirect each HTTP through mirror"
     <*> switchWith 'T' "time" "Show time-stamp of repos"
     <*> (RepoSource
           <$> switchWith 'K' "koji" "Use Koji buildroot"
@@ -65,7 +65,7 @@ main = do
 
 runMain :: Arch -> Bool -> Verbosity -> Bool -> Bool -> RepoSource -> [Arch]
         -> Bool -> Bool -> Command -> IO ()
-runMain sysarch dnf4 verbose redirect time reposource archs testing debug command = do
+runMain sysarch dnf4 verbose dynredir time reposource archs testing debug command = do
   case command of
     CacheSize -> cacheSize
     CacheEmpties -> cleanEmptyCaches
@@ -77,8 +77,8 @@ runMain sysarch dnf4 verbose redirect time reposource archs testing debug comman
         forM_ (if null releases then [System] else releases) $ \release ->
         if null args
         then if null archs
-             then showReleaseCmd debug redirect reposource release sysarch Nothing testing
-             else forM_ archs $ \arch -> showReleaseCmd debug redirect reposource release sysarch (Just arch) testing
+             then showReleaseCmd debug dynredir reposource release sysarch Nothing testing
+             else forM_ archs $ \arch -> showReleaseCmd debug dynredir reposource release sysarch (Just arch) testing
         else
           let multiple = length releases > 1 || length archs > 1
-          in repoqueryCmd dnf4 debug verbose multiple redirect time release reposource sysarch archs testing args
+          in repoqueryCmd dnf4 debug verbose multiple dynredir time release reposource sysarch archs testing args
