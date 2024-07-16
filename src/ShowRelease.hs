@@ -61,10 +61,11 @@ showRelease debug dynredir warn checkdate reposource@(RepoSource koji _chan _mir
                  [])
       EPELNext _n -> return ([("epelnext",urlpath)],[])
       System -> error' "showRelease: system unsupported"
+  rawhide <- rawhideFedoraRelease
   let basicrepourls =
-        map (repoConfigArgs reposource sysarch march release) basicrepos
+        map (repoConfigArgs reposource sysarch march rawhide release) basicrepos
       morerepourls =
-        map (repoConfigArgs reposource sysarch march release) morerepos
+        map (repoConfigArgs reposource sysarch march rawhide release) morerepos
   forM_ basicrepourls $ \(reponame,(url',path')) -> do
     let baserepo = url' +//+ path'
     when debug $ print $ renderUrl baserepo
@@ -145,10 +146,10 @@ getURL debug dynredir mgr reposource@(RepoSource koji chan _mirror) release arch
       then ["fedora-secondary"]
       else ["fedora", "linux"]
 
-repoConfigArgs :: RepoSource -> Arch -> Maybe Arch -> Release -> (String,URL)
-               -> (String,(URL,[String]))
+repoConfigArgs :: RepoSource -> Arch -> Maybe Arch -> Natural -> Release
+               -> (String,URL) -> (String,(URL,[String]))
 -- non-koji
-repoConfigArgs (RepoSource False _chan mirror) sysarch march release (repo,url) =
+repoConfigArgs (RepoSource False _chan mirror) sysarch march rawhide release (repo,url) =
   let arch = fromMaybe sysarch march
       archsuffix = if arch == sysarch then "" else "-" ++ showArch arch
       reponame = repoVersion ++ archsuffix ++
@@ -170,7 +171,7 @@ repoConfigArgs (RepoSource False _chan mirror) sysarch march release (repo,url) 
   where
     repoVersion :: String
     repoVersion =
-      if release == Rawhide
+      if release `elem` [Rawhide, Fedora rawhide]
       then "fedora-rawhide"
       else
         show release ++
@@ -181,7 +182,7 @@ repoConfigArgs (RepoSource False _chan mirror) sysarch march release (repo,url) 
           Fedora _ | repo /= "releases" -> '-':repo
           _ -> ""
 -- koji
-repoConfigArgs (RepoSource True _chan _mirror) sysarch march release (repo,url) =
+repoConfigArgs (RepoSource True _chan _mirror) sysarch march _rawhide release (repo,url) =
   let (compose,path) =
         case release of
           Rawhide -> (["repos", show release, "latest"],"")

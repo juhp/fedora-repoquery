@@ -3,6 +3,7 @@
 ## 0.6 (2024-07-16)
 - defaults to no datestamp output: --time replaces --no-check
 - further speed improvements by reducing http checks
+- map latest pending release version to fedora-rawhide
 - add --dynamic redirect to not re-use first mirror redirect
 - update c8s url to Centos Vault
 - drop dep on utility-ht just for spanJust

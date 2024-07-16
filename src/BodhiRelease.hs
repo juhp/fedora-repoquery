@@ -4,7 +4,8 @@ module BodhiRelease (
   BodhiRelease (..),
   activeFedoraRelease,
   activeFedoraReleases,
-  pendingFedoraRelease
+  pendingFedoraRelease,
+  rawhideFedoraRelease
   )
 where
 
@@ -53,3 +54,9 @@ pendingFedoraRelease n = do
     case eactive of
       Left _ -> False
       Right rel -> releaseState rel == "pending"
+
+rawhideFedoraRelease :: IO Natural
+rawhideFedoraRelease = do
+  actives <- activeFedoraReleases
+  let pending = map releaseVersion (filter (\r -> releaseState r == "pending") actives)
+  return $ read $ maximum (L.delete "eln" pending)
