@@ -46,7 +46,7 @@ main = do
     <*> (flagWith' Quiet 'q' "quiet" "Avoid output to stderr" <|>
          flagWith Normal Verbose 'v' "verbose" "Show stderr from dnf repoquery")
     <*> switchWith 'r' "redirect" "Show and re-use redirected mirror"
-    <*> switchLongWith "no-check" "Skip http repo url checks"
+    <*> switchWith 'T' "time" "Show time-stamp of repos"
     <*> (RepoSource
           <$> switchWith 'K' "koji" "Use Koji buildroot"
           <*> (flagLongWith' ChanDevel "devel-channel" "Use eln development compose" <|>
@@ -65,7 +65,7 @@ main = do
 
 runMain :: Arch -> Bool -> Verbosity -> Bool -> Bool -> RepoSource -> [Arch]
         -> Bool -> Bool -> Command -> IO ()
-runMain sysarch dnf4 verbose redirect nourlchecks reposource archs testing debug command = do
+runMain sysarch dnf4 verbose redirect time reposource archs testing debug command = do
   case command of
     CacheSize -> cacheSize
     CacheEmpties -> cleanEmptyCaches
@@ -80,5 +80,4 @@ runMain sysarch dnf4 verbose redirect nourlchecks reposource archs testing debug
              then showReleaseCmd debug redirect reposource release sysarch Nothing testing
              else forM_ archs $ \arch -> showReleaseCmd debug redirect reposource release sysarch (Just arch) testing
         else
-          let multiple = length releases > 1 || length archs > 1
-          in repoqueryCmd dnf4 debug redirect verbose (nourlchecks || multiple) release reposource sysarch archs testing args
+          repoqueryCmd dnf4 debug redirect verbose time release reposource sysarch archs testing args

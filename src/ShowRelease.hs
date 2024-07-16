@@ -14,8 +14,8 @@ import qualified Data.ByteString.Char8 as B
 import Data.List.Extra
 import Data.Maybe (fromMaybe)
 import Data.Time.LocalTime (utcToLocalZonedTime)
-import Network.HTTP.Directory (httpExists, httpLastModified,httpManager,
-                               httpRedirect, Manager, trailingSlash)
+import Network.HTTP.Directory (httpLastModified, httpManager,
+                               httpRedirect, Manager)
 import SimpleCmd (error', (+-+))
 import Text.Regex (mkRegex, subRegex)
 
@@ -28,11 +28,11 @@ import URL
 showReleaseCmd :: Bool -> Bool -> RepoSource -> Release  -> Arch -> Maybe Arch
                -> Bool -> IO ()
 showReleaseCmd debug redirect reposource release sysarch march testing =
-  void $ showRelease debug redirect Normal False False reposource release sysarch march testing
+  void $ showRelease debug redirect False True reposource release sysarch march testing
 
-showRelease :: Bool -> Bool -> Verbosity -> Bool -> Bool -> RepoSource
+showRelease :: Bool -> Bool -> Bool -> Bool -> RepoSource
             -> Release -> Arch -> Maybe Arch -> Bool -> IO [(String, URL)]
-showRelease debug redirect verbose warn nourlcheck reposource@(RepoSource koji _chan _mirror) release sysarch march testing = do
+showRelease debug redirect warn checkdate reposource@(RepoSource koji _chan _mirror) release sysarch march testing = do
   mgr <- httpManager
   let arch = fromMaybe sysarch march
   (url,path) <- getURL debug redirect mgr reposource release arch
@@ -68,39 +68,30 @@ showRelease debug redirect verbose warn nourlcheck reposource@(RepoSource koji _
   forM_ basicrepourls $ \(reponame,(url',path')) -> do
     let baserepo = url' +//+ path'
     when debug $ print $ renderUrl baserepo
-    unless nourlcheck $ do
-      ok <- httpExists mgr $ trailingSlash $ renderUrl baserepo
-      if ok
-        then do
-        unless (verbose == Quiet || release == System) $ do
-          mtime <- do
-            let composeinfo =
-                  if koji
-                  then url' +//+ ["repo.json"]
-                  else
-                    case release of
-                      Centos 10 -> url' +//+ ["metadata","composeinfo.json"]
-                      Centos _ -> url' +//+ ["COMPOSE_ID"] -- ["metadata","composeinfo.json"]
-                      ELN -> url' +//+ ["metadata","composeinfo.json"]
-                      EPEL _ -> url' +//+ ["Everything", "state"]
-                      EPELNext _ -> url' +//+ ["Everything", "state"]
-                      Fedora _ -> url' +//+
-                                  if "updates" `isSuffixOf` reponame ||
-                                     "updates-testing" `isSuffixOf` reponame
-                                  then ["Everything", "state"]
-                                  else ["COMPOSE_ID"]
-                      Rawhide -> url' +//+ ["COMPOSE_ID"]
-                      System -> error' "system not supported"
-            when debug $ print $ renderUrl composeinfo
-            exists <- httpExists mgr (renderUrl composeinfo)
-            if exists
-              then httpLastModified mgr (renderUrl composeinfo)
-              else return Nothing
-          whenJust mtime $ \utc -> do
-            date <- utcToLocalZonedTime utc
-            (if warn then warning else putStrLn) $ show date +-+ "<" ++ renderUrl url' ++ ">"
-        else
-        error' $ renderUrl baserepo +-+ "not found"
+    unless (not checkdate || release == System) $ do
+      let composeinfo =
+            if koji
+            then url' +//+ ["repo.json"]
+            else
+              case release of
+                Centos 10 -> url' +//+ ["metadata","composeinfo.json"]
+                Centos _ -> url' +//+ ["COMPOSE_ID"] -- ["metadata","composeinfo.json"]
+                ELN -> url' +//+ ["metadata","composeinfo.json"]
+                EPEL _ -> url' +//+ ["Everything", "state"]
+                EPELNext _ -> url' +//+ ["Everything", "state"]
+                Fedora _ -> url' +//+
+                            if "updates" `isSuffixOf` reponame ||
+                               "updates-testing" `isSuffixOf` reponame
+                            then ["Everything", "state"]
+                            else ["COMPOSE_ID"]
+                Rawhide -> url' +//+ ["COMPOSE_ID"]
+                System -> error' "system not supported"
+      let composeUrl = renderUrl composeinfo
+      when debug $ print composeUrl
+      mtime <- httpLastModified mgr composeUrl
+      whenJust mtime $ \utc -> do
+        date <- utcToLocalZonedTime utc
+        (if warn then warning else putStrLn) $ show date +-+ "<" ++ renderUrl url' ++ ">"
   return $ map (fmap (uncurry (+//+))) $ basicrepourls ++ morerepourls
 
 getURL :: Bool -> Bool -> Manager -> RepoSource -> Release -> Arch

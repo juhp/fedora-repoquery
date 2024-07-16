@@ -40,12 +40,12 @@ pkgAttrsOptions =
 -- FIXME error if no testing repo
 repoqueryCmd :: Bool -> Bool -> Bool -> Verbosity -> Bool -> Release
              -> RepoSource -> Arch -> [Arch] -> Bool -> [String] -> IO ()
-repoqueryCmd dnf4 debug redirect verbose nourlcheck release reposource sysarch archs testing args = do
+repoqueryCmd dnf4 debug redirect verbose checkdate release reposource sysarch archs testing args = do
   forM_ (if null archs then [sysarch] else archs) $ \arch -> do
     repoConfigs <-
       if release == System
       then return []
-      else showRelease debug redirect verbose True nourlcheck reposource release sysarch (Just arch) testing
+      else showRelease debug redirect True checkdate reposource release sysarch (Just arch) testing
     let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","--qf","--queryformat", "--changelog"] ++ pkgAttrsOptions) args
     -- dnf5 writes repo update output to stdout
     -- https://github.com/rpm-software-management/dnf5/issues/1361
@@ -72,7 +72,7 @@ repoqueryCmd dnf4 debug redirect verbose nourlcheck release reposource sysarch a
       warning $ unwords $ ('\n' : takeBaseName dnf) : map show cmdargs
     res <- cmdLines dnf cmdargs
     unless (null res) $ do
-      unless (verbose == Quiet || nourlcheck || release == System) $ warning ""
+      unless (not checkdate || release == System) $ warning ""
       putStrLn $ L.intercalate "\n" res
   where
     tweakedArgs dnf5 =
