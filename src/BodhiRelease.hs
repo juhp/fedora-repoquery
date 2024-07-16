@@ -26,8 +26,6 @@ data BodhiRelease =
 
 -- Left is oldest active version
 activeFedoraRelease :: Natural -> IO (Either Natural BodhiRelease)
--- F37 not archived yet: https://pagure.io/releng/issue/12124
-activeFedoraRelease 37 = return $ Right $ Release "37" "current" "f37"
 activeFedoraRelease n = do
   active <- activeFedoraReleases
   when (null active) $ error' "failed to find active releases with Bodhi API"
