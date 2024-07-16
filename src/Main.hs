@@ -80,4 +80,5 @@ runMain sysarch dnf4 verbose redirect time reposource archs testing debug comman
              then showReleaseCmd debug redirect reposource release sysarch Nothing testing
              else forM_ archs $ \arch -> showReleaseCmd debug redirect reposource release sysarch (Just arch) testing
         else
-          repoqueryCmd dnf4 debug redirect verbose time release reposource sysarch archs testing args
+          let multiple = length releases > 1 || length archs > 1
+          in repoqueryCmd dnf4 debug verbose multiple redirect time release reposource sysarch archs testing args

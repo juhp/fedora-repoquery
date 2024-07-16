@@ -38,9 +38,9 @@ pkgAttrsOptions =
 
 -- FIXME --no-redirect?
 -- FIXME error if no testing repo
-repoqueryCmd :: Bool -> Bool -> Bool -> Verbosity -> Bool -> Release
+repoqueryCmd :: Bool -> Bool -> Verbosity -> Bool -> Bool -> Bool -> Release
              -> RepoSource -> Arch -> [Arch] -> Bool -> [String] -> IO ()
-repoqueryCmd dnf4 debug redirect verbose checkdate release reposource sysarch archs testing args = do
+repoqueryCmd dnf4 debug verbose multiple redirect checkdate release reposource sysarch archs testing args = do
   forM_ (if null archs then [sysarch] else archs) $ \arch -> do
     repoConfigs <-
       if release == System
@@ -72,7 +72,7 @@ repoqueryCmd dnf4 debug redirect verbose checkdate release reposource sysarch ar
       warning $ unwords $ ('\n' : takeBaseName dnf) : map show cmdargs
     res <- cmdLines dnf cmdargs
     unless (null res) $ do
-      unless (not checkdate || release == System) $ warning ""
+      unless (not checkdate || release == System || multiple) $ warning ""
       putStrLn $ L.intercalate "\n" res
   where
     tweakedArgs dnf5 =
