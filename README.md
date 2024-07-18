@@ -33,14 +33,23 @@ bash-5.2.26-4.el10.x86_64 (c10s-BaseOS)
 `$ fdrq eln kernel`
 
 ```
-kernel-6.10.0-64.eln141.x86_64 (eln-BaseOS)
+kernel-6.11.0-0.rc0.20240716gitd67978318827.2.eln141.x86_64 (eln-BaseOS)
 ```
+
+Without a release argument:
+`$ fdrq pandoc`
+
+```
+pandoc-3.1.3-29.fc41.x86_64 (rawhide)
+```
+the system yum repo configuration is used for the query.
 
 etc.
 
 With the --time option the timestamp of repos is also shown:
 ```
-$ 2024-07-16 19:45:44 +08 <https://mirror.freedif.org/fedora/fedora/linux/development/rawhide>
+$ fdrq -T 41 fedrq
+2024-07-16 19:45:44 +08 <https://mirror.freedif.org/fedora/fedora/linux/development/rawhide>
 
 fedrq-1.1.0-3.fc41.noarch (fedora-rawhide)
 ```
@@ -50,7 +59,7 @@ the release version:
 
 ```
 2024-04-20 02:22:34 +08 <https://mirror.freedif.org/fedora/fedora/linux/releases/40>
-2024-07-16 12:29:35 +08 <https://mirror.freedif.org/fedora/fedora/linux/updates/40>
+2024-07-18 12:15:13 +08 <https://mirror.freedif.org/fedora/fedora/linux/updates/40>
 ```
 
 Also note that dnf5 currently still outputs repo update messages to stdout
@@ -67,12 +76,12 @@ but it is a lot faster than dnf4.
 ```
 fedora-repoquery tool for querying Fedora repos for packages.
 
-Usage: fdrq [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] [--dynamic] 
-            [-T|--time] [-K|--koji] [--devel-channel | --test-channel] 
-            [(-m|--mirror URL) | (-D|--dl)] 
+Usage: fdrq [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] [--dynamic]
+            [-T|--time] [-K|--koji] [--devel-channel | --test-channel]
+            [(-m|--mirror URL) | (-D|--dl)]
             [(-s|--source) | (-A|--all-archs) | [-a|--arch ARCH]] [-t|--testing]
-            [-d|--debug] 
-            ((-z|--cache-size) | (-e|--cache-clean-empty) | (-l|--list) | 
+            [-d|--debug]
+            ((-z|--cache-size) | (-e|--cache-clean-empty) | (-l|--list) |
               [RELEASE]... [REPOQUERY_OPTS]... [PACKAGE]...)
 
   where RELEASE is {fN or N (fedora), 'rawhide', epelN, epelN-next, cN (centos
