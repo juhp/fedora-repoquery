@@ -37,6 +37,7 @@ kernel-6.11.0-0.rc0.20240716gitd67978318827.2.eln141.x86_64 (eln-BaseOS)
 ```
 
 Without a release argument:
+
 `$ fdrq pandoc`
 
 ```
@@ -53,6 +54,7 @@ fedrq-1.1.0-3.fc41.noarch (fedora-rawhide)
 ```
 The repo timestamp(s) can also be output with no args after
 the release version:
+
 `$ fdrq 40`
 
 ```
@@ -66,6 +68,7 @@ the release version:
 ```
 0.6
 ```
+
 `$ fdrq --help`
 
 ```
