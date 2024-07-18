@@ -44,8 +44,6 @@ pandoc-3.1.3-29.fc41.x86_64 (rawhide)
 ```
 the system yum repo configuration is used for the query.
 
-etc.
-
 With the --time option the timestamp of repos is also shown:
 ```
 $ fdrq -T 41 fedrq
@@ -61,9 +59,6 @@ the release version:
 2024-04-20 02:22:34 +08 <https://mirror.freedif.org/fedora/fedora/linux/releases/40>
 2024-07-18 12:15:13 +08 <https://mirror.freedif.org/fedora/fedora/linux/updates/40>
 ```
-
-Also note that dnf5 currently still outputs repo update messages to stdout
-but it is a lot faster than dnf4.
 
 ## Help
 `$ fdrq --version`
