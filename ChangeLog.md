@@ -1,6 +1,7 @@
 # Revision history for fedora-repoquery
 
 ## 0.7 (2024-07-18)
+- use curl library for HTTP instead of http-directory
 - rename the executable back to fedora-repoquery to avoid confusion with fedrq
 
 ## 0.6 (2024-07-16)

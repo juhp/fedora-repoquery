@@ -1,15 +1,15 @@
 name:                fedora-repoquery
 version:             0.7
-synopsis:            Fedora repoquery tool
+synopsis:            Fedora release repos package query tool
 description:
-        A CLI tool for repoquerying Fedora packages:
+        A CLI tool for repoquerying Fedora and Centos Stream release packages:
         by default it displays their version and repo location
-        with compose timestamp
+        and optionally the repo compose timestamps
 license:             GPL-3
 license-file:        COPYING
-author:              Jens Petersen <juhpetersen@gmail.com>
-maintainer:          Jens Petersen <juhpetersen@gmail.com>
-copyright:           2021-2024  Jens Petersen <juhpetersen@gmail.com>
+author:              Jens Petersen <petersen@redhat.com>
+maintainer:          Jens Petersen <petersen@redhat.com>
+copyright:           2021-2024  Jens Petersen <petersen@redhat.com>
 category:            Utility
 homepage:            https://github.com/juhp/fedora-repoquery
 bug-reports:         https://github.com/juhp/fedora-repoquery/issues
@@ -46,18 +46,18 @@ executable fedora-repoquery
   hs-source-dirs:      src
   build-depends:       base < 5,
                        bodhi,
-                       bytestring,
                        cached-json-file,
+                       case-insensitive,
+                       curl,
                        directory,
                        extra,
                        filepath,
                        Glob,
-                       http-client,
-                       http-directory >= 0.1.4 && (< 0.1.6 || >= 0.1.8),
                        regex-compat,
                        safe,
                        simple-cmd,
                        simple-cmd-args,
+                       text,
                        time,
                        xdg-basedir
 

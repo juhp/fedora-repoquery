@@ -1,5 +1,4 @@
 - default mirror config (setup automatically from redirect?)
-- use libcurl instead of http-directory (http-directory-curl)
 - cache compose file locally
 * Centos+EPEL
 - centos-stream channels

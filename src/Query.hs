@@ -17,7 +17,7 @@ import Arch
 import Common (warning)
 import ShowRelease (showRelease)
 import Types
-import URL (URL, renderUrl)
+import URL (FileDir(Dir), URL, renderUrl)
 
 -- from dnf5 repoquery.cpp pkg_attrs_options
 pkgAttrsOptions :: [String]
@@ -95,4 +95,4 @@ repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource s
 
 renderRepoConfig :: (String, URL) -> [String]
 renderRepoConfig (name, url) =
-  ["--repofrompath=" ++ name ++ "," ++ renderUrl url, "--repo=" ++ name, "--setopt=" ++ name ++ ".metadata_expire=6h" ]
+  ["--repofrompath=" ++ name ++ "," ++ renderUrl Dir url, "--repo=" ++ name, "--setopt=" ++ name ++ ".metadata_expire=6h" ]

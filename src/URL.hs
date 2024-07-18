@@ -4,27 +4,28 @@ module URL (
   (+//+),
   URL(..),
   renderUrl,
+  FileDir(..),
   removeSubpath
 ) where
 
 import Data.List.Extra (dropSuffix)
 
-#if MIN_VERSION_http_directory(0,1,9)
-import Network.HTTP.Directory((+/+))
-#endif
-
 newtype URL = URL String
   deriving Eq
 
-renderUrl :: URL -> String
-renderUrl (URL url) = url
+data FileDir = File | Dir
+  deriving Eq
+
+renderUrl :: FileDir -> URL -> String
+renderUrl Dir (URL url) = trailingSlash url
+renderUrl File (URL url) = url
 
 foldSlash :: [String] -> String
 foldSlash = foldr (+/+) ""
 
 infixr 5 +//+
 (+//+) :: URL -> [String] -> URL
-(URL base) +//+ rel =
+URL base +//+ rel =
   URL $ base +/+ foldSlash rel
 
 -- piecesToPath :: [String] -> String
@@ -36,7 +37,7 @@ infixr 5 +//+
 --     Nothing -> error $ "failed to parse url: " ++ show u
 --     Just uri -> uri
 
-#if !MIN_VERSION_http_directory(0,1,9)
+-- from http-directory
 infixr 5 +/+
 (+/+) :: String -> String -> String
 "" +/+ s = s
@@ -44,9 +45,14 @@ s +/+ "" = s
 s +/+ t | last s == '/' = init s +/+ t
         | head t == '/' = s +/+ tail t
 s +/+ t = s ++ "/" ++ t
-#endif
 
 removeSubpath :: [String] -> String -> String
 removeSubpath path url =
   let url' = (if last url == '/' then init else id) url
   in dropSuffix (foldSlash path) url'
+
+-- from http-directory
+trailingSlash :: String -> String
+trailingSlash "" = ""
+trailingSlash str =
+  if last str == '/' then str else str ++ "/"

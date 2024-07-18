@@ -28,6 +28,7 @@ rawhide = show (branched + 1)
 tests :: [([String],Maybe String)]
 tests =
   [(["rawhide"], Nothing)
+  ,(["-D","rawhide"], Nothing)
   ,([current], Nothing)
   ,([previous], Nothing)
   ,([prevprev], Nothing)
