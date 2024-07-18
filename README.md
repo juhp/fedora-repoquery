@@ -6,31 +6,31 @@ which caches repodata separately per release.
 ## Usage
 Usage examples:
 
-`$ fdrq rawhide firefox`
+`$ fedora-repoquery rawhide firefox`
 
 ```
 firefox-128.0-2.fc41.x86_64 (fedora-rawhide)
 ```
 
-`$ fdrq 40 --requires filesystem`
+`$ fedora-repoquery 40 --requires filesystem`
 
 ```
 setup
 ```
 
-`$ fdrq epel9 ghc`
+`$ fedora-repoquery epel9 ghc`
 
 ```
 ghc-8.10.7-116.el9.x86_64 (epel9)
 ```
 
-`$ fdrq c10 bash`
+`$ fedora-repoquery c10 bash`
 
 ```
 bash-5.2.26-4.el10.x86_64 (c10s-BaseOS)
 ```
 
-`$ fdrq eln kernel`
+`$ fedora-repoquery eln kernel`
 
 ```
 kernel-6.11.0-0.rc0.20240716gitd67978318827.2.eln141.x86_64 (eln-BaseOS)
@@ -38,7 +38,7 @@ kernel-6.11.0-0.rc0.20240716gitd67978318827.2.eln141.x86_64 (eln-BaseOS)
 
 Without a release argument:
 
-`$ fdrq pandoc`
+`$ fedora-repoquery pandoc`
 
 ```
 pandoc-3.1.3-29.fc41.x86_64 (rawhide)
@@ -47,7 +47,7 @@ the system yum repo configuration is used for the query.
 
 With the --time option the timestamp of repos is also shown:
 ```
-$ fdrq -T 41 fedrq
+$ fedora-repoquery -T 41 fedrq
 2024-07-16 19:45:44 +08 <https://mirror.freedif.org/fedora/fedora/linux/development/rawhide>
 
 fedrq-1.1.0-3.fc41.noarch (fedora-rawhide)
@@ -55,7 +55,7 @@ fedrq-1.1.0-3.fc41.noarch (fedora-rawhide)
 The repo timestamp(s) can also be output with no args after
 the release version:
 
-`$ fdrq 40`
+`$ fedora-repoquery 40`
 
 ```
 2024-04-20 02:22:34 +08 <https://mirror.freedif.org/fedora/fedora/linux/releases/40>
@@ -63,18 +63,18 @@ the release version:
 ```
 
 ## Help
-`$ fdrq --version`
+`$ fedora-repoquery --version`
 
 ```
 0.6
 ```
 
-`$ fdrq --help`
+`$ fedora-repoquery --help`
 
 ```
 fedora-repoquery tool for querying Fedora repos for packages.
 
-Usage: fdrq [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] [--dynamic]
+Usage: fedora-repoquery [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] [--dynamic]
             [-T|--time] [-K|--koji] [--devel-channel | --test-channel]
             [(-m|--mirror URL) | (-D|--dl)]
             [(-s|--source) | (-A|--all-archs) | [-a|--arch ARCH]] [-t|--testing]

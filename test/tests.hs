@@ -7,7 +7,7 @@ fdrq (args,mpkg) = do
   putStrLn ""
   putStrLn $ "# " ++ unwords args +-+ fromMaybe "" mpkg
   let debug = False
-  (ok, out, err) <- cmdFull "fdrq" (["-d" | debug] ++ args ++ maybeToList mpkg) ""
+  (ok, out, err) <- cmdFull "fedora-repoquery" (["-d" | debug] ++ args ++ maybeToList mpkg) ""
   if null err
     then unless (isNothing mpkg || "-T" `notElem` args) $ putStrLn "stderr empty"
     else putStrLn err

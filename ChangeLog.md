@@ -1,5 +1,8 @@
 # Revision history for fedora-repoquery
 
+## 0.7 (2024-07-18)
+- rename the executable back to fedora-repoquery to avoid confusion with fedrq
+
 ## 0.6 (2024-07-16)
 - defaults to no datestamp output: --time replaces --no-check
 - further speed improvements by reducing http checks

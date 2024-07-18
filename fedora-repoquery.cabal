@@ -1,5 +1,5 @@
 name:                fedora-repoquery
-version:             0.6
+version:             0.7
 synopsis:            Fedora repoquery tool
 description:
         A CLI tool for repoquerying Fedora packages:
@@ -30,7 +30,7 @@ source-repository head
   type:                git
   location:            https://github.com/juhp/fedora-repoquery.git
 
-executable fdrq
+executable fedora-repoquery
   main-is:             Main.hs
   autogen-modules:     Paths_fedora_repoquery
   other-modules:       Paths_fedora_repoquery
@@ -108,4 +108,4 @@ test-suite test
     ghc-options:   -Wall
     build-depends: base >= 4 && < 5
                  , simple-cmd
-    build-tool-depends: fedora-repoquery:fdrq
+    build-tool-depends: fedora-repoquery:fedora-repoquery
