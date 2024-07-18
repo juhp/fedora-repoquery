@@ -1,7 +1,8 @@
 # fedora-repoquery
 
-A fedora release version wrapper of dnf repoquery,
-which caches repodata separately per release.
+A dnf wrapper to repoquery different Fedora releases,
+caching repodata separately per release.
+It also supports EPEL and Centos Stream repos.
 
 ## Usage
 Usage examples:
@@ -36,37 +37,47 @@ bash-5.2.26-4.el10.x86_64 (c10s-BaseOS)
 kernel-6.11.0-0.rc0.20240716gitd67978318827.2.eln141.x86_64 (eln-BaseOS)
 ```
 
-Without a release argument:
+Without a release argument, the system yum repo configuration is used:
 
 `$ fedora-repoquery pandoc`
 
 ```
 pandoc-3.1.3-29.fc41.x86_64 (rawhide)
 ```
-the system yum repo configuration is used for the query.
 
-With the --time option the timestamp of repos is also shown:
+Use the --time (-T) option to display repo timestamps:
 ```
 $ fedora-repoquery -T 41 fedrq
 2024-07-16 19:45:44 +08 <https://mirror.freedif.org/fedora/fedora/linux/development/rawhide>
 
 fedrq-1.1.0-3.fc41.noarch (fedora-rawhide)
 ```
-The repo timestamp(s) can also be output with no args after
-the release version:
+
+Repo timestamp(s) are output when there are no query args
+after the release version:
 
 `$ fedora-repoquery 40`
 
 ```
-2024-04-20 02:22:34 +08 <https://mirror.freedif.org/fedora/fedora/linux/releases/40>
-2024-07-18 12:15:13 +08 <https://mirror.freedif.org/fedora/fedora/linux/updates/40>
+2024-04-20 02:22:34 +08 <https://mirror.freedif.org/fedora/fedora/linux/releases/40/>
+2024-07-18 12:15:13 +08 <https://mirror.freedif.org/fedora/fedora/linux/updates/40/>
 ```
+
+One can also query multiple releases (or arch's):
+`$ fedora-repoquery 40 41 python3 | grep x86_64`
+
+```
+python3-3.12.2-2.fc40.x86_64 (f40)
+python3-3.12.4-1.fc40.x86_64 (f40-updates)
+python3-3.13.0~b3-2.fc41.x86_64 (fedora-rawhide)
+```
+
 
 ## Help
 `$ fedora-repoquery --version`
 
 ```
-0.6
+0.7
 ```
 
 `$ fedora-repoquery --help`
@@ -74,13 +85,15 @@ the release version:
 ```
 fedora-repoquery tool for querying Fedora repos for packages.
 
-Usage: fedora-repoquery [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] [--dynamic]
-            [-T|--time] [-K|--koji] [--devel-channel | --test-channel]
-            [(-m|--mirror URL) | (-D|--dl)]
-            [(-s|--source) | (-A|--all-archs) | [-a|--arch ARCH]] [-t|--testing]
-            [-d|--debug]
-            ((-z|--cache-size) | (-e|--cache-clean-empty) | (-l|--list) |
-              [RELEASE]... [REPOQUERY_OPTS]... [PACKAGE]...)
+Usage: fedora-repoquery [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] 
+                        [--dynamic] [-T|--time] [-K|--koji] 
+                        [--devel-channel | --test-channel] 
+                        [(-m|--mirror URL) | (-D|--dl)] 
+                        [(-s|--source) | (-A|--all-archs) | [-a|--arch ARCH]] 
+                        [-t|--testing] [-d|--debug] 
+                        ((-z|--cache-size) | (-e|--cache-clean-empty) | 
+                          (-l|--list) | 
+                          [RELEASE]... [REPOQUERY_OPTS]... [PACKAGE]...)
 
   where RELEASE is {fN or N (fedora), 'rawhide', epelN, epelN-next, cN (centos
   stream), 'eln'}, with N the release version number.
