@@ -5,7 +5,7 @@ module List (
 import Data.List.Extra
 import SimpleCmd ((+-+))
 
-import ShowRelease (activeFedoraReleases, BodhiRelease(..))
+import Release (activeFedoraReleases, BodhiRelease(..))
 
 listVersionsCmd :: IO ()
 listVersionsCmd =

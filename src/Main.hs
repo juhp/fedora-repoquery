@@ -28,7 +28,7 @@ import Cache (cacheSize, cleanEmptyCaches)
 import List (listVersionsCmd)
 import Paths_fedora_repoquery (version)
 import Query (repoqueryCmd)
-import ShowRelease (showReleaseCmd, downloadServer)
+import Release (showReleaseCmd, downloadServer)
 import Types (Channel(..), Mirror(..), Release (System), RepoSource(..), Verbosity(..),
               eitherRelease)
 

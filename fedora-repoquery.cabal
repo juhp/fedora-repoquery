@@ -40,7 +40,7 @@ executable fedora-repoquery
                        Common
                        List
                        Query
-                       ShowRelease
+                       Release
                        Types
                        URL
   hs-source-dirs:      src

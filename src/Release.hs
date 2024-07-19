@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module ShowRelease (
+module Release (
   showReleaseCmd,
-  showRelease,
+  getRelease,
   activeFedoraReleases,
   BodhiRelease(..),
   downloadServer
@@ -29,11 +29,11 @@ import URL
 showReleaseCmd :: Bool -> Bool -> RepoSource -> Release  -> Arch -> Maybe Arch
                -> Bool -> IO ()
 showReleaseCmd debug dynredir reposource release sysarch march testing =
-  void $ showRelease debug dynredir False True reposource release sysarch march testing
+  void $ getRelease debug dynredir False True reposource release sysarch march testing
 
-showRelease :: Bool -> Bool -> Bool -> Bool -> RepoSource
+getRelease :: Bool -> Bool -> Bool -> Bool -> RepoSource
             -> Release -> Arch -> Maybe Arch -> Bool -> IO [(String, URL)]
-showRelease debug dynredir warn checkdate reposource@(RepoSource koji _chan _mirror) release sysarch march testing = do
+getRelease debug dynredir warn checkdate reposource@(RepoSource koji _chan _mirror) release sysarch march testing = do
   let arch = fromMaybe sysarch march
   (url,path) <- getURL debug dynredir reposource release arch
   let urlpath = url +//+ path

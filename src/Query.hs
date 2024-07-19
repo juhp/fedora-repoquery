@@ -15,7 +15,7 @@ import System.FilePath (takeBaseName)
 
 import Arch
 import Common (warning)
-import ShowRelease (showRelease)
+import Release (getRelease)
 import Types
 import URL (FileDir(Dir), URL, renderUrl)
 
@@ -44,7 +44,7 @@ repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource s
     repoConfigs <-
       if release == System
       then return []
-      else showRelease debug dynredir True checkdate reposource release sysarch (Just arch) testing
+      else getRelease debug dynredir True checkdate reposource release sysarch (Just arch) testing
     let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","--qf","--queryformat", "--changelog"] ++ pkgAttrsOptions) args
     -- dnf5 writes repo update output to stdout
     -- https://github.com/rpm-software-management/dnf5/issues/1361
