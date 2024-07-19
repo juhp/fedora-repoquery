@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP, OverloadedStrings #-}
 
 module Release (
   showReleaseCmd,
@@ -89,7 +89,7 @@ getRelease debug dynredir warn checkdate reposource@(RepoSource koji _chan _mirr
                 System -> error' "system not supported"
       let composeUrl = renderUrl File composeinfo
       when debug $ print composeUrl
-      mtimestr <- curlGetHeader "Last-Modified" composeUrl
+      mtimestr <- curlGetHeader Nothing "Last-Modified" composeUrl
       whenJust mtimestr $ \timestr -> do
         utc <- parseTimeM False defaultTimeLocale rfc822DateFormat timestr
         date <- utcToLocalZonedTime utc
@@ -211,7 +211,7 @@ getFedoraServer debug dynredir (RepoSource koji _ mirror) top path =
         redir <-
           if dynredir
           then return Nothing
-          else curlGetHeader "location" rurl
+          else curlGetHeader (Just 3000) "Location" rurl
         when debug $ print redir
         case redir of
           Nothing -> do
@@ -237,8 +237,13 @@ downloadServer :: String
 downloadServer = "https://download.fedoraproject.org/pub"
 
 -- FIXME check CurlCode(CurlOK) status
-curlGetHeader :: CI.CI String -> String -> IO (Maybe String)
-curlGetHeader field url = do
-  (_status,headers) <- curlHead url [CurlConnectTimeoutMS 5000]
+curlGetHeader :: Maybe Natural -> CI.CI String -> String -> IO (Maybe String)
+curlGetHeader mtimeout field url = do
+  (_status,headers) <- curlHead url $ maybe [] (singleton . CurlConnectTimeoutMS . fromIntegral) mtimeout
   -- tail because curl leaves space before field value
   return $ tail <$> lookup field (map (first CI.mk) headers)
+
+#if !MIN_VERSION_base(4,15,0)
+singleton :: a -> [a]
+singleton x = [x]
+#endif
