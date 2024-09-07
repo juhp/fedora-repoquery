@@ -61,7 +61,7 @@ main = do
     <*> (flagWith' CacheSize 'z' "cache-size" "Show total dnf repo metadata cache disksize"
          <|> flagWith' CacheEmpties 'e' "cache-clean-empty" "Remove empty dnf caches"
          <|> flagWith' List 'l' "list" "List Fedora versions"
-         <|> Query <$> some (strArg "[RELEASE]... [REPOQUERY_OPTS]... [PACKAGE]..."))
+         <|> Query <$> some (strArg "[RELEASE|--]... [REPOQUERY_OPTS]... [PACKAGE]..."))
 
 runMain :: Arch -> Bool -> Verbosity -> Bool -> Bool -> RepoSource -> [Arch]
         -> Bool -> Bool -> Command -> IO ()
