@@ -216,7 +216,7 @@ getFedoraServer debug dynredir (RepoSource koji _ mirror) top path =
         when debug $ print redir
         case redir of
           Nothing -> do
-            unless dynredir $
+            when (debug && not dynredir) $
               warning $ "slow redirection for" +-+ rurl
             return (URL downloadServer +//+ top,path)
           Just actual -> do
