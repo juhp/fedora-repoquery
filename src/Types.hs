@@ -12,6 +12,7 @@ module Types (
   ) where
 
 import Data.Char (isDigit)
+import Data.List.Extra (lower)
 import Numeric.Natural
 
 --import Distribution.Fedora.Repoquery
@@ -43,28 +44,32 @@ data Release = EPEL Natural | EPELNext Natural | Centos Natural | Fedora Natural
              | ELN | Rawhide | System
   deriving (Eq, Ord)
 
+-- FIXME determine via EPEL or Centos
 elnVersion :: Natural
 elnVersion = 11
 
--- | Read a Release name, otherwise return an error message
+-- FIXME error if short/release-like
+-- | Read a Release name
 eitherRelease :: String -> Either String Release
-eitherRelease "rawhide" = Right Rawhide
--- FIXME add proper parsing:
-eitherRelease "epel8-next" = Right $ EPELNext 8
-eitherRelease "epel9-next" = Right $ EPELNext 9
-eitherRelease ('e':'p':'e':'l':n) | all isDigit n = let br = EPEL (read n) in Right br
-eitherRelease ('e':'l':n) | all isDigit n = let r = read n in Right (EPEL r)
-eitherRelease ('c':n) | all isDigit n = let r = read n in Right (Centos r)
-eitherRelease ('C':n) | all isDigit n = let r = read n in Right (Centos r)
-eitherRelease "eln" = Right ELN
-eitherRelease ('f':ns) | all isDigit ns = let r = read ns in Right (Fedora r)
-eitherRelease ns | all isDigit ns = let r = read ns in
-                     Right $
-                     case compare r elnVersion of
-                       LT -> Centos r
-                       EQ -> ELN
-                       GT -> Fedora r
-eitherRelease cs = Left cs
+eitherRelease rel =
+  case lower rel of
+    "rawhide" -> Right Rawhide
+    -- FIXME add proper parsing:
+    "epel8-next" -> Right $ EPELNext 8
+    "epel9-next" -> Right $ EPELNext 9
+    ('e':'p':'e':'l':n@(_:_)) | all isDigit n -> let br = EPEL (read n)
+                                                 in Right br
+    ('c':n@(_:_)) | all isDigit n -> let r = read n in Right (Centos r)
+    "eln" -> Right ELN
+    ('f':n@(_:_)) | all isDigit n -> let r = read n in Right (Fedora r)
+    ns@(_:_) | all isDigit ns ->
+               let r = read ns in
+                 Right $
+                 case compare r elnVersion of
+                   LT -> Centos r
+                   EQ -> ELN
+                   GT -> Fedora r
+    _ -> Left rel
 
 instance Show Release where
   show Rawhide = "rawhide"
