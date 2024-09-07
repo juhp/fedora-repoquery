@@ -47,14 +47,19 @@ getRelease debug dynredir warn checkdate reposource@(RepoSource koji _chan _mirr
                      [("AppStream",urlpath),("CRB",urlpath)])
       Rawhide -> return ([("development", urlpath)],[])
       Fedora n -> do
-        pending <- pendingFedoraRelease n
+        state <- fedoraReleaseState n
+        postbeta <- fedoraReleasePostBeta n
         return $
-          if pending
-          then ([("development", urlpath)],[])
+          if state `elem` ["pending","frozen"]
+          then (("development", urlpath) :
+                [("updates", url +//+ ["updates",show n]) | postbeta , state == "frozen"] ++
+                -- FIXME add way to disable or invert testing
+                [("updates-testing", url +//+ ["updates","testing",show n]) | testing || state == "frozen" || postbeta]
+               ,[])
           else (("releases", urlpath) :
                 ("updates", url +//+ ["updates",show n]) :
-                [("updates-testing", url +//+ ["updates","testing",show n]) | testing],
-                [])
+                [("updates-testing", url +//+ ["updates","testing",show n]) | testing || postbeta]
+               ,[])
       EPEL n -> return
                 (("epel",urlpath) :
                  [("epel-testing",url +//+ ["testing", show n]) | testing],
@@ -81,8 +86,7 @@ getRelease debug dynredir warn checkdate reposource@(RepoSource koji _chan _mirr
                 ELN -> ["metadata","composeinfo.json"]
                 EPEL _ -> ["Everything", "state"]
                 EPELNext _ -> ["Everything", "state"]
-                Fedora _ -> if "updates" `isInfixOf` reponame ||
-                               "updates-testing" `isInfixOf` reponame
+                Fedora _ -> if "updates" `isInfixOf` reponame
                             then ["Everything", "state"]
                             else ["COMPOSE_ID"]
                 Rawhide -> ["COMPOSE_ID"]

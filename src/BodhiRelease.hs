@@ -4,8 +4,9 @@ module BodhiRelease (
   BodhiRelease (..),
   activeFedoraRelease,
   activeFedoraReleases,
-  pendingFedoraRelease,
-  rawhideFedoraRelease
+  fedoraReleaseState,
+  rawhideFedoraRelease,
+  fedoraReleasePostBeta
   )
 where
 
@@ -21,7 +22,8 @@ import Types (Natural)
 data BodhiRelease =
   Release {releaseVersion :: String, -- to handle eln
            releaseState ::  String,
-           releaseBranch :: String}
+           releaseBranch :: String,
+           releasePostBeta :: Bool}
   deriving Eq
 
 -- Left is oldest active version
@@ -43,18 +45,29 @@ activeFedoraReleases =
       version <- lookupKey "version" obj
       state <- lookupKey "state" obj
       branch <- lookupKey "branch" obj
-      return $ Release version state branch
+      let setting = lookupKey "setting_status" obj
+      return $
+        Release version state branch $
+        setting == Just ("post_beta" :: String)
 
-pendingFedoraRelease :: Natural -> IO Bool
-pendingFedoraRelease n = do
+fedoraReleaseState :: Natural -> IO String
+fedoraReleaseState n = do
   eactive <- activeFedoraRelease n
   return $
     case eactive of
-      Left _ -> False
-      Right rel -> releaseState rel == "pending"
+      Left _ -> error' $ "could find F" ++ show n ++ " release (state)"
+      Right rel -> releaseState rel
 
 rawhideFedoraRelease :: IO Natural
 rawhideFedoraRelease = do
   actives <- activeFedoraReleases
   let pending = map releaseVersion (filter (\r -> releaseState r == "pending") actives)
   return $ read $ maximum (L.delete "eln" pending)
+
+fedoraReleasePostBeta :: Natural -> IO Bool
+fedoraReleasePostBeta n = do
+  eactive <- activeFedoraRelease n
+  return $
+    case eactive of
+      Left _ -> error' $ "could find F" ++ show n ++ " release (setting)"
+      Right rel -> releasePostBeta rel

@@ -11,5 +11,5 @@ listVersionsCmd :: IO ()
 listVersionsCmd =
   activeFedoraReleases >>= mapM_ printRelease . sortOn releaseState
   where
-    printRelease (Release _version state branch) =
+    printRelease (Release _version state branch _postbeta) =
       putStrLn $ branch +-+ state
