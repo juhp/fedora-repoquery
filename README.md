@@ -10,7 +10,7 @@ Usage examples:
 `$ fedora-repoquery rawhide firefox`
 
 ```
-firefox-128.0-2.fc41.x86_64 (fedora-rawhide)
+firefox-130.0-1.fc42.x86_64 (fedora-rawhide)
 ```
 
 `$ fedora-repoquery 40 --requires filesystem`
@@ -34,7 +34,7 @@ bash-5.2.26-4.el10.x86_64 (c10s-BaseOS)
 `$ fedora-repoquery eln kernel`
 
 ```
-kernel-6.11.0-0.rc0.20240716gitd67978318827.2.eln141.x86_64 (eln-BaseOS)
+kernel-6.11.0-0.rc6.20240906gitb831f83e40a2.53.eln142.x86_64 (eln-BaseOS)
 ```
 
 Without a release argument, the system yum repo configuration is used:
@@ -42,7 +42,19 @@ Without a release argument, the system yum repo configuration is used:
 `$ fedora-repoquery pandoc`
 
 ```
-pandoc-3.1.3-29.fc41.x86_64 (rawhide)
+pandoc-3.1.11.1-32.fc41.x86_64 (rawhide)
+```
+but then currently you have to insert `--` before a query option:
+
+`$ fedora-repoquery -- --whatrequires pandoc`
+
+```
+R-reprex-2.0.2-12.fc41.noarch (rawhide)
+R-rmarkdown-2.24-5.fc41.noarch (rawhide)
+pandoc-pdf-3.1.11.1-32.fc41.x86_64 (rawhide)
+python3-nb2plots-0.7.2-5.fc41.noarch (rawhide)
+python3-pypandoc-1.13-6.fc41.noarch (rawhide)
+rstudio-common-2024.04.2+764-3.fc41.x86_64 (rawhide)
 ```
 
 Use the --time (-T) option to display repo timestamps:
@@ -60,16 +72,18 @@ after the release version:
 
 ```
 2024-04-20 02:22:34 +08 <https://mirror.freedif.org/fedora/fedora/linux/releases/40/>
-2024-07-18 12:15:13 +08 <https://mirror.freedif.org/fedora/fedora/linux/updates/40/>
+2024-09-07 09:37:56 +08 <https://mirror.freedif.org/fedora/fedora/linux/updates/40/>
 ```
 
 One can also query multiple releases (or arch's):
+
 `$ fedora-repoquery 40 41 python3 | grep x86_64`
 
 ```
 python3-3.12.2-2.fc40.x86_64 (f40)
-python3-3.12.4-1.fc40.x86_64 (f40-updates)
-python3-3.13.0~b3-2.fc41.x86_64 (fedora-rawhide)
+python3-3.12.5-2.fc40.x86_64 (f40-updates)
+python3-3.13.0~rc1-2.fc41.x86_64 (f41-development)
+python3-3.13.0~rc1-3.fc41.x86_64 (f41-updates-testing)
 ```
 
 
@@ -77,7 +91,7 @@ python3-3.13.0~b3-2.fc41.x86_64 (fedora-rawhide)
 `$ fedora-repoquery --version`
 
 ```
-0.7
+0.7.1
 ```
 
 `$ fedora-repoquery --help`
@@ -85,15 +99,15 @@ python3-3.13.0~b3-2.fc41.x86_64 (fedora-rawhide)
 ```
 fedora-repoquery tool for querying Fedora repos for packages.
 
-Usage: fedora-repoquery [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] 
-                        [--dynamic] [-T|--time] [-K|--koji] 
-                        [--devel-channel | --test-channel] 
-                        [(-m|--mirror URL) | (-D|--dl)] 
-                        [(-s|--source) | (-A|--all-archs) | [-a|--arch ARCH]] 
-                        [-t|--testing] [-d|--debug] 
-                        ((-z|--cache-size) | (-e|--cache-clean-empty) | 
-                          (-l|--list) | 
-                          [RELEASE]... [REPOQUERY_OPTS]... [PACKAGE]...)
+Usage: fedora-repoquery [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)]
+                        [--dynamic] [-T|--time] [-K|--koji]
+                        [--devel-channel | --test-channel]
+                        [(-m|--mirror URL) | (-D|--dl)]
+                        [(-s|--source) | (-A|--all-archs) | [-a|--arch ARCH]]
+                        [-t|--testing] [-d|--debug]
+                        ((-z|--cache-size) | (-e|--cache-clean-empty) |
+                          (-l|--list) |
+                          [RELEASE|--]... [REPOQUERY_OPTS]... [PACKAGE]...)
 
   where RELEASE is {fN or N (fedora), 'rawhide', epelN, epelN-next, cN (centos
   stream), 'eln'}, with N the release version number.
@@ -125,8 +139,8 @@ Available options:
 The default arch is the system arch.
 
 ## Installation
-fedora-repoquery can be installed from
-[copr](https://copr.fedorainfracloud.org/coprs/petersen/fedora-repoquery/)
+fedora-repoquery is available in Fedora and EPEL 9:
+<https://src.fedoraproject.org/rpms/fedora-repoquery>.
 
 ## Building from source
 Use `stack install fedora-repoquery` or `cabal install fedora-repoquery`

@@ -1,5 +1,13 @@
 # Revision history for fedora-repoquery
 
+## 0.7.1 (2024-09-08)
+- fix for branched: "frozen" state is still in development/ like "pending"
+- enable updates-testing for fedora branched from Beta freeze
+- help: can use -- for system repoquery
+- only output "slow redirection" for debug
+- refactor eitherRelease with lower case
+- curl connection: timeout for Location redirect but not Last-Modified
+
 ## 0.7 (2024-07-18)
 - use curl library for HTTP instead of http-directory
 - rename the executable back to fedora-repoquery to avoid confusion with fedrq
