@@ -133,7 +133,8 @@ getURL debug dynredir reposource@(RepoSource koji chan _mirror) release arch =
           (URL "https://archives.fedoraproject.org/pub/archive" +//+ fedoraTop, ["releases", show n])
           else error' $ "unknown fedora release:" +-+ show n
         Right rel ->
-          let pending = releaseState rel == "pending"
+          -- state values: ["disabled","pending","frozen","current","archived"]
+          let pending = releaseState rel /= "current"
               rawhide = pending && releaseBranch rel == "rawhide"
               releasestr = if rawhide then "rawhide" else show n
           in getFedoraServer debug dynredir reposource fedoraTop
