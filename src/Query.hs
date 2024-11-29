@@ -6,7 +6,7 @@ module Query (
 
 import Control.Monad.Extra
 import Data.Char (isSpace)
-import qualified Data.List.Extra as L
+import Data.List.Extra
 import Data.Maybe (isJust, fromMaybe)
 import Safe (lastMay)
 import SimpleCmd (cmdLines)
@@ -72,7 +72,7 @@ repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource s
     res <- cmdLines dnf cmdargs
     unless (null res) $ do
       unless (not checkdate || release == System || multiple) $ warning ""
-      putStrLn $ L.intercalate "\n" res
+      putStrLn $ intercalate "\n" res
   where
     tweakedArgs dnf5 =
       if not dnf5
