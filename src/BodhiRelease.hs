@@ -29,12 +29,13 @@ data BodhiRelease =
 activeFedoraRelease :: Natural -> IO (Either Natural BodhiRelease)
 activeFedoraRelease n = do
   active <- activeFedoraReleases
-  when (null active) $ error' "failed to find active releases with Bodhi API"
-  case L.find (\r -> releaseVersion r == show n) active of
-    Just rel -> return $ Right rel
-    Nothing ->
-      let ordered = L.sort $ map releaseVersion active
-      in return $ Left $ read $ head ordered
+  case L.sortOn releaseVersion active of
+    [] -> error' "failed to find active releases with Bodhi API"
+    (oldest:_) ->
+      return $
+      case L.find (\r -> releaseVersion r == show n) active of
+        Just rel -> Right rel
+        Nothing -> Left $ read $ releaseVersion oldest
 
 activeFedoraReleases :: IO [BodhiRelease]
 activeFedoraReleases =
