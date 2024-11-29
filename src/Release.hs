@@ -46,20 +46,49 @@ getRelease debug dynredir warn checkdate reposource@(RepoSource koji _chan _mirr
       ELN -> return ([("BaseOS",urlpath)],
                      [("AppStream",urlpath),("CRB",urlpath)])
       Rawhide -> return ([("development", urlpath)],[])
+      -- curl -s https://bodhi.fedoraproject.org/releases/?exclude_archived=True | jq
       Fedora n -> do
-        state <- fedoraReleaseState n
-        postbeta <- fedoraReleasePostBeta n
-        return $
-          if state `elem` ["pending","frozen"]
-          then (("development", urlpath) :
-                [("updates", url +//+ ["updates",show n]) | postbeta , state == "frozen"] ++
-                -- FIXME add way to disable or invert testing
-                [("updates-testing", url +//+ ["updates","testing",show n]) | testing || state == "frozen" || postbeta]
-               ,[])
-          else (("releases", urlpath) :
-                ("updates", url +//+ ["updates",show n]) :
-                [("updates-testing", url +//+ ["updates","testing",show n]) | testing || postbeta]
-               ,[])
+        eactiverelease <- activeFedoraRelease n
+        case eactiverelease of
+          Left _oldest ->
+              return (("releases", urlpath) :
+                      ("updates", url +//+ ["updates",show n]) :
+                      [("updates-testing", url +//+ ["updates","testing",show n]) | testing]
+                     ,[])
+          Right rel -> do
+            let composed = releaseComposed rel
+                state = releaseState rel
+                postbeta = releasePostBeta rel
+            return $
+          -- after Beta Freeze
+          -- {"state": "pending", "composed_by_bodhi": true,
+          --  "create_automatic_updates": false, "setting_status": "post_beta"}
+          --
+          -- final freeze
+          -- {"state": "frozen", "composed_by_bodhi": true,
+          --  "create_automatic_updates": false, "setting_status": "post_beta"}
+          --
+          -- final unfrozen
+          -- {"state": "current", "composed_by_bodhi": true,
+          --  "create_automatic_updates": false, "setting_status": "post_beta"}
+          --
+          -- released
+          -- {"state": "current", "composed_by_bodhi": true,
+          --  "create_automatic_updates": false, "setting_status": null}
+          --
+          -- Rawhide
+          -- {"state": "pending", "composed_by_bodhi": false,
+          --  "create_automatic_updates": true, "setting_status": "pre_beta"}
+              if state `elem` ["pending","frozen"] || state == "current" && postbeta
+              then (("development", urlpath) :
+                    [("updates", url +//+ ["updates",show n]) | postbeta , state == "current"] ++
+                    -- FIXME add way to disable or invert testing
+                    [("updates-testing", url +//+ ["updates","testing",show n]) | testing || composed, state /= "current"]
+                   ,[])
+              else (("releases", urlpath) :
+                    ("updates", url +//+ ["updates",show n]) :
+                    [("updates-testing", url +//+ ["updates","testing",show n]) | testing || postbeta]
+                   ,[])
       EPEL n -> return
                 (("epel",urlpath) :
                  [("epel-testing",url +//+ ["testing", show n]) | testing],
@@ -128,8 +157,8 @@ getURL debug dynredir reposource@(RepoSource koji chan _mirror) release arch =
     EPEL n -> getFedoraServer debug dynredir reposource ["epel"] [show n]
     EPELNext n -> getFedoraServer debug dynredir reposource ["epel","next"] [show n]
     Fedora n -> do
-      ebodhirelease <- activeFedoraRelease n
-      case ebodhirelease of
+      eactiverelease <- activeFedoraRelease n
+      case eactiverelease of
         Left oldest ->
           if n < oldest
           then
@@ -139,10 +168,12 @@ getURL debug dynredir reposource@(RepoSource koji chan _mirror) release arch =
         Right rel ->
           -- state values: ["disabled","pending","frozen","current","archived"]
           let pending = releaseState rel /= "current"
+              postbeta = releasePostBeta rel
               rawhide = pending && releaseBranch rel == "rawhide"
               releasestr = if rawhide then "rawhide" else show n
           in getFedoraServer debug dynredir reposource fedoraTop
-             [if pending then "development" else "releases", releasestr]
+             [if pending || postbeta then "development" else "releases",
+              releasestr]
     Rawhide -> getFedoraServer debug dynredir reposource fedoraTop ["development", "rawhide"]
     System -> error' "getURL: system unsupported"
   where

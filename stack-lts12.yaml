@@ -1,10 +1,9 @@
 resolver: lts-12.26
 extra-deps:
-  - fedora-dists-2.1.0
-  - pdc-0.1.1
   - bodhi-0.1.0
   - cached-json-file-0.1.0
   - http-query-0.1.0
   - http-directory-0.1.8
   - simple-cmd-args-0.1.8
   - simple-cmd-0.2.0
+  - fedora-releases-0.2.0

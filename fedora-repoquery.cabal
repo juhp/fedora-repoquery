@@ -45,12 +45,11 @@ executable fedora-repoquery
                        URL
   hs-source-dirs:      src
   build-depends:       base < 5,
-                       bodhi,
-                       cached-json-file,
                        case-insensitive,
                        curl,
                        directory,
                        extra,
+                       fedora-releases >= 0.2,
                        filepath,
                        Glob,
                        regex-compat,

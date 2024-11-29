@@ -10,19 +10,18 @@ module BodhiRelease (
   )
 where
 
-import Control.Monad.Extra (when)
 import qualified Data.List as L
 import Data.Maybe (mapMaybe)
-import Fedora.Bodhi (bodhiReleases, lookupKey, makeKey)
+import Distribution.Fedora.BodhiReleases (getBodhiFedoraReleases, lookupKey)
 import SimpleCmd (error')
-import System.Cached.JSON (getCachedJSONQuery)
 
 import Types (Natural)
 
 data BodhiRelease =
-  Release {releaseVersion :: String, -- to handle eln
+  Release {releaseVersion :: String, -- to handle "eln"
            releaseState ::  String,
            releaseBranch :: String,
+           releaseComposed :: Bool,
            releasePostBeta :: Bool}
   deriving Eq
 
@@ -39,15 +38,16 @@ activeFedoraRelease n = do
 
 activeFedoraReleases :: IO [BodhiRelease]
 activeFedoraReleases =
-  L.nub . mapMaybe maybeRelease <$> getCachedJSONQuery "fedora-repoquery" "fedora-bodhi-releases-active" (bodhiReleases (makeKey "exclude_archived" "1")) 1000
+  L.nub . mapMaybe maybeRelease <$> getBodhiFedoraReleases
   where
     maybeRelease obj = do
       version <- lookupKey "version" obj
-      state <- lookupKey "state" obj
       branch <- lookupKey "branch" obj
+      state <- lookupKey "state" obj
+      composed <- lookupKey "composed_by_bodhi" obj
       let setting = lookupKey "setting_status" obj
       return $
-        Release version state branch $
+        Release version state branch composed $
         setting == Just ("post_beta" :: String)
 
 fedoraReleaseState :: Natural -> IO String
