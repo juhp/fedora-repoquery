@@ -17,6 +17,7 @@ import Data.Maybe (fromMaybe)
 import Data.Time.Format (defaultTimeLocale, parseTimeM, rfc822DateFormat)
 import Data.Time.LocalTime (utcToLocalZonedTime)
 import Network.Curl (curlHead, CurlOption(..))
+import Safe (tailSafe)
 import SimpleCmd (error', (+-+))
 import Text.Regex (mkRegex, subRegex)
 
@@ -277,7 +278,7 @@ curlGetHeader :: Maybe Natural -> CI.CI String -> String -> IO (Maybe String)
 curlGetHeader mtimeout field url = do
   (_status,headers) <- curlHead url $ maybe [] (singleton . CurlConnectTimeoutMS . fromIntegral) mtimeout
   -- tail because curl leaves space before field value
-  return $ tail <$> lookup field (map (first CI.mk) headers)
+  return $ tailSafe <$> lookup field (map (first CI.mk) headers)
 
 #if !MIN_VERSION_base(4,15,0)
 singleton :: a -> [a]
