@@ -41,10 +41,16 @@ URL base +//+ rel =
 infixr 5 +/+
 (+/+) :: String -> String -> String
 "" +/+ s = s
-s +/+ "" = s
-s +/+ t | last s == '/' = init s +/+ t
-        | head t == '/' = s +/+ tail t
-s +/+ t = s ++ "/" ++ t
+s +/+ t =
+  if last s == '/'
+  then init s +/+ t
+  else
+    case t of
+      "" -> s
+      (h:ts) ->
+        if h == '/'
+        then s +/+ ts
+        else s ++ "/" ++ t
 
 removeSubpath :: [String] -> String -> String
 removeSubpath path url =
