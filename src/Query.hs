@@ -11,7 +11,7 @@ import Data.Maybe (isJust, fromMaybe)
 import Safe (lastMay)
 import SimpleCmd (cmdLines)
 import System.Directory (doesFileExist, findExecutable)
-import System.FilePath (takeBaseName)
+import System.FilePath (takeBaseName, (<.>))
 
 import Arch
 import Common (warning)
@@ -77,21 +77,32 @@ repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource s
     tweakedArgs dnf5 =
       if not dnf5
       then args
-      else tweakQf $ map tweakInfo args
+      else tweakQfOpt $ map tweakInfo args
       where
         -- dnf5 only has --info not -i
         tweakInfo "-i" = "--info"
         tweakInfo arg = arg
 
         -- dnf5 doesn't append \n to queryformat
-        tweakQf as@(x:y:rest) | x `elem` ["--qf","--queryformat"] =
-                                case lastMay y of
-                                  Just sp -> if isSpace sp
-                                             then as
-                                             else x : (y ++ "\n") : rest
-                                  Nothing -> as
-                              | otherwise = x : tweakQf (y:rest)
-        tweakQf xs = xs
+        tweakQfOpt (x:y:rest) | x `elem` ["--qf","--queryformat"] =
+                                   x : tweakQf y : rest
+                              | otherwise = x : tweakQfOpt (y:rest)
+        tweakQfOpt xs = xs
+
+        tweakQf qf =
+          expandQf qf ++
+          case lastMay qf of
+            Just lc -> if isSpace lc then "" else "\n"
+            Nothing -> ""
+
+        expandQf qf =
+          case lower qf of
+            "nv" -> "%{name}-%{version}"
+            "nvr" -> expandQf "nv" ++ "-%{release}"
+            "nvra" -> expandQf "nvr" <.> "%{arch}"
+            "envr" -> "%{epoch}:" ++ expandQf "nvr"
+            "envra" -> "%{epoch}:" ++ expandQf "nvra"
+            _ -> qf
 
 renderRepoConfig :: (String, URL) -> [String]
 renderRepoConfig (name, url) =
