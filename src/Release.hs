@@ -94,6 +94,10 @@ getRelease debug dynredir warn checkdate reposource@(RepoSource koji _chan _mirr
                 (("epel",urlpath) :
                  [("epel-testing",url +//+ ["testing", show n]) | testing],
                  [])
+      EPEL10Dot n -> return
+                (("epel",urlpath) :
+                 [("epel-testing",url +//+ ["testing", "10." ++ show n]) | testing],
+                 [])
       EPELNext _n -> return ([("epelnext",urlpath)],[])
       System -> error' "showRelease: system unsupported"
   rawhide <- rawhideFedoraRelease
@@ -115,6 +119,7 @@ getRelease debug dynredir warn checkdate reposource@(RepoSource koji _chan _mirr
                 Centos _ -> ["COMPOSE_ID"] -- ["metadata","composeinfo.json"]
                 ELN -> ["metadata","composeinfo.json"]
                 EPEL _ -> ["Everything", "state"]
+                EPEL10Dot _ -> ["Everything", "state"]
                 EPELNext _ -> ["Everything", "state"]
                 Fedora _ -> if "updates" `isInfixOf` reponame
                             then ["Everything", "state"]
@@ -156,6 +161,7 @@ getURL debug dynredir reposource@(RepoSource koji chan _mirror) release arch =
                return
                (URL "https://archives.fedoraproject.org/pub/archive/epel", [show n])
     EPEL n -> getFedoraServer debug dynredir reposource ["epel"] [show n]
+    EPEL10Dot n -> getFedoraServer debug dynredir reposource ["epel"] ["10." ++ show n]
     EPELNext n -> getFedoraServer debug dynredir reposource ["epel","next"] [show n]
     Fedora n -> do
       eactiverelease <- activeFedoraRelease n
@@ -201,6 +207,7 @@ repoConfigArgs (RepoSource False _chan mirror) sysarch march rawhide release (re
           Centos _ -> [repo, showArch arch] ++ (if arch == Source then ["tree"] else ["os"])
           ELN -> [repo, showArch arch] ++ (if arch == Source then ["tree"] else ["os"])
           EPEL n -> (if n >= 8 then ("Everything" :) else id) [showArch arch] ++ ["tree" | arch == Source]
+          EPEL10Dot _n -> "Everything" : showArch arch : ["tree" | arch == Source]
           EPELNext _n -> ["Everything", showArch arch]
           Fedora _ -> ["Everything", showArch arch] ++ (if arch == Source then ["tree"] else ["os" | repo `elem` ["releases","development"]])
           Rawhide -> ["Everything", showArch arch, if arch == Source then "tree" else "os"]

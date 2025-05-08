@@ -40,7 +40,8 @@ instance Show Channel where
   show ChanTest = "test"
   show ChanProd = "prod"
 
-data Release = EPEL Natural | EPELNext Natural | Centos Natural | Fedora Natural
+data Release = EPEL10Dot Natural | EPEL Natural | EPELNext Natural
+             | Centos Natural | Fedora Natural
              | ELN | Rawhide | System
   deriving (Eq, Ord)
 
@@ -57,6 +58,8 @@ eitherRelease rel =
     -- FIXME add proper parsing:
     "epel8-next" -> Right $ EPELNext 8
     "epel9-next" -> Right $ EPELNext 9
+    ('e':'p':'e':'l':'1':'0':'.':n@(_:_)) | all isDigit n -> let br = EPEL10Dot (read n)
+                                                 in Right br
     ('e':'p':'e':'l':n@(_:_)) | all isDigit n -> let br = EPEL (read n)
                                                  in Right br
     ('c':n@(_:_)) | all isDigit n -> let r = read n in Right (Centos r)
@@ -74,6 +77,7 @@ eitherRelease rel =
 instance Show Release where
   show Rawhide = "rawhide"
   show (Fedora n) = "f" ++ show n
+  show (EPEL10Dot n) = "epel10." ++ show n
   show (EPEL n) = (if n <= 6 then "el" else "epel") ++ show n
   show (EPELNext n) = "epel" ++ show n ++ "-next"
   show ELN = "eln"

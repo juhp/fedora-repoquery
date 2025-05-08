@@ -18,7 +18,7 @@ fdrq (args,mpkg) = do
 
 -- copied from dl-fedora
 branched :: Int
-branched = 41
+branched = 42
 current, previous, prevprev, rawhide :: String
 current = show branched
 previous = show (branched - 1)
@@ -40,6 +40,8 @@ tests =
   ,(["-t", previous], Just "podman")
   ,(["eln"], Just "ibus")
   ,(["epel9"], Just "ghc")
+  ,(["epel10"], Just "ghc")
+  ,(["epel10.0"], Just "ghc-srpm-macros")
   ,(["c10"], Just "bash")
   ,(["c9"], Just "kernel")
   ,(["rawhide", "--whatprovides"], Just "perl(Regexp::Pattern::License)")
