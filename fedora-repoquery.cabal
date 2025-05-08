@@ -54,7 +54,7 @@ executable fedora-repoquery
                        Glob,
                        regex-compat,
                        safe,
-                       simple-cmd,
+                       simple-cmd >= 0.2,
                        simple-cmd-args,
                        text,
                        time,

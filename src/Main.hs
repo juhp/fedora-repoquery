@@ -13,13 +13,13 @@ import Control.Applicative (
 #endif
   )
 #endif
-import Control.Monad (forM_)
+import Control.Monad (forM_, when)
 import Data.Either (partitionEithers)
 import Data.Tuple (swap)
 #if !MIN_VERSION_simple_cmd_args(0,1,7)
 import Options.Applicative (eitherReader, maybeReader, ReadM)
 #endif
-import SimpleCmd ((+-+))
+import SimpleCmd ((+-+), warning)
 import SimpleCmdArgs
 import System.IO (BufferMode(NoBuffering), hSetBuffering, stdout)
 
@@ -73,12 +73,14 @@ runMain sysarch dnf4 verbose dynredir time reposource archs testing debug comman
     Query relargs ->
       -- spanJust from utility-ht nicer but this gets us enough
       let (releases,args) = swap $ partitionEithers $ map eitherRelease relargs
-      in
+      in do
+        when (null releases && verbose /= Quiet) $
+          warning "(using system repos)"
         forM_ (if null releases then [System] else releases) $ \release ->
-        if null args
-        then if null archs
-             then showReleaseCmd debug dynredir reposource release sysarch Nothing testing
-             else forM_ archs $ \arch -> showReleaseCmd debug dynredir reposource release sysarch (Just arch) testing
-        else
-          let multiple = length releases > 1 || length archs > 1
-          in repoqueryCmd dnf4 debug verbose multiple dynredir time release reposource sysarch archs testing args
+          if null args
+          then if null archs
+               then showReleaseCmd debug dynredir reposource release sysarch Nothing testing
+               else forM_ archs $ \arch -> showReleaseCmd debug dynredir reposource release sysarch (Just arch) testing
+          else
+            let multiple = length releases > 1 || length archs > 1
+            in repoqueryCmd dnf4 debug verbose multiple dynredir time release reposource sysarch archs testing args

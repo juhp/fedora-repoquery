@@ -1,0 +1,9 @@
+resolver: lts-13.30
+extra-deps:
+  - bodhi-0.1.0
+  - cached-json-file-0.1.0
+  - http-query-0.1.0
+  - http-directory-0.1.8
+  - simple-cmd-args-0.1.8
+  - fedora-releases-0.2.0
+  - simple-cmd-0.2.0
