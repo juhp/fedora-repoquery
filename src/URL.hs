@@ -8,7 +8,7 @@ module URL (
   removeSubpath
 ) where
 
-import Data.List.Extra (dropSuffix)
+import Data.List.Extra (dropSuffix, dropWhileEnd)
 
 newtype URL = URL String
   deriving Eq
@@ -40,17 +40,11 @@ URL base +//+ rel =
 -- from http-directory
 infixr 5 +/+
 (+/+) :: String -> String -> String
-"" +/+ s = s
 s +/+ t =
-  if last s == '/'
-  then init s +/+ t
-  else
-    case t of
-      "" -> s
-      (h:ts) ->
-        if h == '/'
-        then s +/+ ts
-        else s ++ "/" ++ t
+  case (s,t) of
+    ("",_) -> t
+    (_,"") -> s
+    (_,_) -> dropWhileEnd (== '/') s ++ '/' : dropWhile (== '/') t
 
 removeSubpath :: [String] -> String -> String
 removeSubpath path url =
