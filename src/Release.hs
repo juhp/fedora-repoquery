@@ -216,16 +216,18 @@ repoConfigArgs (RepoSource False _chan mirror) sysarch march rawhide release (re
   where
     repoVersion :: String
     repoVersion =
-      if release `elem` [Rawhide, Fedora rawhide]
-      then "fedora-rawhide"
-      else
-        show release ++
-        case release of
-          Centos _ -> '-':repo
-          ELN -> '-':repo
-          EPEL _ -> if repo == "epel-testing" then "-testing" else ""
-          Fedora _ | repo /= "releases" -> '-':repo
-          _ -> ""
+      case release of
+        Rawhide -> "fedora-rawhide"
+        Fedora n ->
+          if n == rawhide
+          then "fedora-rawhide"
+          else show release ++ if repo == "releases" then "" else '-':repo
+        ELN -> show release ++ '-':repo
+        EPEL10Dot _ -> show release ++ if repo == "epel-testing" then "-testing" else ""
+        EPELNext _ -> show release ++ if repo == "epelnext-testing" then "-testing" else ""
+        EPEL _ -> show release ++ if repo == "epel-testing" then "-testing" else ""
+        Centos _ -> show release ++ '-':repo
+        System -> ""
 -- koji
 repoConfigArgs (RepoSource True _chan _mirror) sysarch march _rawhide release (repo,url) =
   let (compose,path) =
