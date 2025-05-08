@@ -12,7 +12,7 @@ module Types (
   ) where
 
 import Data.Char (isDigit)
-import Data.List.Extra (lower)
+import Data.List.Extra (lower, unsnoc)
 import Numeric.Natural
 
 --import Distribution.Fedora.Repoquery
@@ -62,7 +62,17 @@ eitherRelease rel =
                                                  in Right br
     ('e':'p':'e':'l':n@(_:_)) | all isDigit n -> let br = EPEL (read n)
                                                  in Right br
-    ('c':n@(_:_)) | all isDigit n -> let r = read n in Right (Centos r)
+    ('c':n@(_:_)) ->
+      let ver =
+            case unsnoc n of
+              Just (v,'s') -> v
+              _ -> n
+      in if null ver
+         then Left rel
+         else
+           if all isDigit ver
+           then Right (Centos $ read ver)
+           else Left rel
     "eln" -> Right ELN
     ('f':n@(_:_)) | all isDigit n -> let r = read n in Right (Fedora r)
     ns@(_:_) | all isDigit ns ->
