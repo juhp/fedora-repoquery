@@ -29,7 +29,7 @@ import List (listVersionsCmd)
 import Paths_fedora_repoquery (version)
 import Query (repoqueryCmd)
 import Release (showReleaseCmd, downloadServer)
-import Types (Channel(..), Mirror(..), Release (System), RepoSource(..), Verbosity(..),
+import Types (Mirror(..), Release (System), RepoSource(..), Verbosity(..),
               eitherRelease)
 
 data Command = Query [String] | CacheSize | CacheEmpties | List
@@ -49,8 +49,6 @@ main = do
     <*> switchWith 'T' "time" "Show time-stamp of repos"
     <*> (RepoSource
           <$> switchWith 'K' "koji" "Use Koji buildroot"
-          <*> (flagLongWith' ChanDevel "devel-channel" "Use eln development compose" <|>
-               flagLongWith ChanProd ChanTest "test-channel" "Use eln test compose [default: production]")
           <*> ((Mirror <$> strOptionWith 'm' "mirror" "URL" ("Fedora mirror [default: " ++ downloadServer ++ "]")) <|>
                flagWith DownloadFpo DlFpo 'D' "dl" "Use dl.fp.o"))
     <*> (flagWith' [Source] 's' "source" "Query source repos" <|>

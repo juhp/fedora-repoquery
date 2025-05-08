@@ -4,8 +4,6 @@ module Types (
   Mirror(..),
   Natural,
   RepoSource(..),
-  Channel(..),
-  channel,
   Verbosity(..),
   Release(..),
   eitherRelease
@@ -24,21 +22,8 @@ data Mirror = DownloadFpo | DlFpo | Mirror String
   deriving Eq
 
 -- FIXME: True for koji make into type
-data RepoSource = RepoSource Bool Channel Mirror
+data RepoSource = RepoSource Bool Mirror
   deriving Eq
-
-data Channel = ChanDevel | ChanTest | ChanProd
-  deriving Eq
-
-channel :: Channel -> String
-channel ChanDevel = "development"
-channel ChanTest = "test"
-channel ChanProd = "production"
-
-instance Show Channel where
-  show ChanDevel = "devel"
-  show ChanTest = "test"
-  show ChanProd = "prod"
 
 data Release = EPEL10Dot Natural | EPEL Natural | EPELNext Natural
              | Centos Natural | Fedora Natural

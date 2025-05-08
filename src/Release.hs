@@ -34,7 +34,7 @@ showReleaseCmd debug dynredir reposource release sysarch march testing =
 
 getRelease :: Bool -> Bool -> Bool -> Bool -> RepoSource
             -> Release -> Arch -> Maybe Arch -> Bool -> IO [(String, URL)]
-getRelease debug dynredir warn checkdate reposource@(RepoSource koji _chan _mirror) release sysarch march testing = do
+getRelease debug dynredir warn checkdate reposource@(RepoSource koji _mirror) release sysarch march testing = do
   let arch = fromMaybe sysarch march
   (url,path) <- getURL debug dynredir reposource release arch
   let urlpath = url +//+ path
@@ -117,7 +117,7 @@ getRelease debug dynredir warn checkdate reposource@(RepoSource koji _chan _mirr
               case release of
                 Centos 10 -> ["metadata","composeinfo.json"]
                 Centos _ -> ["COMPOSE_ID"] -- ["metadata","composeinfo.json"]
-                ELN -> ["metadata","composeinfo.json"]
+                ELN -> ["COMPOSE_ID"]
                 EPEL _ -> ["Everything", "state"]
                 EPEL10Dot _ -> ["Everything", "state"]
                 EPELNext _ -> ["Everything", "state"]
@@ -137,7 +137,7 @@ getRelease debug dynredir warn checkdate reposource@(RepoSource koji _chan _mirr
 
 getURL :: Bool -> Bool -> RepoSource -> Release -> Arch
        -> IO (URL,[String])
-getURL debug dynredir reposource@(RepoSource koji chan _mirror) release arch =
+getURL debug dynredir reposource@(RepoSource koji _mirror) release arch =
   case release of
     Centos n ->
       case n of
@@ -156,7 +156,7 @@ getURL debug dynredir reposource@(RepoSource koji chan _mirror) release arch =
         8 -> return (URL "http://vault.centos.org/8-stream/", [])
         _ -> error' "old Centos is not supported"
     ELN ->
-      return (URL "https://odcs.fedoraproject.org/composes", [channel chan, "latest-Fedora-ELN", "compose"])
+      getFedoraServer debug dynredir reposource ["eln"] ["1"]
     EPEL n | n < 7 ->
                return
                (URL "https://archives.fedoraproject.org/pub/archive/epel", [show n])
@@ -193,7 +193,7 @@ getURL debug dynredir reposource@(RepoSource koji chan _mirror) release arch =
 repoConfigArgs :: RepoSource -> Arch -> Maybe Arch -> Natural -> Release
                -> (String,URL) -> (String,(URL,[String]))
 -- non-koji
-repoConfigArgs (RepoSource False _chan mirror) sysarch march rawhide release (repo,url) =
+repoConfigArgs (RepoSource False mirror) sysarch march rawhide release (repo,url) =
   let arch = fromMaybe sysarch march
       archsuffix = if arch == sysarch then "" else "-" ++ showArch arch
       reponame = repoVersion ++ archsuffix ++
@@ -229,7 +229,7 @@ repoConfigArgs (RepoSource False _chan mirror) sysarch march rawhide release (re
         Centos _ -> show release ++ '-':repo
         System -> ""
 -- koji
-repoConfigArgs (RepoSource True _chan _mirror) sysarch march _rawhide release (repo,url) =
+repoConfigArgs (RepoSource True _mirror) sysarch march _rawhide release (repo,url) =
   let (compose,path) =
         case release of
           Rawhide -> (["repos", show release, "latest"],"")
@@ -245,7 +245,7 @@ repoConfigArgs (RepoSource True _chan _mirror) sysarch march _rawhide release (r
 
 getFedoraServer :: Bool -> Bool -> RepoSource -> [String] -> [String]
                 -> IO (URL,[String])
-getFedoraServer debug dynredir (RepoSource koji _ mirror) top path =
+getFedoraServer debug dynredir (RepoSource koji mirror) top path =
   if koji
   then return (URL "https://kojipkgs.fedoraproject.org",[])
   else
