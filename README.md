@@ -2,7 +2,7 @@
 
 A dnf wrapper to repoquery different Fedora releases,
 caching repodata separately per release.
-It also supports EPEL and Centos Stream repos.
+It also supports EPEL, Centos Stream and ELN repos.
 
 ## Usage
 Usage examples:
@@ -10,10 +10,10 @@ Usage examples:
 `$ fedora-repoquery rawhide firefox`
 
 ```
-firefox-130.0-1.fc42.x86_64 (fedora-rawhide)
+firefox-138.0.1-1.fc43.x86_64 (fedora-rawhide)
 ```
 
-`$ fedora-repoquery 40 --requires filesystem`
+`$ fedora-repoquery 42 --requires filesystem`
 
 ```
 setup
@@ -28,13 +28,13 @@ ghc-8.10.7-116.el9.x86_64 (epel9)
 `$ fedora-repoquery c10 bash`
 
 ```
-bash-5.2.26-4.el10.x86_64 (c10s-BaseOS)
+bash-5.2.26-6.el10.x86_64 (c10s-BaseOS)
 ```
 
 `$ fedora-repoquery eln kernel`
 
 ```
-kernel-6.11.0-0.rc6.20240906gitb831f83e40a2.53.eln142.x86_64 (eln-BaseOS)
+kernel-6.15.0-0.rc5.250507g0d8d44db295c.45.eln148.x86_64 (eln-BaseOS)
 ```
 
 Without a release argument, the system yum repo configuration is used:
@@ -42,48 +42,46 @@ Without a release argument, the system yum repo configuration is used:
 `$ fedora-repoquery pandoc`
 
 ```
-pandoc-3.1.11.1-32.fc41.x86_64 (rawhide)
+pandoc-3.6.4-35.fc43.x86_64 (rawhide)
 ```
 but then currently you have to insert `--` before a query option:
 
 `$ fedora-repoquery -- --whatrequires pandoc`
 
 ```
-R-reprex-2.0.2-12.fc41.noarch (rawhide)
-R-rmarkdown-2.24-5.fc41.noarch (rawhide)
-pandoc-pdf-3.1.11.1-32.fc41.x86_64 (rawhide)
-python3-nb2plots-0.7.2-5.fc41.noarch (rawhide)
-python3-pypandoc-1.13-6.fc41.noarch (rawhide)
-rstudio-common-2024.04.2+764-3.fc41.x86_64 (rawhide)
+R-reprex-2.1.1-1.fc43.noarch (rawhide)
+R-rmarkdown-2.24-8.fc43.noarch (rawhide)
+pandoc-pdf-3.6.4-35.fc43.x86_64 (rawhide)
+python3-pypandoc-1.15-3.fc42.noarch (rawhide)
 ```
 
 Use the --time (-T) option to display repo timestamps:
 ```
-$ fedora-repoquery -T 41 fedrq
-2024-07-16 19:45:44 +08 <https://mirror.freedif.org/fedora/fedora/linux/development/rawhide>
+$ fedora-repoquery -T 43 fedrq
+2025-05-07 15:57:29 +08 <https://mirror.freedif.org/fedora/fedora/linux/development/rawhide/>
 
-fedrq-1.1.0-3.fc41.noarch (fedora-rawhide)
+fedrq-1.5.0-1.fc43.noarch (fedora-rawhide)
 ```
 
 Repo timestamp(s) are output when there are no query args
 after the release version:
 
-`$ fedora-repoquery 40`
+`$ fedora-repoquery 42`
 
 ```
-2024-04-20 02:22:34 +08 <https://mirror.freedif.org/fedora/fedora/linux/releases/40/>
-2024-09-07 09:37:56 +08 <https://mirror.freedif.org/fedora/fedora/linux/updates/40/>
+2025-04-15 01:43:43 +08 <https://mirror.freedif.org/fedora/fedora/linux/releases/42/>
+2025-05-08 12:18:02 +08 <https://mirror.freedif.org/fedora/fedora/linux/updates/42/>
 ```
 
 One can also query multiple releases (or arch's):
 
-`$ fedora-repoquery 40 41 python3 | grep x86_64`
+`$ fedora-repoquery 41 42 python3 | grep x86_64`
 
 ```
-python3-3.12.2-2.fc40.x86_64 (f40)
-python3-3.12.5-2.fc40.x86_64 (f40-updates)
-python3-3.13.0~rc1-2.fc41.x86_64 (f41-development)
-python3-3.13.0~rc1-3.fc41.x86_64 (f41-updates-testing)
+python3-3.13.0-1.fc41.x86_64 (f41)
+python3-3.13.3-2.fc41.x86_64 (f41-updates)
+python3-3.13.2-2.fc42.x86_64 (f42)
+python3-3.13.3-2.fc42.x86_64 (f42-updates)
 ```
 
 
@@ -91,7 +89,7 @@ python3-3.13.0~rc1-3.fc41.x86_64 (f41-updates-testing)
 `$ fedora-repoquery --version`
 
 ```
-0.7.1
+0.7.2
 ```
 
 `$ fedora-repoquery --help`
@@ -101,7 +99,6 @@ fedora-repoquery tool for querying Fedora repos for packages.
 
 Usage: fedora-repoquery [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)]
                         [--dynamic] [-T|--time] [-K|--koji]
-                        [--devel-channel | --test-channel]
                         [(-m|--mirror URL) | (-D|--dl)]
                         [(-s|--source) | (-A|--all-archs) | [-a|--arch ARCH]]
                         [-t|--testing] [-d|--debug]
@@ -122,8 +119,6 @@ Available options:
   --dynamic                Redirect each HTTP through mirror
   -T,--time                Show time-stamp of repos
   -K,--koji                Use Koji buildroot
-  --devel-channel          Use eln development compose
-  --test-channel           Use eln test compose [default: production]
   -m,--mirror URL          Fedora mirror [default:
                            https://download.fedoraproject.org/pub]
   -D,--dl                  Use dl.fp.o
@@ -139,7 +134,7 @@ Available options:
 The default arch is the system arch.
 
 ## Installation
-fedora-repoquery is available in Fedora and EPEL 9:
+fedora-repoquery is available in Fedora and EPEL:
 <https://src.fedoraproject.org/rpms/fedora-repoquery>.
 
 ## Building from source

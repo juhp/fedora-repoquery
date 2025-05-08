@@ -1,5 +1,14 @@
 # Revision history for fedora-repoquery
 
+## 0.7.2 (2025-05-08)
+- warn when no release specified
+- add support for epel10.x minor releases
+- also parse cNs (c8s, c9s, c10s)
+- use eln via download.fp.o (or dl.fp.o) and drop its channels
+- support short pneumonics for common queryformats (nv,nvr,nvra,envr,envra)
+- improve branched pre-release logic using fedora-releases for Bodhi API
+- drop head/tail usage
+
 ## 0.7.1 (2024-09-08)
 - fix for branched: "frozen" state is still in development/ like "pending"
 - enable updates-testing for fedora branched from Beta freeze
