@@ -97,6 +97,7 @@ repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource s
 
         expandQf qf =
           case lower qf of
+            "n" -> "%{name}"
             "nv" -> "%{name}-%{version}"
             "nvr" -> expandQf "nv" ++ "-%{release}"
             "nvra" -> expandQf "nvr" <.> "%{arch}"
