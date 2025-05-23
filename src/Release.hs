@@ -40,8 +40,10 @@ getRelease debug dynredir warn checkdate reposource@(RepoSource koji _mirror) re
   let urlpath = url +//+ path
   when debug $ print $ renderUrl Dir urlpath
   (basicrepos,morerepos) <-
+    if koji
+    then return ([("koji",urlpath)],[])
+    else
     case release of
-      -- RepoKoji -> ["koji-fedora"]
       Centos n -> return ([("BaseOS",urlpath)],
                           [("AppStream",url),(if n >= 9 then "CRB" else "PowerTools",url)])
       ELN -> return ([("BaseOS",urlpath)],
