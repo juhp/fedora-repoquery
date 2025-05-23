@@ -17,6 +17,7 @@ data Arch = Source
           | PPC64LE
           | S390X
           | I386
+          | RISCV64
   deriving Eq
 
 allArchs :: [Arch]
@@ -32,6 +33,7 @@ eitherArch s =
     "s390x" -> Right S390X
     "ppc64le" -> Right PPC64LE
     "i386" -> Right I386
+    "riscv64" -> Right RISCV64
     _ -> Left $ "unknown arch: " ++ s
 
 readArch :: String -> Arch
@@ -46,6 +48,7 @@ showArch ARMV7HL = "armv7hl"
 showArch S390X = "s390x"
 showArch PPC64LE = "ppc64le"
 showArch I386 = "i386"
+showArch RISCV64 = "riscv64"
 
 getSystemArch :: IO Arch
 getSystemArch =

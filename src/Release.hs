@@ -180,9 +180,13 @@ getURL debug dynredir reposource@(RepoSource koji _mirror) release arch =
               postbeta = releasePostBeta rel
               rawhide = pending && releaseBranch rel == "rawhide"
               releasestr = if rawhide then "rawhide" else show n
-          in getFedoraServer debug dynredir reposource fedoraTop
-             [if pending || postbeta then "development" else "releases",
-              releasestr]
+          in
+            if arch == RISCV64
+            then return (URL "http://fedora.riscv.rocks",[])
+            else
+              getFedoraServer debug dynredir reposource fedoraTop
+              [if pending || postbeta then "development" else "releases",
+               releasestr]
     Rawhide -> getFedoraServer debug dynredir reposource fedoraTop ["development", "rawhide"]
     System -> error' "getURL: system unsupported"
   where
@@ -194,6 +198,15 @@ getURL debug dynredir reposource@(RepoSource koji _mirror) release arch =
 
 repoConfigArgs :: RepoSource -> Arch -> Maybe Arch -> Natural -> Release
                -> (String,URL) -> (String,(URL,[String]))
+repoConfigArgs (RepoSource False _mirror) sysarch (Just RISCV64) _rawhide release (repo,url) =
+  let (compose,path) =
+        case release of
+          Rawhide -> (["repos-dist", show release, "latest"],"")
+          _ -> (["repos-dist", show release, "latest"],"")
+      arch = RISCV64
+      reponame = repo ++ "-" ++ show release ++
+                 if arch == sysarch then "" else "-" ++ showArch arch
+  in (reponame, (url +//+ compose, [path, showArch arch, ""]))
 -- non-koji
 repoConfigArgs (RepoSource False mirror) sysarch march rawhide release (repo,url) =
   let arch = fromMaybe sysarch march
