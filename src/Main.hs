@@ -50,12 +50,12 @@ main = do
     <*> (RepoSource
           <$> switchWith 'K' "koji" "Use Koji buildroot"
           <*> ((Mirror <$> strOptionWith 'm' "mirror" "URL" ("Fedora mirror [default: " ++ downloadServer ++ "]")) <|>
-               flagWith DownloadFpo DlFpo 'D' "dl" "Use dl.fp.o"))
+               flagWith DownloadFpo DlFpo 'd' "dl" "Use dl.fp.o"))
     <*> (flagWith' [Source] 's' "source" "Query source repos" <|>
          flagWith' allArchs 'A' "all-archs" "Query all (64 bit) arch repos" <|>
          many (optionWith (eitherReader eitherArch) 'a' "arch" "ARCH" ("Specify arch [default:" +-+ showArch sysarch ++ "]")))
     <*> switchWith 't' "testing" "Fedora updates-testing"
-    <*> switchWith 'd' "debug" "Show some debug output"
+    <*> switchWith 'D' "debug" "Show some debug output"
     <*> (flagWith' CacheSize 'z' "cache-size" "Show total dnf repo metadata cache disksize"
          <|> flagWith' CacheEmpties 'e' "cache-clean-empty" "Remove empty dnf caches"
          <|> flagWith' List 'l' "list" "List Fedora versions"
