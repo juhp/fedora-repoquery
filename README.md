@@ -10,7 +10,7 @@ Usage examples:
 `$ fedora-repoquery rawhide firefox`
 
 ```
-firefox-138.0.1-1.fc43.x86_64 (fedora-rawhide)
+firefox-139.0-1.fc43.x86_64 (fedora-rawhide)
 ```
 
 `$ fedora-repoquery 42 --requires filesystem`
@@ -34,7 +34,7 @@ bash-5.2.26-6.el10.x86_64 (c10s-BaseOS)
 `$ fedora-repoquery eln kernel`
 
 ```
-kernel-6.15.0-0.rc5.250507g0d8d44db295c.45.eln148.x86_64 (eln-BaseOS)
+kernel-6.16.0-0.rc0.250530gf66bc387efbe.7.eln148.x86_64 (eln-BaseOS)
 ```
 
 Without a release argument, the system yum repo configuration is used:
@@ -69,8 +69,8 @@ after the release version:
 `$ fedora-repoquery 42`
 
 ```
-2025-04-15 01:43:43 +08 <https://mirror.freedif.org/fedora/fedora/linux/releases/42/>
-2025-05-08 12:18:02 +08 <https://mirror.freedif.org/fedora/fedora/linux/updates/42/>
+2025-04-14 19:43:43 CEST <https://mirror.karneval.cz/pub/linux/fedora/linux/releases/42/>
+2025-06-03 07:16:05 CEST <https://mirror.karneval.cz/pub/linux/fedora/linux/updates/42/>
 ```
 
 One can also query multiple releases (or arch's):
@@ -97,13 +97,13 @@ python3-3.13.3-2.fc42.x86_64 (f42-updates)
 ```
 fedora-repoquery tool for querying Fedora repos for packages.
 
-Usage: fedora-repoquery [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)]
-                        [--dynamic] [-T|--time] [-K|--koji]
-                        [(-m|--mirror URL) | (-D|--dl)]
-                        [(-s|--source) | (-A|--all-archs) | [-a|--arch ARCH]]
-                        [-t|--testing] [-d|--debug]
-                        ((-z|--cache-size) | (-e|--cache-clean-empty) |
-                          (-l|--list) |
+Usage: fedora-repoquery [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] 
+                        [--dynamic] [-T|--time] [-K|--koji] 
+                        [(-m|--mirror URL) | (-d|--dl)] 
+                        [(-s|--source) | (-A|--all-archs) | [-a|--arch ARCH]] 
+                        [-t|--testing] [-D|--debug] 
+                        ((-z|--cache-size) | (-e|--cache-clean-empty) | 
+                          (-l|--list) | 
                           [RELEASE|--]... [REPOQUERY_OPTS]... [PACKAGE]...)
 
   where RELEASE is {fN or N (fedora), 'rawhide', epelN, epelN-next, cN (centos
@@ -121,12 +121,12 @@ Available options:
   -K,--koji                Use Koji buildroot
   -m,--mirror URL          Fedora mirror [default:
                            https://download.fedoraproject.org/pub]
-  -D,--dl                  Use dl.fp.o
+  -d,--dl                  Use dl.fp.o
   -s,--source              Query source repos
   -A,--all-archs           Query all (64 bit) arch repos
   -a,--arch ARCH           Specify arch [default: x86_64]
   -t,--testing             Fedora updates-testing
-  -d,--debug               Show some debug output
+  -D,--debug               Show some debug output
   -z,--cache-size          Show total dnf repo metadata cache disksize
   -e,--cache-clean-empty   Remove empty dnf caches
   -l,--list                List Fedora versions

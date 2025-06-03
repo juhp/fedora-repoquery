@@ -1,5 +1,11 @@
 # Revision history for fedora-repoquery
 
+## 0.7.3 (2025-06-03)
+- fix the naming of koji dnf repos
+- flip the --dl and --debug short options
+- add --queryformat "n" abbreviation
+- support riscv64 repoqueries in fedora.riscv.rocks
+
 ## 0.7.2 (2025-05-08)
 - warn when no release specified
 - add support for epel10.x minor releases
