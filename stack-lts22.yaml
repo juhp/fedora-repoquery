@@ -1,3 +1,0 @@
-resolver: lts-22.43
-extra-deps:
-  - fedora-releases-0.2.0
