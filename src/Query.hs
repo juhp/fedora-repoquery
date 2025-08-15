@@ -57,7 +57,7 @@ repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource s
     rhsm <- doesFileExist "/etc/dnf/plugins/subscription-manager.conf"
     let cmdargs = "repoquery" :
                   -- for dnf5 does not suppress repodata downloading
-                  ["--quiet" | verbose /= Verbose] ++
+                  ["--quiet" | verbose /= Verbose || not debug] ++
                   -- https://bugzilla.redhat.com/show_bug.cgi?id=1876828
                   ["--disableplugin=subscription-manager" | rhsm] ++
                   (if qfAllowed then ["--qf", queryformat] else []) ++
