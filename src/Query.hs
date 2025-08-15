@@ -36,7 +36,6 @@ pkgAttrsOptions =
     "supplements"
   ]
 
--- FIXME error if no testing repo
 repoqueryCmd :: Bool -> Bool -> Verbosity -> Bool -> Bool -> Bool -> Release
              -> RepoSource -> Arch -> [Arch] -> Bool -> [String] -> IO ()
 repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource sysarch archs testing args = do
@@ -107,4 +106,8 @@ repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource s
 
 renderRepoConfig :: (String, URL) -> [String]
 renderRepoConfig (name, url) =
-  ["--repofrompath=" ++ name ++ "," ++ renderUrl Dir url, "--repo=" ++ name, "--setopt=" ++ name ++ ".metadata_expire=6h" ]
+  ["--repofrompath=" ++ name ++ "," ++ renderUrl Dir url,
+   "--repo=" ++ name,
+   "--setopt=" ++ name ++ ".metadata_expire=6h",
+   -- avoid failing silently for 404 etc
+   "--setopt=" ++ name ++ ".skip_if_unavailable=0"]
