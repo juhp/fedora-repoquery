@@ -36,15 +36,44 @@ pkgAttrsOptions =
     "supplements"
   ]
 
+queryAliases :: [([Char], [Char])]
+queryAliases =
+  -- dnf5 only has --info not -i
+  [ ("-i", "info")
+  , ("i", "info")
+  , ("l", "list")
+  , ("r", "requires")
+  , ("wr", "whatrequires")
+  , ("p", "provides")
+  , ("wp", "whatprovides")
+  , ("d", "depends")
+  , ("wd", "whatdepends")
+  , ("rec", "recommends")
+  , ("wrec", "whatrecommends")
+  , ("sug", "suggests")
+  , ("wsug", "whatsuggests")
+  , ("c", "conflicts")
+  , ("wc", "whatconflicts")
+  , ("enh", "enhances")
+  , ("wenh", "whatenhances")
+  , ("o", "obsoletes")
+  , ("wo", "whatobsoletes")
+  , ("sup", "supplements")
+  , ("wsup", "whatsupplements")
+  , ("qf", "queryformat")
+  , ("latest", "latest-limit")
+  ]
+
 repoqueryCmd :: Bool -> Bool -> Verbosity -> Bool -> Bool -> Bool -> Release
-             -> RepoSource -> Arch -> [Arch] -> Bool -> [String] -> IO ()
-repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource sysarch archs testing args = do
+             -> RepoSource -> Arch -> [Arch] -> Bool -> Bool -> [String]
+             -> IO ()
+repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource sysarch archs testing noqueryalias args = do
   forM_ (if null archs then [sysarch] else archs) $ \arch -> do
     repoConfigs <-
       if release == System
       then return []
       else getRelease debug dynredir True checkdate reposource release sysarch (Just arch) testing
-    let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","--qf","--queryformat", "--changelog"] ++ pkgAttrsOptions) args
+    let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","--qf","--queryformat", "--changelog"] ++ pkgAttrsOptions) tweakedArgs
     -- dnf5 writes repo update output to stdout
     -- https://github.com/rpm-software-management/dnf5/issues/1361
     -- but seems to cache better
@@ -63,7 +92,7 @@ repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource s
                   -- drop modules for F39+
                   ["--setopt=module_platform_id=platform:" ++ show release] ++
                   concatMap renderRepoConfig repoConfigs ++
-                  tweakedArgs (isJust mdnf5)
+                  tweakQfOpt (isJust mdnf5) tweakedArgs
     -- FIXME drop "/usr/bin/"?
     let dnf = fromMaybe "/usr/bin/dnf-3" mdnf5
     when debug $
@@ -73,21 +102,29 @@ repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource s
       unless (not checkdate || release == System || multiple) $ warning ""
       putStrLn $ intercalate "\n" res
   where
-    tweakedArgs dnf5 =
-      if not dnf5
-      then args
-      else tweakQfOpt $ map tweakInfo args
+    tweakedArgs = tweakArgs args
       where
-        -- dnf5 only has --info not -i
-        tweakInfo "-i" = "--info"
-        tweakInfo arg = arg
+        tweakArgs [] = []
+        tweakArgs (h:t) =
+          if noqueryalias then h : t else tweakArg h : t
 
-        -- dnf5 doesn't append \n to queryformat
-        tweakQfOpt (x:y:rest) | x `elem` ["--qf","--queryformat"] =
-                                   x : tweakQf y : rest
-                              | otherwise = x : tweakQfOpt (y:rest)
-        tweakQfOpt xs = xs
+        tweakArg o =
+          case lookup o queryAliases of
+            Just oname -> "--" ++ oname
+            Nothing ->
+              if o `elem` map snd queryAliases
+              then "--" ++ o
+              else o
 
+    -- dnf5 doesn't append \n to queryformat
+    tweakQfOpt dnf5 xs =
+      if dnf5 then
+        case xs of
+          (x:y:rest) | x `elem` ["--qf","--queryformat"] -> x : tweakQf y : rest
+                     | otherwise -> x : tweakQfOpt dnf5 (y:rest)
+          _ -> xs
+      else xs
+      where
         tweakQf qf =
           expandQf qf ++
           case lastMay qf of

@@ -1,5 +1,5 @@
 name:                fedora-repoquery
-version:             0.7.4
+version:             0.8
 synopsis:            Fedora release repos package query tool
 description:
         A CLI tool for repoquerying Fedora and Centos Stream release packages:

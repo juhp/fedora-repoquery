@@ -55,6 +55,7 @@ main = do
          flagWith' allArchs 'A' "all-archs" "Query all (64 bit) arch repos" <|>
          many (optionWith (eitherReader eitherArch) 'a' "arch" "ARCH" ("Specify arch [default:" +-+ showArch sysarch ++ "]")))
     <*> switchWith 't' "testing" "Fedora updates-testing"
+    <*> switchWith 'n' "no-query-alias" "Disable query aliases (like 'r' for '--requires')"
     <*> switchWith 'D' "debug" "Show some debug output"
     <*> (flagWith' CacheSize 'z' "cache-size" "Show total dnf repo metadata cache disksize"
          <|> flagWith' CacheEmpties 'e' "cache-clean-empty" "Remove empty dnf caches"
@@ -62,8 +63,8 @@ main = do
          <|> Query <$> some (strArg "[RELEASE|--]... [REPOQUERY_OPTS]... [PACKAGE]..."))
 
 runMain :: Arch -> Bool -> Verbosity -> Bool -> Bool -> RepoSource -> [Arch]
-        -> Bool -> Bool -> Command -> IO ()
-runMain sysarch dnf4 verbose dynredir time reposource archs testing debug command = do
+        -> Bool -> Bool -> Bool -> Command -> IO ()
+runMain sysarch dnf4 verbose dynredir time reposource archs testing noqueryalias debug command = do
   case command of
     CacheSize -> cacheSize
     CacheEmpties -> cleanEmptyCaches
@@ -81,4 +82,4 @@ runMain sysarch dnf4 verbose dynredir time reposource archs testing debug comman
                else forM_ archs $ \arch -> showReleaseCmd debug dynredir reposource release sysarch (Just arch) testing
           else
             let multiple = length releases > 1 || length archs > 1
-            in repoqueryCmd dnf4 debug verbose multiple dynredir time release reposource sysarch archs testing args
+            in repoqueryCmd dnf4 debug verbose multiple dynredir time release reposource sysarch archs testing noqueryalias args
