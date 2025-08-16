@@ -1,5 +1,5 @@
 name:                fedora-repoquery
-version:             0.7.3
+version:             0.7.4
 synopsis:            Fedora release repos package query tool
 description:
         A CLI tool for repoquerying Fedora and Centos Stream release packages:
@@ -24,6 +24,7 @@ tested-with:         GHC == 8.10
                      ||  == 9.6
                      ||  == 9.8
                      ||  == 9.10
+                     ||  == 9.12
 
 source-repository head
   type:                git

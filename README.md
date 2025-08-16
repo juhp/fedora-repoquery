@@ -10,19 +10,20 @@ Usage examples:
 `$ fedora-repoquery rawhide firefox`
 
 ```
-firefox-139.0-1.fc43.x86_64 (fedora-rawhide)
+firefox-142.0-1.fc44.x86_64 (fedora-rawhide)
 ```
 
-`$ fedora-repoquery 42 --requires filesystem`
+`$ fedora-repoquery 43 --requires filesystem`
 
 ```
+group(mail)
 setup
 ```
 
-`$ fedora-repoquery epel9 ghc`
+`$ fedora-repoquery epel10 ghc`
 
 ```
-ghc-8.10.7-116.el9.x86_64 (epel9)
+ghc-9.6.6-146.el10_0.x86_64 (epel10)
 ```
 
 `$ fedora-repoquery c10 bash`
@@ -34,7 +35,7 @@ bash-5.2.26-6.el10.x86_64 (c10s-BaseOS)
 `$ fedora-repoquery eln kernel`
 
 ```
-kernel-6.16.0-0.rc0.250530gf66bc387efbe.7.eln148.x86_64 (eln-BaseOS)
+kernel-6.17.0-0.rc1.250814g0cc53520e68b.20.eln151.x86_64 (eln-BaseOS)
 ```
 
 Without a release argument, the system yum repo configuration is used:
@@ -42,17 +43,17 @@ Without a release argument, the system yum repo configuration is used:
 `$ fedora-repoquery pandoc`
 
 ```
-pandoc-3.6.4-35.fc43.x86_64 (rawhide)
+pandoc-3.6.4-37.fc43.x86_64 (rawhide)
 ```
 but then currently you have to insert `--` before a query option:
 
 `$ fedora-repoquery -- --whatrequires pandoc`
 
 ```
-R-reprex-2.1.1-1.fc43.noarch (rawhide)
-R-rmarkdown-2.24-8.fc43.noarch (rawhide)
-pandoc-pdf-3.6.4-35.fc43.x86_64 (rawhide)
-python3-pypandoc-1.15-3.fc42.noarch (rawhide)
+R-reprex-2.1.1-2.fc43.noarch (rawhide)
+R-rmarkdown-2.24-9.fc43.noarch (rawhide)
+pandoc-pdf-3.6.4-37.fc43.x86_64 (rawhide)
+python3-pypandoc-1.15-6.fc43.noarch (rawhide)
 ```
 
 Use the --time (-T) option to display repo timestamps:
@@ -69,19 +70,18 @@ after the release version:
 `$ fedora-repoquery 42`
 
 ```
-2025-04-14 19:43:43 CEST <https://mirror.karneval.cz/pub/linux/fedora/linux/releases/42/>
-2025-06-03 07:16:05 CEST <https://mirror.karneval.cz/pub/linux/fedora/linux/updates/42/>
+2025-04-15 01:43:43 +08 <https://mirror.freedif.org/fedora/fedora/linux/releases/42/>
+2025-08-16 09:11:49 +08 <https://mirror.freedif.org/fedora/fedora/linux/updates/42/>
 ```
 
 One can also query multiple releases (or arch's):
 
-`$ fedora-repoquery 41 42 python3 | grep x86_64`
+`$ fedora-repoquery 42 43 python3 | grep x86_64`
 
 ```
-python3-3.13.0-1.fc41.x86_64 (f41)
-python3-3.13.3-2.fc41.x86_64 (f41-updates)
 python3-3.13.2-2.fc42.x86_64 (f42)
-python3-3.13.3-2.fc42.x86_64 (f42-updates)
+python3-3.13.6-1.fc42.x86_64 (f42-updates)
+python3-3.14.0~rc1-2.fc43.x86_64 (f43-development)
 ```
 
 
@@ -89,7 +89,7 @@ python3-3.13.3-2.fc42.x86_64 (f42-updates)
 `$ fedora-repoquery --version`
 
 ```
-0.7.2
+0.7.4
 ```
 
 `$ fedora-repoquery --help`
