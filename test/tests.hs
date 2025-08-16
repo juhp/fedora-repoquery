@@ -18,7 +18,7 @@ fdrq (args,mpkg) = do
 
 -- copied from dl-fedora
 branched :: Int
-branched = 42
+branched = 43
 current, previous, prevprev, rawhide :: String
 current = show branched
 previous = show (branched - 1)
