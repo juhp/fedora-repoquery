@@ -15,7 +15,7 @@ import Control.Applicative (
 #endif
 import Control.Monad (forM_, when)
 import Data.Either (partitionEithers)
-import Data.Tuple (swap)
+import Data.Foldable (asum)
 #if !MIN_VERSION_simple_cmd_args(0,1,7)
 import Options.Applicative (eitherReader, maybeReader, ReadM)
 #endif
@@ -27,18 +27,19 @@ import Arch
 import Cache (cacheSize, cleanEmptyCaches)
 import List (listVersionsCmd)
 import Paths_fedora_repoquery (version)
-import Query (repoqueryCmd)
+import Query
 import Release (showReleaseCmd, downloadServer)
 import Types (Mirror(..), Release (System), RepoSource(..), Verbosity(..),
               eitherRelease)
 
-data Command = Query [String] | CacheSize | CacheEmpties | List
+data Command = Query (Maybe QueryCmd) [String]
+             | CacheSize | CacheEmpties | ReleaseList
 
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
   sysarch <- getSystemArch
-  simpleCmdArgs' (Just version) "fedora-repoquery tool for querying Fedora repos for packages."
+  simpleCmdArgs (Just version) "fedora-repoquery tool for querying Fedora repos for packages."
     ("where RELEASE is {fN or N (fedora), 'rawhide', epelN, epelN-next, cN (centos stream), 'eln'}, with N the release version number." +-+
      "https://github.com/juhp/fedora-repoquery#readme") $
     runMain sysarch
@@ -59,8 +60,15 @@ main = do
     <*> switchWith 'D' "debug" "Show some debug output"
     <*> (flagWith' CacheSize 'z' "cache-size" "Show total dnf repo metadata cache disksize"
          <|> flagWith' CacheEmpties 'e' "cache-clean-empty" "Remove empty dnf caches"
-         <|> flagWith' List 'l' "list" "List Fedora versions"
-         <|> Query <$> some (strArg "[RELEASE|--]... [REPOQUERY_OPTS]... [PACKAGE]..."))
+         <|> flagLongWith' ReleaseList "list-releases" "List Fedora versions"
+         <|> Query <$> optional queryOption <*> some (strArg "[RELEASE] [REPOQUERY_OPTS]... [PACKAGE]..."))
+  where
+    queryOption =
+      asum $ map optFlag [OptInfo ..]
+      where
+        optFlag o =
+          let r = renderQueryCmd o
+          in flagLongWith' o r ("dnf option --" ++ r)
 
 runMain :: Arch -> Bool -> Verbosity -> Bool -> Bool -> RepoSource -> [Arch]
         -> Bool -> Bool -> Bool -> Command -> IO ()
@@ -68,10 +76,10 @@ runMain sysarch dnf4 verbose dynredir time reposource archs testing noqueryalias
   case command of
     CacheSize -> cacheSize
     CacheEmpties -> cleanEmptyCaches
-    List -> listVersionsCmd
-    Query relargs ->
+    ReleaseList -> listVersionsCmd
+    Query mopt relargs ->
       -- spanJust from utility-ht nicer but this gets us enough
-      let (releases,args) = swap $ partitionEithers $ map eitherRelease relargs
+      let (args,releases) = partitionEithers $ map eitherRelease relargs
       in do
         when (null releases && verbose /= Quiet) $
           warning "(using system repos)"
@@ -82,4 +90,4 @@ runMain sysarch dnf4 verbose dynredir time reposource archs testing noqueryalias
                else forM_ archs $ \arch -> showReleaseCmd debug dynredir reposource release sysarch (Just arch) testing
           else
             let multiple = length releases > 1 || length archs > 1
-            in repoqueryCmd dnf4 debug verbose multiple dynredir time release reposource sysarch archs testing noqueryalias args
+            in repoqueryCmd dnf4 debug verbose multiple dynredir time release reposource sysarch archs testing noqueryalias mopt args

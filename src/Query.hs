@@ -2,6 +2,8 @@
 
 module Query (
   repoqueryCmd,
+  QueryCmd(..),
+  renderQueryCmd
   ) where
 
 import Control.Monad.Extra
@@ -18,6 +20,42 @@ import Common (warning)
 import Release (getRelease)
 import Types
 import URL (FileDir(Dir), URL, renderUrl)
+
+data QueryCmd = OptInfo | OptList
+              | OptRequires | OptWhatRequires
+              | OptProvides | OptWhatProvides
+              | OptDepends | OptWhatDepends
+              | OptRecommends | OptWhatRecommends
+              | OptSuggests | OptWhatSuggests
+              | OptConflicts | OptWhatConflicts
+              | OptEnhances | OptWhatEnhances
+              | OptObsoletes | OptWhatObsoletes
+              | OptSupplements | OptWhatSupplements
+  deriving Enum
+
+renderQueryCmd :: QueryCmd -> String
+renderQueryCmd o =
+  case o of
+    OptInfo -> "info"
+    OptList -> "list"
+    OptRequires -> "requires"
+    OptWhatRequires -> "whatrequires"
+    OptProvides -> "provides"
+    OptWhatProvides -> "whatprovides"
+    OptDepends -> "depends"
+    OptWhatDepends -> "whatdepends"
+    OptRecommends -> "recommends"
+    OptWhatRecommends -> "whatrecommends"
+    OptSuggests -> "suggests"
+    OptWhatSuggests -> "whatsuggests"
+    OptConflicts -> "conflicts"
+    OptWhatConflicts -> "whatconflicts"
+    OptEnhances -> "enhances"
+    OptWhatEnhances -> "whatenhances"
+    OptObsoletes -> "obsoletes"
+    OptWhatObsoletes -> "whatobsoletes"
+    OptSupplements -> "supplements"
+    OptWhatSupplements -> "whatsupplements"
 
 -- from dnf5 repoquery.cpp pkg_attrs_options
 pkgAttrsOptions :: [String]
@@ -65,9 +103,9 @@ queryAliases =
   ]
 
 repoqueryCmd :: Bool -> Bool -> Verbosity -> Bool -> Bool -> Bool -> Release
-             -> RepoSource -> Arch -> [Arch] -> Bool -> Bool -> [String]
-             -> IO ()
-repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource sysarch archs testing noqueryalias args = do
+             -> RepoSource -> Arch -> [Arch] -> Bool -> Bool
+             -> Maybe QueryCmd -> [String] -> IO ()
+repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource sysarch archs testing noqueryalias mopt args = do
   forM_ (if null archs then [sysarch] else archs) $ \arch -> do
     repoConfigs <-
       if release == System
@@ -102,8 +140,10 @@ repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource s
       unless (not checkdate || release == System || multiple) $ warning ""
       putStrLn $ intercalate "\n" res
   where
-    tweakedArgs = tweakArgs args
+    tweakedArgs = tweakArgs $ maybeOpt args
       where
+        maybeOpt = maybe id (\o -> (("--" ++ renderQueryCmd o) :)) mopt
+
         tweakArgs [] = []
         tweakArgs (h:t) =
           if noqueryalias then h : t else tweakArg h : t
