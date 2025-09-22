@@ -108,6 +108,8 @@ repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource s
         tweakArgs (h:t) =
           if noqueryalias then h : t else tweakArg h : t
 
+        tweakArg opt@('-':o:os) =
+          if o == '-' then opt else tweakArg (o:os)
         tweakArg o =
           case lookup o queryAliases of
             Just oname -> "--" ++ oname
