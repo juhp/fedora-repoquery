@@ -1,5 +1,9 @@
 # Revision history for fedora-repoquery
 
+## 0.7.4 (2025-08-16)
+- Query renderRepoConfig: disable skip_if_unavailable
+- Query: don't use dnf --quiet output for --debug
+
 ## 0.7.3 (2025-06-03)
 - fix the naming of koji dnf repos
 - flip the --dl and --debug short options
