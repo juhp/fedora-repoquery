@@ -1,5 +1,10 @@
 # Revision history for fedora-repoquery
 
+## 0.8 (2025-09-22)
+- Query: introduce query option "command" aliases: like 'r' for --requires
+- Query: also allow command alias of options: like 'requires'
+- Query: dnf5 rq only uses --changelogs not --changelog
+
 ## 0.7.4 (2025-08-16)
 - Query renderRepoConfig: disable skip_if_unavailable
 - Query: don't use dnf --quiet output for --debug

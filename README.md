@@ -10,7 +10,7 @@ Usage examples:
 `$ fedora-repoquery rawhide firefox`
 
 ```
-firefox-142.0-1.fc44.x86_64 (fedora-rawhide)
+firefox-143.0.1-1.fc44.x86_64 (fedora-rawhide)
 ```
 
 `$ fedora-repoquery 43 --requires filesystem`
@@ -19,6 +19,7 @@ firefox-142.0-1.fc44.x86_64 (fedora-rawhide)
 group(mail)
 setup
 ```
+or the equivalent short form: `$ fedora-repoquery 43 r filesystem` .
 
 `$ fedora-repoquery epel10 ghc`
 
@@ -35,16 +36,17 @@ bash-5.2.26-6.el10.x86_64 (c10s-BaseOS)
 `$ fedora-repoquery eln kernel`
 
 ```
-kernel-6.17.0-0.rc1.250814g0cc53520e68b.20.eln151.x86_64 (eln-BaseOS)
+kernel-6.17.0-0.rc6.250917g5aca7966d2a72.51.eln151.x86_64 (eln-BaseOS)
 ```
 
 Without a release argument, the system yum repo configuration is used:
 
-`$ fedora-repoquery pandoc`
+`$ fedora-repoquery pandoc-cli`
 
 ```
-pandoc-3.6.4-37.fc43.x86_64 (rawhide)
+pandoc-cli-3.6.4-38.fc44.x86_64 (rawhide)
 ```
+
 but then currently you have to insert `--` before a query option:
 
 `$ fedora-repoquery -- --whatrequires pandoc`
@@ -52,9 +54,10 @@ but then currently you have to insert `--` before a query option:
 ```
 R-reprex-2.1.1-2.fc43.noarch (rawhide)
 R-rmarkdown-2.24-9.fc43.noarch (rawhide)
-pandoc-pdf-3.6.4-37.fc43.x86_64 (rawhide)
-python3-pypandoc-1.15-6.fc43.noarch (rawhide)
+pandoc-pdf-3.6.4-38.fc44.x86_64 (rawhide)
+python3-pypandoc-1.15-8.fc44.noarch (rawhide)
 ```
+(or use `fedora-repoquery wr pandoc`).
 
 Use the --time (-T) option to display repo timestamps:
 ```
@@ -71,7 +74,7 @@ after the release version:
 
 ```
 2025-04-15 01:43:43 +08 <https://mirror.freedif.org/fedora/fedora/linux/releases/42/>
-2025-08-16 09:11:49 +08 <https://mirror.freedif.org/fedora/fedora/linux/updates/42/>
+2025-09-22 09:06:34 +08 <https://mirror.freedif.org/fedora/fedora/linux/updates/42/>
 ```
 
 One can also query multiple releases (or arch's):
@@ -80,8 +83,9 @@ One can also query multiple releases (or arch's):
 
 ```
 python3-3.13.2-2.fc42.x86_64 (f42)
-python3-3.13.6-1.fc42.x86_64 (f42-updates)
-python3-3.14.0~rc1-2.fc43.x86_64 (f43-development)
+python3-3.13.7-1.fc42.x86_64 (f42-updates)
+python3-3.14.0~rc2-1.fc43.x86_64 (f43-development)
+python3-3.14.0~rc3-1.fc43.x86_64 (f43-updates-testing)
 ```
 
 
@@ -89,7 +93,7 @@ python3-3.14.0~rc1-2.fc43.x86_64 (f43-development)
 `$ fedora-repoquery --version`
 
 ```
-0.7.4
+0.8
 ```
 
 `$ fedora-repoquery --help`
@@ -97,13 +101,13 @@ python3-3.14.0~rc1-2.fc43.x86_64 (f43-development)
 ```
 fedora-repoquery tool for querying Fedora repos for packages.
 
-Usage: fedora-repoquery [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] 
-                        [--dynamic] [-T|--time] [-K|--koji] 
-                        [(-m|--mirror URL) | (-d|--dl)] 
-                        [(-s|--source) | (-A|--all-archs) | [-a|--arch ARCH]] 
-                        [-t|--testing] [-D|--debug] 
-                        ((-z|--cache-size) | (-e|--cache-clean-empty) | 
-                          (-l|--list) | 
+Usage: fedora-repoquery [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)]
+                        [--dynamic] [-T|--time] [-K|--koji]
+                        [(-m|--mirror URL) | (-d|--dl)]
+                        [(-s|--source) | (-A|--all-archs) | [-a|--arch ARCH]]
+                        [-t|--testing] [-n|--no-query-alias] [-D|--debug]
+                        ((-z|--cache-size) | (-e|--cache-clean-empty) |
+                          (-l|--list) |
                           [RELEASE|--]... [REPOQUERY_OPTS]... [PACKAGE]...)
 
   where RELEASE is {fN or N (fedora), 'rawhide', epelN, epelN-next, cN (centos
@@ -126,6 +130,7 @@ Available options:
   -A,--all-archs           Query all (64 bit) arch repos
   -a,--arch ARCH           Specify arch [default: x86_64]
   -t,--testing             Fedora updates-testing
+  -n,--no-query-alias      Disable query aliases (like 'r' for '--requires')
   -D,--debug               Show some debug output
   -z,--cache-size          Show total dnf repo metadata cache disksize
   -e,--cache-clean-empty   Remove empty dnf caches
