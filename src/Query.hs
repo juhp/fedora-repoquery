@@ -57,11 +57,12 @@ renderQueryCmd o =
     OptSupplements -> "supplements"
     OptWhatSupplements -> "whatsupplements"
 
--- from dnf5 repoquery.cpp pkg_attrs_options
-pkgAttrsOptions :: [String]
-pkgAttrsOptions =
+noQueryFormatOptions :: [String]
+noQueryFormatOptions =
+  ["-i", "-l", "-s"] ++
   map ("--" ++)
   [
+    -- from dnf5 repoquery.cpp pkg_attrs_options
     "conflicts",
     "depends",
     "enhances",
@@ -71,7 +72,17 @@ pkgAttrsOptions =
     "requires",
     "requires_pre",
     "suggests",
-    "supplements"
+    "supplements",
+    -- others conflicting with '--qf'
+    "info",
+    "list",
+    "source",
+    "nvr",
+    "nevra",
+    "envra",
+    "qf",
+    "queryformat",
+    "changelogs"
   ]
 
 queryAliases :: [([Char], [Char])]
@@ -111,7 +122,7 @@ repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource s
       if release == System
       then return []
       else getRelease debug dynredir True checkdate reposource release sysarch (Just arch) testing
-    let qfAllowed = not $ any (`elem` ["-i","--info","-l","--list","-s","--source","--nvr","--nevra","--envra","--qf","--queryformat", "--changelogs"] ++ ["--changelog" | dnf4] ++ pkgAttrsOptions) tweakedArgs
+    let qfAllowed = not $ any (`elem` noQueryFormatOptions ++ ["--changelog" | dnf4]) tweakedArgs
     -- dnf5 writes repo update output to stdout
     -- https://github.com/rpm-software-management/dnf5/issues/1361
     -- but seems to cache better
