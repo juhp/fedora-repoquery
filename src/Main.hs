@@ -32,7 +32,7 @@ import Release (showReleaseCmd, downloadServer)
 import Types (Mirror(..), Release (System), RepoSource(..), Verbosity(..),
               eitherRelease)
 
-data Command = Query (Maybe QueryCmd) [String]
+data Command = Query (Maybe String) [String]
              | CacheSize | CacheEmpties | ReleaseList
 
 main :: IO ()
@@ -64,11 +64,9 @@ main = do
          <|> Query <$> optional queryOption <*> some (strArg "[RELEASE] [REPOQUERY_OPTS]... [PACKAGE]..."))
   where
     queryOption =
-      asum $ map optFlag [OptInfo ..]
+      asum $ map optFlag queryCmds
       where
-        optFlag o =
-          let r = renderQueryCmd o
-          in flagLongWith' o r ("dnf option --" ++ r)
+        optFlag o = flagLongWith' o o ("dnf option --" ++ o)
 
 runMain :: Arch -> Bool -> Verbosity -> Bool -> Bool -> RepoSource -> [Arch]
         -> Bool -> Bool -> Bool -> Command -> IO ()
