@@ -78,29 +78,29 @@ queryOptions :: Parser DnfOption
 queryOptions =
   -- # OPTIONS
   dnfOption "advisories"
-  -- <|> dnfOption "advisory-severities"
-  -- <|> dnfOption "arch" -- conflicts with our repo --arch
+  <|> dnfOption "advisory-severities"
+  <|> dnfOption "arch"
   <|> dnfFlag "available" -- default
-  -- <|> dnfFlag "bugfix"
-  -- <|> dnfOption "bzs"
-  -- <|> dnfOption "cves"
-  -- <|> dnfFlag "disable-modular-filtering"
+  <|> dnfFlag "bugfix"
+  <|> dnfOption "bzs"
+  <|> dnfOption "cves"
+  <|> dnfFlag "disable-modular-filtering"
   <|> dnfFlag "duplicates"
-  -- <|> dnfFlag "enhancement"
+  <|> dnfFlag "enhancement"
   <|> dnfFlag "exactdeps"
   <|> dnfFlag "extras"
   <|> dnfOption' 'f' "file"
   <|> dnfFlag "installed"
   <|> dnfOption "installed-from-repo"
-  -- <|> dnfFlag "installonly"
+  <|> dnfFlag "installonly"
   <|> dnfOption "latest-limit"
   <|> dnfFlag "leaves"
-  -- <|> "newpackage"
-  -- <|> dnfOption "providers-of" -- for certain commands see manpage
+  <|> dnfFlag "newpackage"
+  <|> dnfOption "providers-of" -- for certain commands see manpage
   <|> dnfFlag "recent"
-  -- <|> dnfFlag "recursive" -- with --whatrequires or --providers-of=requires only
+  <|> dnfFlag "recursive" -- with --whatrequires or --providers-of only
   <|> dnfFlag "security"
-  -- <|> dnfFlag "srpm"
+  <|> dnfFlag "srpm"
   <|> dnfFlag "unneeded"
   <|> dnfFlag "upgrades"
   <|> dnfFlag "userinstalled"
@@ -123,7 +123,7 @@ queryOptions =
   <|> dnfFlag "provides"
   <|> dnfFlag "recommends"
   <|> dnfFlag "requires"
-  -- <|> dnfFlag "requires-pre"
+  <|> dnfFlag "requires-pre"
   <|> dnfFlag "sourcerpm"
   <|> dnfFlag "suggests"
   <|> dnfFlag "supplements"
