@@ -66,7 +66,7 @@ main = do
     <*> (flagWith' CacheSize 'z' "cache-size" "Show total dnf repo metadata cache disksize"
          <|> flagWith' CacheEmpties 'e' "cache-clean-empty" "Remove empty dnf caches"
          <|> flagLongWith' ReleaseList "list-releases" "List Fedora versions"
-         <|> Query <$> many queryOptions <*> some (strArg "[RELEASE] [REPOQUERY_OPTS]... [PACKAGE]..."))
+         <|> Query <$> many queryOptions <*> many (strArg "[RELEASE]... [REPOQUERY_OPTS]... [PKGSPECIFIER]..."))
 
 -- man 8 dnf-repoquery (dnf5-5.2.17.0-2.fc44)
 -- https://github.com/rpm-software-management/dnf5/blob/main/doc/commands/repoquery.8.rst
