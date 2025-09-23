@@ -2,7 +2,7 @@
 
 module Query (
   repoqueryCmd,
-  queryCmds
+  DnfOption(..)
   ) where
 
 import Control.Monad.Extra
@@ -20,35 +20,16 @@ import Release (getRelease)
 import Types
 import URL (FileDir(Dir), URL, renderUrl)
 
-queryCmds :: [String]
-queryCmds =
-  [
-    "info",
-    "list",
-    "requires",
-    "whatrequires",
-    "provides",
-    "whatprovides",
-    "depends",
-    "whatdepends",
-    "recommends",
-    "whatrecommends",
-    "suggests",
-    "whatsuggests",
-    "conflicts",
-    "whatconflicts",
-    "enhances",
-    "whatenhances",
-    "obsoletes",
-    "whatobsoletes",
-    "supplements",
-    "whatsupplements"
-  ]
+data DnfOption =
+  DnfFlag String | DnfOption String String
+  deriving Eq
+
+renderOption :: DnfOption -> String
+renderOption (DnfFlag o) = '-' : '-' : o
+renderOption (DnfOption o v) = '-' : '-' : o ++ '=' : v
 
 noQueryFormatOptions :: [String]
 noQueryFormatOptions =
-  ["-i", "-l", "-s"] ++
-  map ("--" ++)
   [
     -- from dnf5 repoquery.cpp pkg_attrs_options
     "conflicts",
@@ -58,59 +39,27 @@ noQueryFormatOptions =
     "provides",
     "recommends",
     "requires",
-    "requires_pre",
+    "require-pre",
     "suggests",
     "supplements",
     -- others conflicting with '--qf'
     "info",
     "list",
+    "location",
     "source",
-    "nvr",
-    "nevra",
-    "envra",
-    "qf",
     "queryformat",
     "changelogs"
   ]
 
-queryAliases :: [([Char], [Char])]
-queryAliases =
-  -- dnf5 only has --info not -i
-  [ ("-i", "info")
-  , ("i", "info")
-  , ("l", "list")
-  , ("r", "requires")
-  , ("wr", "whatrequires")
-  , ("p", "provides")
-  , ("wp", "whatprovides")
-  , ("d", "depends")
-  , ("wd", "whatdepends")
-  , ("rec", "recommends")
-  , ("wrec", "whatrecommends")
-  , ("sug", "suggests")
-  , ("wsug", "whatsuggests")
-  , ("c", "conflicts")
-  , ("wc", "whatconflicts")
-  , ("enh", "enhances")
-  , ("wenh", "whatenhances")
-  , ("o", "obsoletes")
-  , ("wo", "whatobsoletes")
-  , ("sup", "supplements")
-  , ("wsup", "whatsupplements")
-  , ("qf", "queryformat")
-  , ("latest", "latest-limit")
-  ]
-
 repoqueryCmd :: Bool -> Bool -> Verbosity -> Bool -> Bool -> Bool -> Release
-             -> RepoSource -> Arch -> [Arch] -> Bool -> Bool
-             -> Maybe String -> [String] -> IO ()
-repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource sysarch archs testing noqueryalias mopt args = do
+             -> RepoSource -> Arch -> [Arch] -> Bool -> [DnfOption]
+             -> [String] -> IO ()
+repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource sysarch archs testing opts args = do
   forM_ (if null archs then [sysarch] else archs) $ \arch -> do
     repoConfigs <-
       if release == System
       then return []
       else getRelease debug dynredir True checkdate reposource release sysarch (Just arch) testing
-    let qfAllowed = not $ any (`elem` noQueryFormatOptions ++ ["--changelog" | dnf4]) tweakedArgs
     -- dnf5 writes repo update output to stdout
     -- https://github.com/rpm-software-management/dnf5/issues/1361
     -- but seems to cache better
@@ -125,11 +74,11 @@ repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource s
                   ["--quiet" | verbose /= Verbose || not debug] ++
                   -- https://bugzilla.redhat.com/show_bug.cgi?id=1876828
                   ["--disableplugin=subscription-manager" | rhsm] ++
-                  (if qfAllowed then ["--qf", queryformat] else []) ++
+                  ["--queryformat=" ++ queryformat | queryFormatAllowed] ++
                   -- drop modules for F39+
                   ["--setopt=module_platform_id=platform:" ++ show release] ++
                   concatMap renderRepoConfig repoConfigs ++
-                  tweakQfOpt (isJust mdnf5) tweakedArgs
+                  map (renderOption . tweakQfOpt (isJust mdnf5)) opts ++ args
     -- FIXME drop "/usr/bin/"?
     let dnf = fromMaybe "/usr/bin/dnf-3" mdnf5
     when debug $
@@ -139,38 +88,20 @@ repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource s
       unless (not checkdate || release == System || multiple) $ warning ""
       putStrLn $ intercalate "\n" res
   where
-    tweakedArgs = tweakArgs $ maybeOpt args
+    queryFormatAllowed =
+      not $ any (`elem` map DnfFlag (noQueryFormatOptions ++ ["--changelog" | dnf4])) opts
+
+    tweakQfOpt dnf5 opt =
+        case opt of
+          DnfOption "queryformat" fv -> DnfOption "queryformat" (tweakQf fv)
+          _ -> opt
       where
-        maybeOpt = maybe id (\o -> (("--" ++ o) :)) mopt
-
-        tweakArgs [] = []
-        tweakArgs (h:t) =
-          if noqueryalias then h : t else tweakArg h : t
-
-        tweakArg opt@('-':o:os) =
-          if o == '-' then opt else tweakArg (o:os)
-        tweakArg o =
-          case lookup o queryAliases of
-            Just oname -> "--" ++ oname
-            Nothing ->
-              if o `elem` map snd queryAliases
-              then "--" ++ o
-              else o
-
-    -- dnf5 doesn't append \n to queryformat
-    tweakQfOpt dnf5 xs =
-      if dnf5 then
-        case xs of
-          (x:y:rest) | x `elem` ["--qf","--queryformat"] -> x : tweakQf y : rest
-                     | otherwise -> x : tweakQfOpt dnf5 (y:rest)
-          _ -> xs
-      else xs
-      where
-        tweakQf qf =
-          expandQf qf ++
-          case lastMay qf of
-            Just lc -> if isSpace lc then "" else "\n"
-            Nothing -> ""
+        -- dnf5 doesn't append \n to queryformat
+        tweakQf fv =
+          expandQf fv ++
+          case lastMay fv of
+            Just lc | dnf5 -> if isSpace lc then "" else "\n"
+            _ -> ""
 
         expandQf qf =
           case lower qf of
@@ -178,8 +109,10 @@ repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource s
             "nv" -> "%{name}-%{version}"
             "nvr" -> expandQf "nv" ++ "-%{release}"
             "nvra" -> expandQf "nvr" <.> "%{arch}"
+            -- fixme? check order correct for epoch
             "envr" -> "%{epoch}:" ++ expandQf "nvr"
             "envra" -> "%{epoch}:" ++ expandQf "nvra"
+            "default" -> "%{full_nevra}"
             _ -> qf
 
 renderRepoConfig :: (String, URL) -> [String]

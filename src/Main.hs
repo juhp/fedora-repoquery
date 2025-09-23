@@ -15,7 +15,7 @@ import Control.Applicative (
 #endif
 import Control.Monad (forM_, when)
 import Data.Either (partitionEithers)
-import Data.Foldable (asum)
+import Options.Applicative (flag', long, short, strOption)
 #if !MIN_VERSION_simple_cmd_args(0,1,7)
 import Options.Applicative (eitherReader, maybeReader, ReadM)
 #endif
@@ -32,7 +32,7 @@ import Release (showReleaseCmd, downloadServer)
 import Types (Mirror(..), Release (System), RepoSource(..), Verbosity(..),
               eitherRelease)
 
-data Command = Query (Maybe String) [String]
+data Command = Query [DnfOption] [String]
              | CacheSize | CacheEmpties | ReleaseList
 
 main :: IO ()
@@ -56,26 +56,91 @@ main = do
          flagWith' allArchs 'A' "all-archs" "Query all (64 bit) arch repos" <|>
          many (optionWith (eitherReader eitherArch) 'a' "arch" "ARCH" ("Specify arch [default:" +-+ showArch sysarch ++ "]")))
     <*> switchWith 't' "testing" "Fedora updates-testing"
-    <*> switchWith 'n' "no-query-alias" "Disable query aliases (like 'r' for '--requires')"
     <*> switchWith 'D' "debug" "Show some debug output"
     <*> (flagWith' CacheSize 'z' "cache-size" "Show total dnf repo metadata cache disksize"
          <|> flagWith' CacheEmpties 'e' "cache-clean-empty" "Remove empty dnf caches"
          <|> flagLongWith' ReleaseList "list-releases" "List Fedora versions"
-         <|> Query <$> optional queryOption <*> some (strArg "[RELEASE] [REPOQUERY_OPTS]... [PACKAGE]..."))
-  where
-    queryOption =
-      asum $ map optFlag queryCmds
-      where
-        optFlag o = flagLongWith' o o ("dnf option --" ++ o)
+         <|> Query <$> many queryOptions <*> some (strArg "[RELEASE] [REPOQUERY_OPTS]... [PACKAGE]..."))
+
+-- man 8 dnf-repoquery (dnf5-5.2.17.0-2.fc44)
+-- https://github.com/rpm-software-management/dnf5/blob/main/doc/commands/repoquery.8.rst
+
+dnfFlag, dnfOption :: String -> Parser DnfOption
+dnfFlag o = flag' (DnfFlag o) (long o)
+dnfOption o = DnfOption o <$> strOption (long o)
+dnfFlag', dnfOption' :: Char -> String -> Parser DnfOption
+dnfFlag' s l = flag' (DnfFlag l) (short s <> long l)
+dnfOption' s l = DnfOption l <$> strOption (short s <> long l)
+dnfOption'' :: String -> String -> Parser DnfOption
+dnfOption'' s l = DnfOption l <$> strOption (long s <> long l)
+
+queryOptions :: Parser DnfOption
+queryOptions =
+  -- # OPTIONS
+  dnfOption "advisories"
+  -- <|> dnfOption "advisory-severities"
+  -- <|> dnfOption "arch" -- conflicts with our repo --arch
+  <|> dnfFlag "available" -- default
+  -- <|> dnfFlag "bugfix"
+  -- <|> dnfOption "bzs"
+  -- <|> dnfOption "cves"
+  -- <|> dnfFlag "disable-modular-filtering"
+  <|> dnfFlag "duplicates"
+  -- <|> dnfFlag "enhancement"
+  <|> dnfFlag "exactdeps"
+  <|> dnfFlag "extras"
+  <|> dnfOption' 'f' "file"
+  <|> dnfFlag "installed"
+  <|> dnfOption "installed-from-repo"
+  -- <|> dnfFlag "installonly"
+  <|> dnfOption "latest-limit"
+  <|> dnfFlag "leaves"
+  -- <|> "newpackage"
+  -- <|> dnfOption "providers-of" -- for certain commands see manpage
+  <|> dnfFlag "recent"
+  -- <|> dnfFlag "recursive" -- with --whatrequires or --providers-of=requires only
+  <|> dnfFlag "security"
+  -- <|> dnfFlag "srpm"
+  <|> dnfFlag "unneeded"
+  <|> dnfFlag "upgrades"
+  <|> dnfFlag "userinstalled"
+  <|> dnfOption "whatconflicts"
+  <|> dnfOption "whatdepends"
+  <|> dnfOption "whatenhances"
+  <|> dnfOption "whatobsoletes"
+  <|> dnfOption "whatprovides"
+  <|> dnfOption "whatrecommends"
+  <|> dnfOption "whatrequires"
+  <|> dnfOption "whatsuggests"
+  <|> dnfOption "whatsupplements"
+  -- # FORMATTING
+  <|> dnfFlag "conflicts"
+  <|> dnfFlag "depends"
+  <|> dnfFlag "enhances"
+  <|> dnfFlag "files"
+  <|> dnfFlag' 'l' "list"
+  <|> dnfFlag "obsoletes"
+  <|> dnfFlag "provides"
+  <|> dnfFlag "recommends"
+  <|> dnfFlag "requires"
+  -- <|> dnfFlag "requires-pre"
+  <|> dnfFlag "sourcerpm"
+  <|> dnfFlag "suggests"
+  <|> dnfFlag "supplements"
+  <|> dnfFlag "location"
+  <|> dnfFlag' 'i' "info"
+  <|> dnfFlag "changelogs" -- map --changelog
+  <|> dnfFlag "querytags"
+  <|> dnfOption'' "qf" "queryformat"
 
 runMain :: Arch -> Bool -> Verbosity -> Bool -> Bool -> RepoSource -> [Arch]
-        -> Bool -> Bool -> Bool -> Command -> IO ()
-runMain sysarch dnf4 verbose dynredir time reposource archs testing noqueryalias debug command = do
+        -> Bool -> Bool -> Command -> IO ()
+runMain sysarch dnf4 verbose dynredir time reposource archs testing debug command = do
   case command of
     CacheSize -> cacheSize
     CacheEmpties -> cleanEmptyCaches
     ReleaseList -> listVersionsCmd
-    Query mopt relargs ->
+    Query opts relargs ->
       -- spanJust from utility-ht nicer but this gets us enough
       let (args,releases) = partitionEithers $ map eitherRelease relargs
       in do
@@ -89,4 +154,4 @@ runMain sysarch dnf4 verbose dynredir time reposource archs testing noqueryalias
                else forM_ archs $ \arch -> showReleaseCmd debug dynredir reposource release sysarch (Just arch) testing
           else
             let multiple = length releases > 1 || length archs > 1
-            in repoqueryCmd dnf4 debug verbose multiple dynredir time release reposource sysarch archs testing noqueryalias mopt args
+            in repoqueryCmd dnf4 debug verbose multiple dynredir time release reposource sysarch archs testing opts args

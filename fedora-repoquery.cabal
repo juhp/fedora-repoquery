@@ -52,6 +52,7 @@ executable fedora-repoquery
                        fedora-releases >= 0.2,
                        filepath,
                        Glob,
+                       optparse-applicative,
                        regex-compat,
                        safe,
                        simple-cmd >= 0.2,
