@@ -79,7 +79,8 @@ runMain sysarch dnf4 verbose dynredir time reposource archs testing noqueryalias
       -- spanJust from utility-ht nicer but this gets us enough
       let (args,releases) = partitionEithers $ map eitherRelease relargs
       in do
-        when (null releases && verbose /= Quiet) $
+        when (null releases) $
+          when (verbose == Verbose || debug) $
           warning "(using system repos)"
         forM_ (if null releases then [System] else releases) $ \release ->
           if null args
