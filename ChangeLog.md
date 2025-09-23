@@ -1,9 +1,14 @@
 # Revision history for fedora-repoquery
 
-## 0.8 (2025-09-22)
-- Query: introduce query option "command" aliases: like 'r' for --requires
-- Query: also allow command alias of options: like 'requires'
-- Query: dnf5 rq only uses --changelogs not --changelog
+## 0.8 (2025-09-23)
+- rework dnf option handling with full parsing and completions:
+  with free ordering of arguments, releases and options
+- no longer outputs "(using system repos)" when no release specified
+- `--list-releases` lists in order (was `--list`)
+- rename `--arch` to `--repo-arch`
+- new `--all-fedora` releases option
+- alias `--changelog` to `--changelogs`
+- `--queryformat` now accepts format alias "default"
 
 ## 0.7.4 (2025-08-16)
 - Query renderRepoConfig: disable skip_if_unavailable
