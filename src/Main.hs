@@ -25,6 +25,7 @@ import Options.Applicative (flag', long, short, strOption,
     )
 import SimpleCmd ((+-+), error', warning)
 import SimpleCmdArgs
+import System.Environment (getArgs, withArgs)
 import System.IO (BufferMode(NoBuffering), hSetBuffering, stdout)
 
 import Arch
@@ -43,6 +44,13 @@ data Command = Query [DnfOption] [String]
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
+  args <- getArgs
+  if null args
+    then withArgs ["--help"] main'
+    else main'
+
+main' :: IO ()
+main' = do
   sysarch <- getSystemArch
   simpleCmdArgs (Just version) "fedora-repoquery tool for querying Fedora repos for packages."
     ("where RELEASE is {fN or N (fedora), 'rawhide', epelN, epelN-next, cN (centos stream), 'eln'}, with N the release version number." +-+
@@ -167,7 +175,7 @@ runMain sysarch dnf4 verbose dynredir time reposource allreleases archs testing 
             else return [System]
           else return releases
         forM_ releaselist $ \release ->
-          if null args
+          if null args && null opts
           then if null archs
                then showReleaseCmd debug dynredir reposource release sysarch Nothing testing
                else forM_ archs $ \arch -> showReleaseCmd debug dynredir reposource release sysarch (Just arch) testing
