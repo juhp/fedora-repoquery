@@ -32,8 +32,8 @@ showReleaseCmd :: Bool -> Bool -> RepoSource -> Release  -> Arch -> Maybe Arch
 showReleaseCmd debug dynredir reposource release sysarch march testing =
   void $ getRelease debug dynredir False True reposource release sysarch march testing
 
-getRelease :: Bool -> Bool -> Bool -> Bool -> RepoSource
-            -> Release -> Arch -> Maybe Arch -> Bool -> IO [(String, URL)]
+getRelease :: Bool -> Bool -> Bool -> Bool -> RepoSource -> Release -> Arch
+           -> Maybe Arch -> Bool -> IO [(String, URL)]
 getRelease debug dynredir warn checkdate reposource@(RepoSource koji _mirror) release sysarch march testing = do
   let arch = fromMaybe sysarch march
   (url,path) <- getURL debug dynredir reposource release arch
