@@ -13,8 +13,8 @@ import Control.Applicative (
 #endif
   )
 #endif
-import Control.Monad (forM_, when)
-import Data.Either (partitionEithers)
+import Control.Monad (forM_, unless, when)
+import Data.Either (rights, partitionEithers)
 #if !MIN_VERSION_base(4,11,0)
 import Data.Semigroup ((<>))
 #endif
@@ -22,7 +22,7 @@ import Options.Applicative (flag', long, short, strOption)
 #if !MIN_VERSION_simple_cmd_args(0,1,7)
 import Options.Applicative (eitherReader, maybeReader, ReadM)
 #endif
-import SimpleCmd ((+-+), warning)
+import SimpleCmd ((+-+), error', warning)
 import SimpleCmdArgs
 import System.IO (BufferMode(NoBuffering), hSetBuffering, stdout)
 
@@ -31,7 +31,8 @@ import Cache (cacheSize, cleanEmptyCaches)
 import List (listVersionsCmd)
 import Paths_fedora_repoquery (version)
 import Query
-import Release (showReleaseCmd, downloadServer)
+import Release (activeFedoraReleases, downloadServer, releaseBranch,
+                showReleaseCmd)
 import Types (Mirror(..), Release (System), RepoSource(..), Verbosity(..),
               eitherRelease)
 
@@ -55,6 +56,8 @@ main = do
           <$> switchWith 'K' "koji" "Use Koji buildroot"
           <*> ((Mirror <$> strOptionWith 'm' "mirror" "URL" ("Fedora mirror [default: " ++ downloadServer ++ "]")) <|>
                flagWith DownloadFpo DlFpo 'd' "dl" "Use dl.fp.o"))
+    -- FIXME: --all-epel and --all-releases
+    <*> switchWith 'F' "all-fedora" "Query all Fedora releases"
     <*> (flagWith' [Source] 's' "source" "Query source repos" <|>
          flagWith' allArchs 'A' "all-archs" "Query all (64 bit) arch repos" <|>
          many (optionWith (eitherReader eitherArch) 'a' "repo-arch" "ARCH" ("Specify repo arch [default:" +-+ showArch sysarch ++ "]")))
@@ -136,9 +139,9 @@ queryOptions =
   <|> dnfFlag "querytags"
   <|> dnfOption'' "qf" "queryformat"
 
-runMain :: Arch -> Bool -> Verbosity -> Bool -> Bool -> RepoSource -> [Arch]
-        -> Bool -> Bool -> Command -> IO ()
-runMain sysarch dnf4 verbose dynredir time reposource archs testing debug command = do
+runMain :: Arch -> Bool -> Verbosity -> Bool -> Bool -> RepoSource -> Bool
+        -> [Arch] -> Bool -> Bool -> Command -> IO ()
+runMain sysarch dnf4 verbose dynredir time reposource allreleases archs testing debug command = do
   case command of
     CacheSize -> cacheSize
     CacheEmpties -> cleanEmptyCaches
@@ -147,14 +150,25 @@ runMain sysarch dnf4 verbose dynredir time reposource archs testing debug comman
       -- spanJust from utility-ht nicer but this gets us enough
       let (args,releases) = partitionEithers $ map eitherRelease relargs
       in do
-        when (null releases) $
+        unless (null releases || not allreleases) $
+          error' "cannot specify releases and --all-releases"
+        when (null releases && not allreleases) $
           when (verbose == Verbose || debug) $
           warning "(using system repos)"
-        forM_ (if null releases then [System] else releases) $ \release ->
+        releaselist <-
+          if null releases
+          then
+            if allreleases
+            then do
+              brels <- activeFedoraReleases
+              return $ rights $ map (eitherRelease . releaseBranch) brels
+            else return [System]
+          else return releases
+        forM_ releaselist $ \release ->
           if null args
           then if null archs
                then showReleaseCmd debug dynredir reposource release sysarch Nothing testing
                else forM_ archs $ \arch -> showReleaseCmd debug dynredir reposource release sysarch (Just arch) testing
           else
-            let multiple = length releases > 1 || length archs > 1
+            let multiple = length releaselist > 1 || length archs > 1
             in repoqueryCmd dnf4 debug verbose multiple dynredir time release reposource sysarch archs testing opts args
