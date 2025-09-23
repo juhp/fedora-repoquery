@@ -78,7 +78,8 @@ dnfOption o = DnfOption o <$> strOption (long o)
 dnfFlag', dnfOption' :: Char -> String -> Parser DnfOption
 dnfFlag' s l = flag' (DnfFlag l) (short s <> long l)
 dnfOption' s l = DnfOption l <$> strOption (short s <> long l)
-dnfOption'' :: String -> String -> Parser DnfOption
+dnfFlag'', dnfOption'' :: String -> String -> Parser DnfOption
+dnfFlag'' s l = flag' (DnfFlag l) (long s <> long l)
 dnfOption'' s l = DnfOption l <$> strOption (long s <> long l)
 
 queryOptions :: Parser DnfOption
@@ -136,7 +137,7 @@ queryOptions =
   <|> dnfFlag "supplements"
   <|> dnfFlag "location"
   <|> dnfFlag' 'i' "info"
-  <|> dnfFlag "changelogs" -- map --changelog
+  <|> dnfFlag'' "changelog" "changelogs"
   <|> dnfFlag "querytags"
   <|> dnfOption'' "qf" "queryformat"
 

@@ -89,7 +89,7 @@ repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource s
       putStrLn $ intercalate "\n" res
   where
     queryFormatAllowed =
-      not $ any (`elem` map DnfFlag (noQueryFormatOptions ++ ["--changelog" | dnf4])) opts
+      not $ any (`elem` map DnfFlag noQueryFormatOptions) opts
 
     tweakQfOpt dnf5 opt =
         case opt of
