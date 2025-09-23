@@ -54,7 +54,7 @@ main = do
                flagWith DownloadFpo DlFpo 'd' "dl" "Use dl.fp.o"))
     <*> (flagWith' [Source] 's' "source" "Query source repos" <|>
          flagWith' allArchs 'A' "all-archs" "Query all (64 bit) arch repos" <|>
-         many (optionWith (eitherReader eitherArch) 'a' "arch" "ARCH" ("Specify arch [default:" +-+ showArch sysarch ++ "]")))
+         many (optionWith (eitherReader eitherArch) 'a' "repo-arch" "ARCH" ("Specify repo arch [default:" +-+ showArch sysarch ++ "]")))
     <*> switchWith 't' "testing" "Fedora updates-testing"
     <*> switchWith 'D' "debug" "Show some debug output"
     <*> (flagWith' CacheSize 'z' "cache-size" "Show total dnf repo metadata cache disksize"
