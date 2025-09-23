@@ -8,7 +8,8 @@
 - rename `--arch` to `--repo-arch`
 - new `--all-fedora` releases option
 - alias `--changelog` to `--changelogs`
-- `--queryformat` now accepts format alias "default"
+- `--queryformat` now accepts format alias 'default'
+- add `--help-dnf` option for 'dnf --help' output
 
 ## 0.7.4 (2025-08-16)
 - Query renderRepoConfig: disable skip_if_unavailable

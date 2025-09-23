@@ -23,7 +23,7 @@ import Options.Applicative (flag', long, short, strOption,
     eitherReader
 #endif
     )
-import SimpleCmd ((+-+), error', warning)
+import SimpleCmd ((+-+), cmd_, error', warning)
 import SimpleCmdArgs
 import System.Environment (getArgs, withArgs)
 import System.IO (BufferMode(NoBuffering), hSetBuffering, stdout)
@@ -39,7 +39,7 @@ import Types (Mirror(..), Release (System), RepoSource(..), Verbosity(..),
               eitherRelease)
 
 data Command = Query [DnfOption] [String]
-             | CacheSize | CacheEmpties | ReleaseList
+             | CacheSize | CacheEmpties | DnfHelp | ReleaseList
 
 main :: IO ()
 main = do
@@ -54,7 +54,7 @@ main' = do
   sysarch <- getSystemArch
   simpleCmdArgs (Just version) "fedora-repoquery tool for querying Fedora repos for packages."
     ("where RELEASE is {fN or N (fedora), 'rawhide', epelN, epelN-next, cN (centos stream), 'eln'}, with N the release version number." +-+
-     "https://github.com/juhp/fedora-repoquery#readme") $
+     "<https://github.com/juhp/fedora-repoquery#readme>") $
     runMain sysarch
     <$> switchWith '4' "dnf4" "Use dnf4 instead of dnf5 (if available)"
     <*> (flagWith' Quiet 'q' "quiet" "Avoid output to stderr" <|>
@@ -75,6 +75,7 @@ main' = do
     <*> (flagWith' CacheSize 'z' "cache-size" "Show total dnf repo metadata cache disksize"
          <|> flagWith' CacheEmpties 'e' "cache-clean-empty" "Remove empty dnf caches"
          <|> flagLongWith' ReleaseList "list-releases" "List Fedora versions"
+         <|> flagLongWith' DnfHelp "help-dnf" "Show dnf --help"
          <|> Query <$> many queryOptions <*> many (strArg "[RELEASE]... [REPOQUERY_OPTS]... [PKGSPECIFIER]..."))
 
 -- man 8 dnf-repoquery (dnf5-5.2.17.0-2.fc44)
@@ -156,6 +157,7 @@ runMain sysarch dnf4 verbose dynredir time reposource allreleases archs testing 
     CacheSize -> cacheSize
     CacheEmpties -> cleanEmptyCaches
     ReleaseList -> listVersionsCmd
+    DnfHelp -> cmd_ (if dnf4 then "dnf4" else "dnf") ["--help"]
     Query opts relargs ->
       -- spanJust from utility-ht nicer but this gets us enough
       let (args,releases) = partitionEithers $ map eitherRelease relargs

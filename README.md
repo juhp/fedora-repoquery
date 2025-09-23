@@ -97,39 +97,39 @@ python3-3.14.0~rc3-1.fc43.x86_64 (f43-updates-testing)
 ```
 fedora-repoquery tool for querying Fedora repos for packages.
 
-Usage: fedora-repoquery [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)]
-                        [--dynamic] [-T|--time] [-K|--koji]
-                        [(-m|--mirror URL) | (-d|--dl)] [-F|--all-fedora]
-                        [(-s|--source) | (-A|--all-archs) |
-                          [-a|--repo-arch ARCH]] [-t|--testing] [-D|--debug]
-                        [(-z|--cache-size) | (-e|--cache-clean-empty) |
-                          --list-releases |
-                          [--advisories ARG | --advisory-severities ARG |
-                            --arch ARG | --available | --bugfix | --bzs ARG |
-                            --cves ARG | --disable-modular-filtering |
-                            --duplicates | --enhancement | --exactdeps |
-                            --extras | (-f|--file ARG) | --installed |
-                            --installed-from-repo ARG | --installonly |
-                            --latest-limit ARG | --leaves | --newpackage |
-                            --providers-of ARG | --recent | --recursive |
-                            --security | --srpm | --unneeded | --upgrades |
-                            --userinstalled | --whatconflicts ARG |
-                            --whatdepends ARG | --whatenhances ARG |
-                            --whatobsoletes ARG | --whatprovides ARG |
-                            --whatrecommends ARG | --whatrequires ARG |
-                            --whatsuggests ARG | --whatsupplements ARG |
-                            --conflicts | --depends | --enhances | --files |
-                            (-l|--list) | --obsoletes | --provides |
-                            --recommends | --requires | --requires-pre |
-                            --sourcerpm | --suggests | --supplements |
-                            --location | (-i|--info) |
-                            (--changelog|--changelogs) | --querytags |
-                            (--qf|--queryformat ARG)]
+Usage: fedora-repoquery [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] 
+                        [--dynamic] [-T|--time] [-K|--koji] 
+                        [(-m|--mirror URL) | (-d|--dl)] [-F|--all-fedora] 
+                        [(-s|--source) | (-A|--all-archs) | 
+                          [-a|--repo-arch ARCH]] [-t|--testing] [-D|--debug] 
+                        [(-z|--cache-size) | (-e|--cache-clean-empty) | 
+                          --list-releases | --help-dnf | 
+                          [--advisories ARG | --advisory-severities ARG | 
+                            --arch ARG | --available | --bugfix | --bzs ARG | 
+                            --cves ARG | --disable-modular-filtering | 
+                            --duplicates | --enhancement | --exactdeps | 
+                            --extras | (-f|--file ARG) | --installed | 
+                            --installed-from-repo ARG | --installonly | 
+                            --latest-limit ARG | --leaves | --newpackage | 
+                            --providers-of ARG | --recent | --recursive | 
+                            --security | --srpm | --unneeded | --upgrades | 
+                            --userinstalled | --whatconflicts ARG | 
+                            --whatdepends ARG | --whatenhances ARG | 
+                            --whatobsoletes ARG | --whatprovides ARG | 
+                            --whatrecommends ARG | --whatrequires ARG | 
+                            --whatsuggests ARG | --whatsupplements ARG | 
+                            --conflicts | --depends | --enhances | --files | 
+                            (-l|--list) | --obsoletes | --provides | 
+                            --recommends | --requires | --requires-pre | 
+                            --sourcerpm | --suggests | --supplements | 
+                            --location | (-i|--info) | 
+                            (--changelog|--changelogs) | --querytags | 
+                            (--qf|--queryformat ARG)] 
                           [[RELEASE]... [REPOQUERY_OPTS]... [PKGSPECIFIER]...]]
 
   where RELEASE is {fN or N (fedora), 'rawhide', epelN, epelN-next, cN (centos
   stream), 'eln'}, with N the release version number.
-  https://github.com/juhp/fedora-repoquery#readme
+  <https://github.com/juhp/fedora-repoquery#readme>
 
 Available options:
   -h,--help                Show this help text
@@ -152,6 +152,7 @@ Available options:
   -z,--cache-size          Show total dnf repo metadata cache disksize
   -e,--cache-clean-empty   Remove empty dnf caches
   --list-releases          List Fedora versions
+  --help-dnf               Show dnf --help
 ```
 The default arch is the system arch.
 
