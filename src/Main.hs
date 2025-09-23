@@ -18,10 +18,11 @@ import Data.Either (rights, partitionEithers)
 #if !MIN_VERSION_base(4,11,0)
 import Data.Semigroup ((<>))
 #endif
-import Options.Applicative (flag', long, short, strOption)
+import Options.Applicative (flag', long, short, strOption,
 #if !MIN_VERSION_simple_cmd_args(0,1,7)
-import Options.Applicative (eitherReader, maybeReader, ReadM)
+    eitherReader
 #endif
+    )
 import SimpleCmd ((+-+), error', warning)
 import SimpleCmdArgs
 import System.IO (BufferMode(NoBuffering), hSetBuffering, stdout)
@@ -159,9 +160,9 @@ runMain sysarch dnf4 verbose dynredir time reposource allreleases archs testing 
           if null releases
           then
             if allreleases
-            then do
-              brels <- activeFedoraReleases
-              return $ rights $ map (eitherRelease . releaseBranch) brels
+            then
+              rights . map (eitherRelease . releaseBranch)
+              <$> activeFedoraReleases
             else return [System]
           else return releases
         forM_ releaselist $ \release ->
