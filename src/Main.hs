@@ -15,6 +15,9 @@ import Control.Applicative (
 #endif
 import Control.Monad (forM_, when)
 import Data.Either (partitionEithers)
+#if !MIN_VERSION_base(4,11,0)
+import Data.Semigroup ((<>))
+#endif
 import Options.Applicative (flag', long, short, strOption)
 #if !MIN_VERSION_simple_cmd_args(0,1,7)
 import Options.Applicative (eitherReader, maybeReader, ReadM)
