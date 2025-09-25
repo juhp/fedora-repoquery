@@ -157,7 +157,7 @@ runMain sysarch dnf4 verbose dynredir time reposource allreleases archs testing 
     CacheSize -> cacheSize
     CacheEmpties -> cleanEmptyCaches
     ReleaseList -> listVersionsCmd
-    DnfHelp -> cmd_ (if dnf4 then "dnf4" else "dnf") ["--help"]
+    DnfHelp -> cmd_ (if dnf4 then "dnf4" else "dnf") ["repoquery", "--help"]
     Query opts relargs ->
       -- spanJust from utility-ht nicer but this gets us enough
       let (args,releases) = partitionEithers $ map eitherRelease relargs
