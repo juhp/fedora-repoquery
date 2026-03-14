@@ -101,7 +101,7 @@ getRelease debug dynredir warn checkdate reposource@(RepoSource koji _mirror) re
                  [("epel-testing",url +//+ ["testing", "10." ++ show n]) | testing],
                  [])
       EPELNext _n -> return ([("epelnext",urlpath)],[])
-      System -> error' "showRelease: system unsupported"
+      System -> error' "showRelease: unsupported for system"
   rawhide <- rawhideFedoraRelease
   let basicrepourls =
         map (repoConfigArgs reposource sysarch march rawhide release) basicrepos
@@ -188,7 +188,7 @@ getURL debug dynredir reposource@(RepoSource koji _mirror) release arch =
               [if pending || postbeta then "development" else "releases",
                releasestr]
     Rawhide -> getFedoraServer debug dynredir reposource fedoraTop ["development", "rawhide"]
-    System -> error' "getURL: system unsupported"
+    System -> error' "getURL: unsupported for system"
   where
     fedoraTop =
       -- FIXME support older archs
@@ -227,7 +227,7 @@ repoConfigArgs (RepoSource False mirror) sysarch march rawhide release (repo,url
           EPELNext _n -> ["Everything", showArch arch]
           Fedora _ -> ["Everything", showArch arch] ++ (if arch == Source then ["tree"] else ["os" | repo `elem` ["releases","development"]])
           Rawhide -> ["Everything", showArch arch, if arch == Source then "tree" else "os"]
-          System -> error' "repoConfigArgs: system unsupported"
+          System -> error' "repoConfigArgs: unsupported for system"
   in (reponame, (url, path ++ ["/"]))
   where
     repoVersion :: String
