@@ -217,6 +217,7 @@ repoConfigArgs (RepoSource False mirror) sysarch march rawhide release (repo,url
                    Mirror serv ->
                      '-' : takeWhile (/= '/') (subRegex (mkRegex "https?://") serv "")
                    DlFpo -> "-dl.fpo"
+                   CloudFront -> "-cf"
       path =
         case release of
           Centos _ -> [repo, showArch arch] ++ (if arch == Source then ["tree"] else ["os"])
@@ -293,6 +294,7 @@ getFedoraServer debug dynredir (RepoSource koji mirror) top path =
       -- FIXME how to handle any path
       Mirror serv -> return (URL serv,path)
       DlFpo -> return (URL "https://dl.fedoraproject.org/pub" +//+ top, path)
+      CloudFront -> return (URL "https://d2lzkl7pfhq30w.cloudfront.net/pub" +//+ top, path)
 
 downloadServer :: String
 downloadServer = "https://download.fedoraproject.org/pub"

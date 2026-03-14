@@ -18,7 +18,7 @@ import Numeric.Natural
 data Verbosity = Quiet | Normal | Verbose
   deriving Eq
 
-data Mirror = DownloadFpo | DlFpo | Mirror String
+data Mirror = DownloadFpo | DlFpo | CloudFront | Mirror String
   deriving Eq
 
 -- FIXME: True for koji make into type

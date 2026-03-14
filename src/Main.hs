@@ -64,6 +64,7 @@ main' = do
     <*> (RepoSource
           <$> switchWith 'K' "koji" "Use Koji buildroot"
           <*> ((Mirror <$> strOptionWith 'm' "mirror" "URL" ("Fedora mirror [default: " ++ downloadServer ++ "]")) <|>
+               flagLongWith' CloudFront "cf" "Use CloudFront cache" <|>
                flagWith DownloadFpo DlFpo 'd' "dl" "Use dl.fp.o"))
     -- FIXME: --all-epel and --all-releases
     <*> switchWith 'F' "all-fedora" "Query all Fedora releases"
