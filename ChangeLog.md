@@ -1,5 +1,11 @@
 # Revision history for fedora-repoquery
 
+## 0.8.1 (2026-03-14)
+- shorter query aliases: `--wd` (--whatdepends), `--wr` (--whatrequires),
+  `-p` (--provides), `-r` (--requires), `--wp` (--whatprovides)
+- new `--cf` option: to use CloudFront cache as the mirror
+- `--help-dnf` now correctly provides repoquery --help
+
 ## 0.8 (2025-09-23)
 - rework dnf option handling with full parsing and completions:
   with free ordering of arguments, releases and options

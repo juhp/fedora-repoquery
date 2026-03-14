@@ -10,8 +10,9 @@ Usage examples:
 `$ fedora-repoquery rawhide firefox`
 
 ```
-firefox-143.0.1-1.fc44.x86_64 (fedora-rawhide)
+firefox-148.0-1.fc45.x86_64 (fedora-rawhide)
 ```
+(note it is shorter to write `fedora-repoquery 45`).
 
 `$ fedora-repoquery 43 --requires filesystem`
 
@@ -35,7 +36,7 @@ bash-5.2.26-6.el10.x86_64 (c10s-BaseOS)
 `$ fedora-repoquery eln kernel`
 
 ```
-kernel-6.17.0-0.rc6.250919g097a6c336d008.53.eln151.x86_64 (eln-BaseOS)
+kernel-7.0.0-0.rc3.260312g80234b5ab240.32.eln155.x86_64 (eln-BaseOS)
 ```
 
 Without a release argument, the system yum repo configuration is used:
@@ -43,53 +44,61 @@ Without a release argument, the system yum repo configuration is used:
 `$ fedora-repoquery pandoc-cli`
 
 ```
-pandoc-cli-3.6.4-38.fc44.x86_64 (rawhide)
+pandoc-cli-3.7.0.2-40.fc44.x86_64 (rawhide)
 ```
 
 `$ fedora-repoquery --whatrequires pandoc`
 
 ```
-R-reprex-2.1.1-2.fc43.noarch (rawhide)
-R-rmarkdown-2.24-9.fc43.noarch (rawhide)
-pandoc-pdf-3.6.4-38.fc44.x86_64 (rawhide)
-python3-pypandoc-1.15-8.fc44.noarch (rawhide)
+pandoc-pdf-3.7.0.2-40.fc44.x86_64 (rawhide)
+python3-pypandoc-1.16.2-1.fc44.noarch (rawhide)
 ```
 
 Use the --time (-T) option to display repo timestamps:
 ```
 $ fedora-repoquery -T 43 fedrq
-2025-05-07 15:57:29 +08 <https://mirror.freedif.org/fedora/fedora/linux/development/rawhide/>
+2025-10-26 01:59:02 +08 <https://mirror.freedif.org/fedora/fedora/linux/releases/43/>
+2026-03-12 09:53:14 +08 <https://mirror.freedif.org/fedora/fedora/linux/updates/43/>
 
-fedrq-1.5.0-1.fc43.noarch (fedora-rawhide)
+fedrq-1.5.0-5.fc43.noarch (f43)
 ```
 
 Repo timestamp(s) are output when there are no query args
 after the release version:
 
-`$ fedora-repoquery 42`
+`$ fedora-repoquery 44`
 
 ```
-2025-04-15 01:43:43 +08 <https://mirror.freedif.org/fedora/fedora/linux/releases/42/>
-2025-09-23 09:11:46 +08 <https://mirror.freedif.org/fedora/fedora/linux/updates/42/>
+2026-03-13 19:08:04 +08 <https://mirror.freedif.org/fedora/fedora/linux/development/44/>
+2026-03-13 09:38:02 +08 <https://mirror.freedif.org/fedora/fedora/linux/updates/testing/44/>
 ```
 
 One can also query multiple releases (or arch's):
 
-`$ fedora-repoquery 42 43 python3 | grep x86_64`
+`$ fedora-repoquery 43 44 python3.x86_64`
 
 ```
-python3-3.13.2-2.fc42.x86_64 (f42)
-python3-3.13.7-1.fc42.x86_64 (f42-updates)
-python3-3.14.0~rc2-1.fc43.x86_64 (f43-development)
-python3-3.14.0~rc3-1.fc43.x86_64 (f43-updates-testing)
+python3-3.14.0-1.fc43.x86_64 (f43)
+python3-3.14.3-1.fc43.x86_64 (f43-updates)
+python3-3.14.3-1.fc44.x86_64 (f44-development)
 ```
+
+There is an option to use the CloudFront cache:
+
+`$ fedora-repoquery --cf 44 rust`
+
+```
+rust-1.93.1-1.fc44.x86_64 (f44-development-cf)
+rust-1.94.0-1.fc44.x86_64 (f44-updates-testing-cf)
+```
+which may be faster than dl.fp.o and fresher than other mirrors sometimes.
 
 
 ## Help
 `$ fedora-repoquery --version`
 
 ```
-0.8
+0.8.1
 ```
 
 `$ fedora-repoquery --help`
@@ -97,34 +106,34 @@ python3-3.14.0~rc3-1.fc43.x86_64 (f43-updates-testing)
 ```
 fedora-repoquery tool for querying Fedora repos for packages.
 
-Usage: fedora-repoquery [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] 
-                        [--dynamic] [-T|--time] [-K|--koji] 
-                        [(-m|--mirror URL) | (-d|--dl)] [-F|--all-fedora] 
-                        [(-s|--source) | (-A|--all-archs) | 
-                          [-a|--repo-arch ARCH]] [-t|--testing] [-D|--debug] 
-                        [(-z|--cache-size) | (-e|--cache-clean-empty) | 
-                          --list-releases | --help-dnf | 
-                          [--advisories ARG | --advisory-severities ARG | 
-                            --arch ARG | --available | --bugfix | --bzs ARG | 
-                            --cves ARG | --disable-modular-filtering | 
-                            --duplicates | --enhancement | --exactdeps | 
-                            --extras | (-f|--file ARG) | --installed | 
-                            --installed-from-repo ARG | --installonly | 
-                            --latest-limit ARG | --leaves | --newpackage | 
-                            --providers-of ARG | --recent | --recursive | 
-                            --security | --srpm | --unneeded | --upgrades | 
-                            --userinstalled | --whatconflicts ARG | 
-                            --whatdepends ARG | --whatenhances ARG | 
-                            --whatobsoletes ARG | --whatprovides ARG | 
-                            --whatrecommends ARG | --whatrequires ARG | 
-                            --whatsuggests ARG | --whatsupplements ARG | 
-                            --conflicts | --depends | --enhances | --files | 
-                            (-l|--list) | --obsoletes | --provides | 
-                            --recommends | --requires | --requires-pre | 
-                            --sourcerpm | --suggests | --supplements | 
-                            --location | (-i|--info) | 
-                            (--changelog|--changelogs) | --querytags | 
-                            (--qf|--queryformat ARG)] 
+Usage: fedora-repoquery [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)]
+                        [--dynamic] [-T|--time] [-K|--koji]
+                        [(-m|--mirror URL) | --cf | (-d|--dl)] [-F|--all-fedora]
+                        [(-s|--source) | (-A|--all-archs) |
+                          [-a|--repo-arch ARCH]] [-t|--testing] [-D|--debug]
+                        [(-z|--cache-size) | (-e|--cache-clean-empty) |
+                          --list-releases | --help-dnf |
+                          [--advisories ARG | --advisory-severities ARG |
+                            --arch ARG | --available | --bugfix | --bzs ARG |
+                            --cves ARG | --disable-modular-filtering |
+                            --duplicates | --enhancement | --exactdeps |
+                            --extras | (-f|--file ARG) | --installed |
+                            --installed-from-repo ARG | --installonly |
+                            --latest-limit ARG | --leaves | --newpackage |
+                            --providers-of ARG | --recent | --recursive |
+                            --security | --srpm | --unneeded | --upgrades |
+                            --userinstalled | --whatconflicts ARG |
+                            (--wd|--whatdepends ARG) | --whatenhances ARG |
+                            --whatobsoletes ARG | (--whatprovides|--wp ARG) |
+                            --whatrecommends ARG | (--whatrequires|--wr ARG) |
+                            --whatsuggests ARG | --whatsupplements ARG |
+                            --conflicts | --depends | --enhances | --files |
+                            (-l|--list) | --obsoletes | (-p|--provides) |
+                            --recommends | (-r|--requires) | --requires-pre |
+                            --sourcerpm | --suggests | --supplements |
+                            --location | (-i|--info) |
+                            (--changelog|--changelogs) | --querytags |
+                            (--qf|--queryformat ARG)]
                           [[RELEASE]... [REPOQUERY_OPTS]... [PKGSPECIFIER]...]]
 
   where RELEASE is {fN or N (fedora), 'rawhide', epelN, epelN-next, cN (centos
@@ -142,6 +151,7 @@ Available options:
   -K,--koji                Use Koji buildroot
   -m,--mirror URL          Fedora mirror [default:
                            https://download.fedoraproject.org/pub]
+  --cf                     Use CloudFront cache
   -d,--dl                  Use dl.fp.o
   -F,--all-fedora          Query all Fedora releases
   -s,--source              Query source repos

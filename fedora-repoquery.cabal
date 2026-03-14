@@ -1,5 +1,5 @@
 name:                fedora-repoquery
-version:             0.8
+version:             0.8.1
 synopsis:            Fedora release repos package query tool
 description:
         A CLI tool for repoquerying Fedora and Centos Stream release packages:
@@ -9,7 +9,7 @@ license:             GPL-3
 license-file:        COPYING
 author:              Jens Petersen <petersen@redhat.com>
 maintainer:          Jens Petersen <petersen@redhat.com>
-copyright:           2021-2025  Jens Petersen <petersen@redhat.com>
+copyright:           2021-2026  Jens Petersen <petersen@redhat.com>
 category:            Utility
 homepage:            https://github.com/juhp/fedora-repoquery
 bug-reports:         https://github.com/juhp/fedora-repoquery/issues
