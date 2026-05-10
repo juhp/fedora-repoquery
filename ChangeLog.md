@@ -1,7 +1,7 @@
 # Version history for fedora-repoquery
 
 ## 0.8.2 (2026-05-10)
-- `--all-archs`: include source
+- `--all-archs`: also include source and i386
 - `--koji`: map epel10 to epel10.x
 - `--time` stamp: show warning if url does not exist (no Last-Modified)
 - replace EPELNext _ with EPEL9Next

@@ -21,7 +21,7 @@ data Arch = Source
   deriving Eq
 
 allArchs :: [Arch]
-allArchs = [Source, X86_64, AARCH64, PPC64LE, S390X]
+allArchs = [Source, X86_64, AARCH64, PPC64LE, S390X, I386]
 
 eitherArch :: String -> Either String Arch
 eitherArch s =

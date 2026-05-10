@@ -156,7 +156,7 @@ Available options:
   -d,--dl                  Use dl.fp.o
   -F,--all-fedora          Query all Fedora releases
   -s,--source              Query source repos
-  -A,--all-archs           Query all (64 bit) arch repos
+  -A,--all-archs           Query all arch repos
   -a,--repo-arch ARCH      Specify repo arch [default: x86_64]
   -t,--testing             Fedora updates-testing
   -D,--debug               Show some debug output
