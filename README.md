@@ -10,7 +10,7 @@ Usage examples:
 `$ fedora-repoquery rawhide firefox`
 
 ```
-firefox-148.0-1.fc45.x86_64 (fedora-rawhide)
+firefox-150.0.1-1.fc45.x86_64 (fedora-rawhide)
 ```
 (note it is shorter to write `fedora-repoquery 45`).
 
@@ -36,7 +36,7 @@ bash-5.2.26-6.el10.x86_64 (c10s-BaseOS)
 `$ fedora-repoquery eln kernel`
 
 ```
-kernel-7.0.0-0.rc3.260312g80234b5ab240.32.eln155.x86_64 (eln-BaseOS)
+kernel-7.1.0-0.rc2.260507g8ab992f815d6.19.eln156.x86_64 (eln-BaseOS)
 ```
 
 Without a release argument, the system yum repo configuration is used:
@@ -69,8 +69,8 @@ after the release version:
 `$ fedora-repoquery 44`
 
 ```
-2026-03-13 19:08:04 +08 <https://mirror.freedif.org/fedora/fedora/linux/development/44/>
-2026-03-13 09:38:02 +08 <https://mirror.freedif.org/fedora/fedora/linux/updates/testing/44/>
+2026-04-24 23:40:25 +08 <https://mirror.freedif.org/fedora/fedora/linux/releases/44/>
+2026-05-10 10:47:00 +08 <https://mirror.freedif.org/fedora/fedora/linux/updates/44/>
 ```
 
 One can also query multiple releases (or arch's):
@@ -79,8 +79,9 @@ One can also query multiple releases (or arch's):
 
 ```
 python3-3.14.0-1.fc43.x86_64 (f43)
-python3-3.14.3-1.fc43.x86_64 (f43-updates)
-python3-3.14.3-1.fc44.x86_64 (f44-development)
+python3-3.14.4-2.fc43.x86_64 (f43-updates)
+python3-3.14.3-2.fc44.x86_64 (f44)
+python3-3.14.4-2.fc44.x86_64 (f44-updates)
 ```
 
 There is an option to use the CloudFront cache:
@@ -88,8 +89,8 @@ There is an option to use the CloudFront cache:
 `$ fedora-repoquery --cf 44 rust`
 
 ```
-rust-1.93.1-1.fc44.x86_64 (f44-development-cf)
-rust-1.94.0-1.fc44.x86_64 (f44-updates-testing-cf)
+rust-1.94.1-1.fc44.x86_64 (f44-cf)
+rust-1.95.0-1.fc44.x86_64 (f44-updates-cf)
 ```
 which may be faster than dl.fp.o and fresher than other mirrors sometimes.
 
@@ -98,7 +99,7 @@ which may be faster than dl.fp.o and fresher than other mirrors sometimes.
 `$ fedora-repoquery --version`
 
 ```
-0.8.1
+0.8.2
 ```
 
 `$ fedora-repoquery --help`
@@ -106,38 +107,38 @@ which may be faster than dl.fp.o and fresher than other mirrors sometimes.
 ```
 fedora-repoquery tool for querying Fedora repos for packages.
 
-Usage: fedora-repoquery [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)]
-                        [--dynamic] [-T|--time] [-K|--koji]
+Usage: fedora-repoquery [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] 
+                        [--dynamic] [-T|--time] [-K|--koji] 
                         [(-m|--mirror URL) | --cf | (-d|--dl)] [-F|--all-fedora]
-                        [(-s|--source) | (-A|--all-archs) |
-                          [-a|--repo-arch ARCH]] [-t|--testing] [-D|--debug]
-                        [(-z|--cache-size) | (-e|--cache-clean-empty) |
-                          --list-releases | --help-dnf |
-                          [--advisories ARG | --advisory-severities ARG |
-                            --arch ARG | --available | --bugfix | --bzs ARG |
-                            --cves ARG | --disable-modular-filtering |
-                            --duplicates | --enhancement | --exactdeps |
-                            --extras | (-f|--file ARG) | --installed |
-                            --installed-from-repo ARG | --installonly |
-                            --latest-limit ARG | --leaves | --newpackage |
-                            --providers-of ARG | --recent | --recursive |
-                            --security | --srpm | --unneeded | --upgrades |
-                            --userinstalled | --whatconflicts ARG |
-                            (--wd|--whatdepends ARG) | --whatenhances ARG |
-                            --whatobsoletes ARG | (--whatprovides|--wp ARG) |
-                            --whatrecommends ARG | (--whatrequires|--wr ARG) |
-                            --whatsuggests ARG | --whatsupplements ARG |
-                            --conflicts | --depends | --enhances | --files |
-                            (-l|--list) | --obsoletes | (-p|--provides) |
-                            --recommends | (-r|--requires) | --requires-pre |
-                            --sourcerpm | --suggests | --supplements |
-                            --location | (-i|--info) |
-                            (--changelog|--changelogs) | --querytags |
-                            (--qf|--queryformat ARG)]
+                        [(-s|--source) | (-A|--all-archs) | 
+                          [-a|--repo-arch ARCH]] [-t|--testing] [-D|--debug] 
+                        [(-z|--cache-size) | (-e|--cache-clean-empty) | 
+                          --list-releases | --help-dnf | 
+                          [--advisories ARG | --advisory-severities ARG | 
+                            --arch ARG | --available | --bugfix | --bzs ARG | 
+                            --cves ARG | --disable-modular-filtering | 
+                            --duplicates | --enhancement | --exactdeps | 
+                            --extras | (-f|--file ARG) | --installed | 
+                            --installed-from-repo ARG | --installonly | 
+                            --latest-limit ARG | --leaves | --newpackage | 
+                            --providers-of ARG | --recent | --recursive | 
+                            --security | --srpm | --unneeded | --upgrades | 
+                            --userinstalled | --whatconflicts ARG | 
+                            (--wd|--whatdepends ARG) | --whatenhances ARG | 
+                            --whatobsoletes ARG | (--whatprovides|--wp ARG) | 
+                            --whatrecommends ARG | (--whatrequires|--wr ARG) | 
+                            --whatsuggests ARG | --whatsupplements ARG | 
+                            --conflicts | --depends | --enhances | --files | 
+                            (-l|--list) | --obsoletes | (-p|--provides) | 
+                            --recommends | (-r|--requires) | --requires-pre | 
+                            --sourcerpm | --suggests | --supplements | 
+                            --location | (-i|--info) | 
+                            (--changelog|--changelogs) | --querytags | 
+                            (--qf|--queryformat ARG)] 
                           [[RELEASE]... [REPOQUERY_OPTS]... [PKGSPECIFIER]...]]
 
-  where RELEASE is {fN or N (fedora), 'rawhide', epelN, epelN-next, cN (centos
-  stream), 'eln'}, with N the release version number.
+  where RELEASE is {fN or N (fedora), 'rawhide', epelN, epel10.x, epel9-next, cN
+  (centos stream), 'eln'}, with N the release version number.
   <https://github.com/juhp/fedora-repoquery#readme>
 
 Available options:
