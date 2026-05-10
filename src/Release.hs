@@ -12,11 +12,11 @@ where
 import Control.Monad.Extra (forM_, unless, void, when)
 import Data.Bifunctor (first)
 import qualified Data.CaseInsensitive as CI
-import Data.Char (isDigit)
 import Data.List.Extra
 import Data.Maybe (fromMaybe)
 import Data.Time.Format (defaultTimeLocale, parseTimeM, rfc822DateFormat)
 import Data.Time.LocalTime (utcToLocalZonedTime)
+import Data.Version.Extra (readVersion, Version(..))
 import qualified Distribution.Fedora.Release as F
 import Network.Curl (curlHead, CurlOption(..))
 import Safe (tailSafe)
@@ -39,8 +39,12 @@ getRelease :: Bool -> Bool -> Bool -> Bool -> RepoSource -> Release -> Arch
 getRelease debug dynredir warn checkdate reposource@(RepoSource koji _mirror) release sysarch march testing = do
   case release of
     EPEL n | n >= 10 && koji -> do
-               version <- F.releaseVersion <$> F.getBranchRelease (show release)
-               let minor = read $ takeWhileEnd isDigit version
+               version <- F.releaseVersion <$>
+                          F.getBranchRelease (show release)
+               let minor =
+                     case readVersion version of
+                       Version [_maj,min'] [] -> toEnum min'
+                       _ -> error' $ "invalid minor branch version:" +-+ version
                getRelease' debug dynredir warn checkdate reposource (EPEL10Dot minor) sysarch march testing
     _ -> getRelease' debug dynredir warn checkdate reposource release sysarch march testing
 -- FIXME should warn or error if url (release) does not exist
