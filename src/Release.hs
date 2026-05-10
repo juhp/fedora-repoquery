@@ -100,7 +100,7 @@ getRelease debug dynredir warn checkdate reposource@(RepoSource koji _mirror) re
                 (("epel",urlpath) :
                  [("epel-testing",url +//+ ["testing", "10." ++ show n]) | testing],
                  [])
-      EPELNext _n -> return ([("epelnext",urlpath)],[])
+      EPEL9Next -> return ([("epelnext",urlpath)],[])
       System -> error' "showRelease: unsupported for system"
   rawhide <- rawhideFedoraRelease
   let basicrepourls =
@@ -122,7 +122,7 @@ getRelease debug dynredir warn checkdate reposource@(RepoSource koji _mirror) re
                 ELN -> ["COMPOSE_ID"]
                 EPEL _ -> ["Everything", "state"]
                 EPEL10Dot _ -> ["Everything", "state"]
-                EPELNext _ -> ["Everything", "state"]
+                EPEL9Next -> ["Everything", "state"]
                 Fedora _ -> if "updates" `isInfixOf` reponame
                             then ["Everything", "state"]
                             else ["COMPOSE_ID"]
@@ -164,7 +164,7 @@ getURL debug dynredir reposource@(RepoSource koji _mirror) release arch =
                (URL "https://archives.fedoraproject.org/pub/archive/epel", [show n])
     EPEL n -> getFedoraServer debug dynredir reposource ["epel"] [show n]
     EPEL10Dot n -> getFedoraServer debug dynredir reposource ["epel"] ["10." ++ show n]
-    EPELNext n -> getFedoraServer debug dynredir reposource ["epel","next"] [show n]
+    EPEL9Next -> getFedoraServer debug dynredir reposource ["epel","next"] ["9"]
     Fedora n -> do
       eactiverelease <- activeFedoraRelease n
       case eactiverelease of
@@ -224,7 +224,7 @@ repoConfigArgs (RepoSource False mirror) sysarch march rawhide release (repo,url
           ELN -> [repo, showArch arch] ++ (if arch == Source then ["tree"] else ["os"])
           EPEL n -> (if n >= 8 then ("Everything" :) else id) [showArch arch] ++ ["tree" | arch == Source]
           EPEL10Dot _n -> "Everything" : showArch arch : ["tree" | arch == Source]
-          EPELNext _n -> ["Everything", showArch arch]
+          EPEL9Next -> ["Everything", showArch arch]
           Fedora _ -> ["Everything", showArch arch] ++ (if arch == Source then ["tree"] else ["os" | repo `elem` ["releases","development"]])
           Rawhide -> ["Everything", showArch arch, if arch == Source then "tree" else "os"]
           System -> error' "repoConfigArgs: unsupported for system"
@@ -240,7 +240,7 @@ repoConfigArgs (RepoSource False mirror) sysarch march rawhide release (repo,url
           else show release ++ if repo == "releases" then "" else '-':repo
         ELN -> show release ++ '-':repo
         EPEL10Dot _ -> show release ++ if repo == "epel-testing" then "-testing" else ""
-        EPELNext _ -> show release ++ if repo == "epelnext-testing" then "-testing" else ""
+        EPEL9Next -> show release ++ if repo == "epelnext-testing" then "-testing" else ""
         EPEL _ -> show release ++ if repo == "epel-testing" then "-testing" else ""
         Centos _ -> show release ++ '-':repo
         System -> ""

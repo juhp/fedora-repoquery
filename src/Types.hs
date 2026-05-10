@@ -25,7 +25,8 @@ data Mirror = DownloadFpo | DlFpo | CloudFront | Mirror String
 data RepoSource = RepoSource Bool Mirror
   deriving Eq
 
-data Release = EPEL10Dot Natural | EPEL Natural | EPELNext Natural
+-- FIXME deal with epel11.x
+data Release = EPEL10Dot Natural | EPEL Natural | EPEL9Next
              | Centos Natural | Fedora Natural
              | ELN | Rawhide | System
   deriving (Eq, Ord)
@@ -41,8 +42,7 @@ eitherRelease rel =
   case lower rel of
     "rawhide" -> Right Rawhide
     -- FIXME add proper parsing:
-    "epel8-next" -> Right $ EPELNext 8
-    "epel9-next" -> Right $ EPELNext 9
+    "epel9-next" -> Right EPEL9Next
     ('e':'p':'e':'l':'1':'0':'.':n@(_:_)) | all isDigit n -> let br = EPEL10Dot (read n)
                                                  in Right br
     ('e':'p':'e':'l':n@(_:_)) | all isDigit n -> let br = EPEL (read n)
@@ -74,7 +74,7 @@ instance Show Release where
   show (Fedora n) = "f" ++ show n
   show (EPEL10Dot n) = "epel10." ++ show n
   show (EPEL n) = (if n <= 6 then "el" else "epel") ++ show n
-  show (EPELNext n) = "epel" ++ show n ++ "-next"
+  show EPEL9Next = "epel9" ++ "-next"
   show ELN = "eln"
   show (Centos n) = 'c' : show n ++ "s"
   show System = "system"

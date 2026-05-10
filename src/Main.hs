@@ -53,7 +53,7 @@ main' :: IO ()
 main' = do
   sysarch <- getSystemArch
   simpleCmdArgs (Just version) "fedora-repoquery tool for querying Fedora repos for packages."
-    ("where RELEASE is {fN or N (fedora), 'rawhide', epelN, epelN-next, cN (centos stream), 'eln'}, with N the release version number." +-+
+    ("where RELEASE is {fN or N (fedora), 'rawhide', epelN, epel10.x, epel9-next, cN (centos stream), 'eln'}, with N the release version number." +-+
      "<https://github.com/juhp/fedora-repoquery#readme>") $
     runMain sysarch
     <$> switchWith '4' "dnf4" "Use dnf4 instead of dnf5 (if available)"

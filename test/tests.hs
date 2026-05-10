@@ -35,6 +35,7 @@ tests =
   ,(["epel9"], Nothing)
   ,(["c10s"], Nothing)
   ,(["--cf", current], Nothing)
+  ,(["-K", "epel10"], Nothing)
   ,(["-T", "rawhide"], Just "coreutils")
   ,(["--dynamic", rawhide], Just "coreutils")
   ,(["-T", current], Just "gtk4")
