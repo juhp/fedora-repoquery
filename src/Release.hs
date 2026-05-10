@@ -12,10 +12,12 @@ where
 import Control.Monad.Extra (forM_, unless, void, when)
 import Data.Bifunctor (first)
 import qualified Data.CaseInsensitive as CI
+import Data.Char (isDigit)
 import Data.List.Extra
 import Data.Maybe (fromMaybe)
 import Data.Time.Format (defaultTimeLocale, parseTimeM, rfc822DateFormat)
 import Data.Time.LocalTime (utcToLocalZonedTime)
+import qualified Distribution.Fedora.Release as F
 import Network.Curl (curlHead, CurlOption(..))
 import Safe (tailSafe)
 import SimpleCmd (error', (+-+))
@@ -35,6 +37,16 @@ showReleaseCmd debug dynredir reposource release sysarch march testing =
 getRelease :: Bool -> Bool -> Bool -> Bool -> RepoSource -> Release -> Arch
            -> Maybe Arch -> Bool -> IO [(String, URL)]
 getRelease debug dynredir warn checkdate reposource@(RepoSource koji _mirror) release sysarch march testing = do
+  case release of
+    EPEL n | n >= 10 && koji -> do
+               version <- F.releaseVersion <$> F.getBranchRelease (show release)
+               let minor = read $ takeWhileEnd isDigit version
+               getRelease' debug dynredir warn checkdate reposource (EPEL10Dot minor) sysarch march testing
+    _ -> getRelease' debug dynredir warn checkdate reposource release sysarch march testing
+-- FIXME should warn or error if url (release) does not exist
+getRelease' :: Bool -> Bool -> Bool -> Bool -> RepoSource -> Release -> Arch
+           -> Maybe Arch -> Bool -> IO [(String, URL)]
+getRelease' debug dynredir warn checkdate reposource@(RepoSource koji _mirror) release sysarch march testing = do
   let arch = fromMaybe sysarch march
   (url,path) <- getURL debug dynredir reposource release arch
   let urlpath = url +//+ path
