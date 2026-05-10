@@ -4,7 +4,7 @@
 - `--all-archs`: also include source and i386
 - `--koji`: map epel10 to epel10.x
 - `--time` stamp: show warning if url does not exist (no Last-Modified)
-- replace EPELNext _ with EPEL9Next
+- replace EPELNext with EPEL9Next and EPEL10Dot with EpelMinor
 
 ## 0.8.1 (2026-03-14)
 - shorter query aliases: `--wd` (--whatdepends), `--wr` (--whatrequires),

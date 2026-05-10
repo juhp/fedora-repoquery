@@ -45,7 +45,7 @@ getRelease debug dynredir warn checkdate reposource@(RepoSource koji _mirror) re
                      case readVersion version of
                        Version [_maj,min'] [] -> toEnum min'
                        _ -> error' $ "invalid minor branch version:" +-+ version
-               getRelease' debug dynredir warn checkdate reposource (EPEL10Dot minor) sysarch march testing
+               getRelease' debug dynredir warn checkdate reposource (EpelMinor n minor) sysarch march testing
     _ -> getRelease' debug dynredir warn checkdate reposource release sysarch march testing
 -- FIXME should warn or error if url (release) does not exist
 getRelease' :: Bool -> Bool -> Bool -> Bool -> RepoSource -> Release -> Arch
@@ -112,9 +112,9 @@ getRelease' debug dynredir warn checkdate reposource@(RepoSource koji _mirror) r
                 (("epel",urlpath) :
                  [("epel-testing",url +//+ ["testing", show n]) | testing],
                  [])
-      EPEL10Dot n -> return
+      EpelMinor n m -> return
                 (("epel",urlpath) :
-                 [("epel-testing",url +//+ ["testing", "10." ++ show n]) | testing],
+                 [("epel-testing",url +//+ ["testing", show n ++ "." ++ show m]) | testing],
                  [])
       EPEL9Next -> return ([("epelnext",urlpath)],[])
       System -> error' "showRelease: unsupported for system"
@@ -137,7 +137,7 @@ getRelease' debug dynredir warn checkdate reposource@(RepoSource koji _mirror) r
                 Centos _ -> ["COMPOSE_ID"] -- ["metadata","composeinfo.json"]
                 ELN -> ["COMPOSE_ID"]
                 EPEL _ -> ["Everything", "state"]
-                EPEL10Dot _ -> ["Everything", "state"]
+                EpelMinor _ _ -> ["Everything", "state"]
                 EPEL9Next -> ["Everything", "state"]
                 Fedora _ -> if "updates" `isInfixOf` reponame
                             then ["Everything", "state"]
@@ -183,7 +183,7 @@ getURL debug dynredir reposource@(RepoSource koji _mirror) release arch =
                return
                (URL "https://archives.fedoraproject.org/pub/archive/epel", [show n])
     EPEL n -> getFedoraServer debug dynredir reposource ["epel"] [show n]
-    EPEL10Dot n -> getFedoraServer debug dynredir reposource ["epel"] ["10." ++ show n]
+    EpelMinor n m -> getFedoraServer debug dynredir reposource ["epel"] [show n ++ "." ++ show m]
     EPEL9Next -> getFedoraServer debug dynredir reposource ["epel","next"] ["9"]
     Fedora n -> do
       eactiverelease <- activeFedoraRelease n
@@ -243,7 +243,7 @@ repoConfigArgs (RepoSource False mirror) sysarch march rawhide release (repo,url
           Centos _ -> [repo, showArch arch] ++ (if arch == Source then ["tree"] else ["os"])
           ELN -> [repo, showArch arch] ++ (if arch == Source then ["tree"] else ["os"])
           EPEL n -> (if n >= 8 then ("Everything" :) else id) [showArch arch] ++ ["tree" | arch == Source]
-          EPEL10Dot _n -> "Everything" : showArch arch : ["tree" | arch == Source]
+          EpelMinor _n _m -> "Everything" : showArch arch : ["tree" | arch == Source]
           EPEL9Next -> ["Everything", showArch arch]
           Fedora _ -> ["Everything", showArch arch] ++ (if arch == Source then ["tree"] else ["os" | repo `elem` ["releases","development"]])
           Rawhide -> ["Everything", showArch arch, if arch == Source then "tree" else "os"]
@@ -259,7 +259,7 @@ repoConfigArgs (RepoSource False mirror) sysarch march rawhide release (repo,url
           then "fedora-rawhide"
           else show release ++ if repo == "releases" then "" else '-':repo
         ELN -> show release ++ '-':repo
-        EPEL10Dot _ -> show release ++ if repo == "epel-testing" then "-testing" else ""
+        EpelMinor _ _ -> show release ++ if repo == "epel-testing" then "-testing" else ""
         EPEL9Next -> show release ++ if repo == "epelnext-testing" then "-testing" else ""
         EPEL _ -> show release ++ if repo == "epel-testing" then "-testing" else ""
         Centos _ -> show release ++ '-':repo
