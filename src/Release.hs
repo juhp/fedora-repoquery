@@ -9,7 +9,7 @@ module Release (
   )
 where
 
-import Control.Monad.Extra (forM_, unless, void, when, whenJust)
+import Control.Monad.Extra (forM_, unless, void, when)
 import Data.Bifunctor (first)
 import qualified Data.CaseInsensitive as CI
 import Data.List.Extra
@@ -131,10 +131,14 @@ getRelease debug dynredir warn checkdate reposource@(RepoSource koji _mirror) re
       let composeUrl = renderUrl File composeinfo
       when debug $ print composeUrl
       mtimestr <- curlGetHeader Nothing "Last-Modified" composeUrl
-      whenJust mtimestr $ \timestr -> do
-        utc <- parseTimeM False defaultTimeLocale rfc822DateFormat timestr
-        date <- utcToLocalZonedTime utc
-        (if warn then warning else putStrLn) $ show date +-+ "<" ++ renderUrl Dir url' ++ ">"
+      case mtimestr of
+        Just timestr -> do
+          utc <- parseTimeM False defaultTimeLocale rfc822DateFormat timestr
+          date <- utcToLocalZonedTime utc
+          (if warn then warning else putStrLn) $ show date +-+ "<" ++ renderUrl Dir url' ++ ">"
+        Nothing ->
+          -- FIXME maybe error?
+          warning $ composeUrl +-+ "not found (Last-Modified)"
   return $ map (fmap (uncurry (+//+))) $ basicrepourls ++ morerepourls
 
 getURL :: Bool -> Bool -> RepoSource -> Release -> Arch
