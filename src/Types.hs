@@ -26,9 +26,15 @@ data RepoSource = RepoSource Bool Mirror
   deriving Eq
 
 -- FIXME deal with epel11.x
-data Release = EpelMinor Natural Natural | EPEL Natural | EPEL9Next
-             | Centos Natural | Fedora Natural
-             | ELN | Rawhide | System
+data Release = EpelMinor Natural Natural
+             | EPEL Natural
+             | EPEL9Next
+             | OldCentos Natural
+             | Centos Natural
+             | Fedora Natural
+             | ELN
+             | Rawhide
+             | System
   deriving (Eq, Ord)
 
 -- FIXME determine via EPEL or Centos
@@ -44,20 +50,26 @@ eitherRelease rel =
     -- FIXME add proper parsing:
     "epel9-next" -> Right EPEL9Next
     -- FIXME add epel11.x
-    ('e':'p':'e':'l':'1':'0':'.':n@(_:_)) | all isDigit n -> let br = EpelMinor 10 (read n)
-                                                 in Right br
-    ('e':'p':'e':'l':n@(_:_)) | all isDigit n -> let br = EPEL (read n)
-                                                 in Right br
+    ('e':'p':'e':'l':'1':'0':'.':n@(_:_)) | all isDigit n ->
+                                              Right $ EpelMinor 10 $ read n
+    ('e':'p':'e':'l':n@(_:_)) | all isDigit n -> Right $ EPEL $ read n
+    ('c':'e':'n':'t':'o':'s':n@(_:_)) | all isDigit n ->
+                                          Right $ OldCentos $ read n
     ('c':n@(_:_)) ->
       let ver =
             case unsnoc n of
-              Just (v,'s') -> v
+              Just (v,'s') | all isDigit v ->
+                if read v < (8 :: Natural)
+                then error $ "centos-stream " ++ v ++ " does not exist"
+                else v
               _ -> n
       in if null ver
          then Left rel
          else
            if all isDigit ver
-           then Right (Centos $ read ver)
+           then
+             let v = read ver
+             in Right $ (if v < 8 then OldCentos else Centos) v
            else Left rel
     "eln" -> Right ELN
     ('f':n@(_:_)) | all isDigit n -> let r = read n in Right (Fedora r)
@@ -65,7 +77,7 @@ eitherRelease rel =
                let r = read ns in
                  Right $
                  case compare r elnVersion of
-                   LT -> Centos r
+                   LT -> (if r >= 8 then Centos else OldCentos) r
                    EQ -> ELN
                    GT -> Fedora r
     _ -> Left rel
@@ -78,4 +90,5 @@ instance Show Release where
   show EPEL9Next = "epel9" ++ "-next"
   show ELN = "eln"
   show (Centos n) = 'c' : show n ++ "s"
+  show (OldCentos n) = 'c' : show n
   show System = "system"

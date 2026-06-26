@@ -39,6 +39,10 @@ tests =
   ,(["epel6"], Nothing)
   ,(["c10s"], Nothing)
   ,(["c9s"], Nothing)
+  ,(["c8s"], Nothing)
+  ,(["centos8"], Nothing)
+  ,(["centos7"], Nothing)
+  ,(["centos6"], Nothing)
   ,(["--cf", current], Nothing)
   ,(["-K", "epel10"], Nothing)
   ,(["-T", "rawhide"], Just "coreutils")
@@ -57,6 +61,9 @@ tests =
   ,(["epel10.1"], Just "ghc-srpm-macros")
   ,(["c10"], Just "bash")
   ,(["c9"], Just "kernel")
+  ,(["c8"], Just "bash")
+  ,(["c7"], Just "gcc")
+  ,(["c6"], Just "gcc")
   ,(["rawhide", "--whatprovides"], Just "perl(Regexp::Pattern::License)")
   ]
 

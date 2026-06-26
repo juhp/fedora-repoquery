@@ -15,12 +15,18 @@ import Data.Bifunctor (first)
 import qualified Data.CaseInsensitive as CI
 import Data.List.Extra
 import Data.Maybe (fromMaybe)
+import qualified Data.Text as T
 import Data.Time.Format (defaultTimeLocale, parseTimeM, rfc822DateFormat)
 import Data.Time.LocalTime (utcToLocalZonedTime)
-import Data.Version.Extra (makeVersion, readVersion, Version(..))
+import Data.Version.Extra (makeVersion, readVersion, showVersion, Version(..))
 import qualified Distribution.Fedora.Release as F
 import Network.Curl (curlHead, CurlOption(..))
-import Safe (tailSafe)
+import Network.HTTP.Directory (httpDirectory', noTrailingSlash,
+#if MIN_VERSION_http_directory(0,1,9)
+                               (+/+)
+#endif
+                              )
+import Safe (lastMay, tailSafe)
 import SimpleCmd (error', (+-+))
 import Text.Regex (mkRegex, subRegex)
 
@@ -48,6 +54,7 @@ getRelease debug dynredir warn checkdate reposource@(RepoSource koji _mirror) re
                        _ -> error' $ "invalid minor branch version:" +-+ version
                getRelease' debug dynredir warn checkdate reposource (EpelMinor n minor) sysarch march testing
     _ -> getRelease' debug dynredir warn checkdate reposource release sysarch march testing
+
 -- FIXME should warn or error if url (release) does not exist
 getRelease' :: Bool -> Bool -> Bool -> Bool -> RepoSource -> Release -> Arch
            -> Maybe Arch -> Bool -> IO [(String, URL)]
@@ -62,6 +69,11 @@ getRelease' debug dynredir warn checkdate reposource@(RepoSource koji _mirror) r
     else do
       when (arch == I386) $ checkI386Release release
       case release of
+        OldCentos n -> return $
+                       if n >= 8
+                       then ([("BaseOS",urlpath)],
+                             [("AppStream",url),("PowerTools",url)])
+                       else ([("os",urlpath)],[])
         Centos n -> return ([("BaseOS",urlpath)],
                             [("AppStream",url),(if n >= 9 then "CRB" else "PowerTools",url)])
         ELN -> return ([("BaseOS",urlpath)],
@@ -135,6 +147,7 @@ getRelease' debug dynredir warn checkdate reposource@(RepoSource koji _mirror) r
             then ["repo.json"]
             else
               case release of
+                OldCentos _ -> ["COMPOSE_ID"]
                 Centos 10 -> ["metadata","composeinfo.json"]
                 Centos _ -> ["COMPOSE_ID"] -- ["metadata","composeinfo.json"]
                 ELN -> ["COMPOSE_ID"]
@@ -163,6 +176,9 @@ getURL :: Bool -> Bool -> RepoSource -> Release -> Arch
        -> IO (URL,[String])
 getURL debug dynredir reposource@(RepoSource koji _mirror) release arch =
   case release of
+    OldCentos n -> do
+      url <- getOldCentosURL n
+      return (URL url, [])
     Centos n ->
       case n of
         10 ->
@@ -178,7 +194,7 @@ getURL debug dynredir reposource@(RepoSource koji _mirror) release arch =
                 else "https://mirror.stream.centos.org/9-stream/"
           in return (url,[])
         8 -> return (URL "http://vault.centos.org/8-stream/", [])
-        _ -> error' "old Centos is not supported"
+        _ -> error' $ "unknown centos-stream" +-+ show n
     ELN ->
       getFedoraServer debug dynredir reposource ["eln"] ["1"]
     EPEL n -> do
@@ -254,6 +270,7 @@ repoConfigArgs (RepoSource False mirror) sysarch march rawhide release (repo,url
                    CloudFront -> "-cf"
       path =
         case release of
+          OldCentos n -> [repo, showArch arch] ++ ["os" | n == 8]
           Centos _ -> [repo, showArch arch] ++ (if arch == Source then ["tree"] else ["os"])
           ELN -> [repo, showArch arch] ++ (if arch == Source then ["tree"] else ["os"])
           EPEL n -> (if n >= 8 then ("Everything" :) else id) [showArch arch] ++ ["tree" | arch == Source]
@@ -277,6 +294,8 @@ repoConfigArgs (RepoSource False mirror) sysarch march rawhide release (repo,url
         EPEL9Next -> show release ++ if repo == "epelnext-testing" then "-testing" else ""
         EPEL _ -> show release ++ if repo == "epel-testing" then "-testing" else ""
         Centos _ -> show release ++ '-':repo
+        OldCentos 8 -> show release ++  '-':repo
+        OldCentos _ -> show release
         System -> ""
 -- koji
 repoConfigArgs (RepoSource True _mirror) sysarch march _rawhide release (repo,url) =
@@ -350,4 +369,24 @@ checkI386Release release =
   case release of
     Fedora n | n < 26 -> return ()
     EPEL n | n < 7 -> return ()
+    OldCentos n | n < 8 -> return ()
     _ -> error' $ showArch I386 +-+ "not available for" +-+ show release
+
+getOldCentosURL :: Natural -> IO String
+getOldCentosURL n = do
+  let vault = "https://vault.centos.org"
+  ls <- map (T.unpack . noTrailingSlash) <$> httpDirectory' vault
+  let vers = filter (show n `isPrefixOf`) ls \\ ["8-stream", "4.0beta", "4.2beta"]
+  case lastMay $ sort $ map readVersion vers of
+    Nothing -> error' $ "unknown centos version" +-+ show n
+    Just latest -> return $ vault +/+ showVersion latest
+
+#if !MIN_VERSION_http_directory(0,1,9)
+infixr 5 +/+
+(+/+) :: String -> String -> String
+s +/+ t =
+  case (s,t) of
+    ("",_) -> t
+    (_,"") -> s
+    (_,_) -> dropWhileEnd (== '/') s ++ '/' : dropWhile (== '/') t
+#endif
