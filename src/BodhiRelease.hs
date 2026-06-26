@@ -4,6 +4,7 @@ module BodhiRelease (
   BodhiRelease (..),
   activeFedoraRelease,
   activeFedoraReleases,
+  activeEPELReleases,
   fedoraReleaseState,
   rawhideFedoraRelease
   )
@@ -11,7 +12,8 @@ where
 
 import qualified Data.List as L
 import Data.Maybe (mapMaybe)
-import Distribution.Fedora.BodhiReleases (getBodhiFedoraReleases, lookupKey)
+import Distribution.Fedora.BodhiReleases (getBodhiFedoraReleases,
+                                          getBodhiEPELReleases, lookupKey)
 import SimpleCmd (error')
 
 import Types (Natural)
@@ -39,6 +41,20 @@ activeFedoraRelease n = do
 activeFedoraReleases :: IO [BodhiRelease]
 activeFedoraReleases =
   L.nub . mapMaybe maybeRelease <$> getBodhiFedoraReleases
+  where
+    maybeRelease obj = do
+      version <- lookupKey "version" obj
+      branch <- lookupKey "branch" obj
+      state <- lookupKey "state" obj
+      composed <- lookupKey "composed_by_bodhi" obj
+      let setting = lookupKey "setting_status" obj
+      return $
+        Release version state branch composed $
+        setting == Just ("post_beta" :: String)
+
+activeEPELReleases :: IO [BodhiRelease]
+activeEPELReleases =
+  L.nub . mapMaybe maybeRelease <$> getBodhiEPELReleases
   where
     maybeRelease obj = do
       version <- lookupKey "version" obj

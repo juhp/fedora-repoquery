@@ -4,6 +4,7 @@ module Release (
   showReleaseCmd,
   getRelease,
   activeFedoraReleases,
+  activeEPELReleases,
   BodhiRelease(..),
   downloadServer
   )
