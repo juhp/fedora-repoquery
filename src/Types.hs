@@ -12,6 +12,7 @@ module Types (
 import Data.Char (isDigit)
 import Data.List.Extra (lower, unsnoc)
 import Numeric.Natural
+import SimpleCmd (error', (+-+))
 
 --import Distribution.Fedora.Repoquery
 
@@ -21,11 +22,10 @@ data Verbosity = Quiet | Normal | Verbose
 data Mirror = DownloadFpo | DlFpo | CloudFront | Mirror String
   deriving Eq
 
--- FIXME: True for koji make into type
+-- FIXME: True for koji, make into type
 data RepoSource = RepoSource Bool Mirror
   deriving Eq
 
--- FIXME deal with epel11.x
 data Release = EpelMinor Natural Natural
              | EPEL Natural
              | EPEL9Next
@@ -49,9 +49,13 @@ eitherRelease rel =
     "rawhide" -> Right Rawhide
     -- FIXME add proper parsing:
     "epel9-next" -> Right EPEL9Next
-    -- FIXME add epel11.x
-    ('e':'p':'e':'l':'1':'0':'.':n@(_:_)) | all isDigit n ->
-                                              Right $ EpelMinor 10 $ read n
+    -- disallow "epel9.4" etc
+    ('e':'p':'e':'l':d:'.':_) | isDigit d -> error' $ "unknown release:" +-+ rel
+    -- disallow "epel10." etc
+    ['e','p','e','l',d,d','.'] | all isDigit [d,d'] -> error' $ "bad release:" +-+ rel
+    ('e':'p':'e':'l':'1':d:'.':n@(_:_)) | all isDigit (d:n) ->
+                                            Right $
+                                            EpelMinor (read ['1',d]) $ read n
     ('e':'p':'e':'l':n@(_:_)) | all isDigit n -> Right $ EPEL $ read n
     ('c':'e':'n':'t':'o':'s':n@(_:_)) | all isDigit n ->
                                           Right $ OldCentos $ read n
@@ -60,7 +64,7 @@ eitherRelease rel =
             case unsnoc n of
               Just (v,'s') | all isDigit v ->
                 if read v < (8 :: Natural)
-                then error $ "centos-stream " ++ v ++ " does not exist"
+                then error' $ "centos-stream" +-+ v +-+ "does not exist"
                 else v
               _ -> n
       in if null ver
