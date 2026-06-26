@@ -3,6 +3,8 @@
 module BodhiRelease (
   BodhiRelease (..),
   activeFedoraRelease,
+  activeEPELRelease,
+  activeEPELMinorRelease,
   activeFedoraReleases,
   activeEPELReleases,
   fedoraReleaseState,
@@ -12,6 +14,7 @@ where
 
 import qualified Data.List as L
 import Data.Maybe (mapMaybe)
+import Data.Version.Extra (readVersion, Version)
 import Distribution.Fedora.BodhiReleases (getBodhiFedoraReleases,
                                           getBodhiEPELReleases, lookupKey)
 import SimpleCmd (error')
@@ -37,6 +40,26 @@ activeFedoraRelease n = do
       case L.find (\r -> releaseVersion r == show n) active of
         Just rel -> Right rel
         Nothing -> Left $ read $ releaseVersion oldest
+
+-- Left is oldest active major version
+activeEPELRelease :: Natural -> IO (Either Natural BodhiRelease)
+activeEPELRelease n = do
+  active <- activeEPELReleases
+  case L.sortOn (readVersion . releaseVersion) active of
+    [] -> error' "failed to find active releases with Bodhi API"
+    (oldest:_) ->
+      return $
+      case L.find (\r -> majorVer (releaseVersion r) == show n) active of
+        Just rel -> Right rel
+        Nothing -> Left $ read $ majorVer $ releaseVersion oldest
+  where
+    majorVer = takeWhile (/= '.')
+
+-- FIXME Either for unknown minor
+activeEPELMinorRelease :: Version -> IO (Maybe BodhiRelease)
+activeEPELMinorRelease ver = do
+  active <- activeEPELReleases
+  return $ L.find (\r -> readVersion (releaseVersion r) == ver) active
 
 activeFedoraReleases :: IO [BodhiRelease]
 activeFedoraReleases =

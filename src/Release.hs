@@ -17,7 +17,7 @@ import Data.List.Extra
 import Data.Maybe (fromMaybe)
 import Data.Time.Format (defaultTimeLocale, parseTimeM, rfc822DateFormat)
 import Data.Time.LocalTime (utcToLocalZonedTime)
-import Data.Version.Extra (readVersion, Version(..))
+import Data.Version.Extra (makeVersion, readVersion, Version(..))
 import qualified Distribution.Fedora.Release as F
 import Network.Curl (curlHead, CurlOption(..))
 import Safe (tailSafe)
@@ -137,7 +137,7 @@ getRelease' debug dynredir warn checkdate reposource@(RepoSource koji _mirror) r
                 Centos 10 -> ["metadata","composeinfo.json"]
                 Centos _ -> ["COMPOSE_ID"] -- ["metadata","composeinfo.json"]
                 ELN -> ["COMPOSE_ID"]
-                EPEL _ -> ["Everything", "state"]
+                EPEL n -> ["Everything" | n >= 8] ++ ["state"]
                 EpelMinor _ _ -> ["Everything", "state"]
                 EPEL9Next -> ["Everything", "state"]
                 Fedora n -> if "updates" `isInfixOf` reponame
@@ -180,11 +180,23 @@ getURL debug dynredir reposource@(RepoSource koji _mirror) release arch =
         _ -> error' "old Centos is not supported"
     ELN ->
       getFedoraServer debug dynredir reposource ["eln"] ["1"]
-    EPEL n | n < 7 ->
-               return
-               (URL "https://archives.fedoraproject.org/pub/archive/epel", [show n])
-    EPEL n -> getFedoraServer debug dynredir reposource ["epel"] [show n]
-    EpelMinor n m -> getFedoraServer debug dynredir reposource ["epel"] [show n ++ "." ++ show m]
+    EPEL n -> do
+      eactiverel <- activeEPELRelease n
+      case eactiverel of
+        Left oldest ->
+          if n < oldest
+          then
+          return
+          (URL "https://archives.fedoraproject.org/pub/archive/epel", [show n])
+          else error' $ "unknown epel release:" +-+ show n
+        Right _rel -> getFedoraServer debug dynredir reposource ["epel"] [show n]
+    EpelMinor n m -> do
+      let ver = makeVersion $ map fromIntegral [n,m]
+      mactiverel <- activeEPELMinorRelease ver
+      case mactiverel of
+        Just _rel -> getFedoraServer debug dynredir reposource ["epel"] [show n ++ "." ++ show m]
+        Nothing ->
+          return (URL "https://archives.fedoraproject.org/pub/archive/epel", [show n ++ "." ++ show m])
     EPEL9Next -> getFedoraServer debug dynredir reposource ["epel","next"] ["9"]
     Fedora n -> do
       eactiverelease <- activeFedoraRelease n
