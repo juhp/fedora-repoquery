@@ -139,8 +139,8 @@ getRelease' debug dynredir warn checkdate reposource@(RepoSource koji _mirror) r
                 EPEL _ -> ["Everything", "state"]
                 EpelMinor _ _ -> ["Everything", "state"]
                 EPEL9Next -> ["Everything", "state"]
-                Fedora _ -> if "updates" `isInfixOf` reponame
-                            then ["Everything", "state"]
+                Fedora n -> if "updates" `isInfixOf` reponame
+                            then ["Everything" | n >= 28] ++ ["state"]
                             else ["COMPOSE_ID"]
                 Rawhide -> ["COMPOSE_ID"]
                 System -> error' "system not supported"
