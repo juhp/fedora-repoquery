@@ -59,7 +59,8 @@ getRelease' debug dynredir warn checkdate reposource@(RepoSource koji _mirror) r
   (basicrepos,morerepos) <-
     if koji
     then return ([("koji",urlpath)],[])
-    else
+    else do
+      when (arch == I386) $ checkI386Release release
       case release of
         Centos n -> return ([("BaseOS",urlpath)],
                             [("AppStream",url),(if n >= 9 then "CRB" else "PowerTools",url)])
@@ -343,3 +344,10 @@ curlGetHeader mtimeout field url = do
 singleton :: a -> [a]
 singleton x = [x]
 #endif
+
+checkI386Release :: Release -> IO ()
+checkI386Release release =
+  case release of
+    Fedora n | n < 26 -> return ()
+    EPEL n | n < 7 -> return ()
+    _ -> error' $ showArch I386 +-+ "not available for" +-+ show release
