@@ -81,14 +81,14 @@ getRelease' debug dynredir warn checkdate reposource@(RepoSource koji _mirror) r
         Rawhide -> return ([("development", urlpath)],[])
         -- curl -s https://bodhi.fedoraproject.org/releases/?exclude_archived=True | jq
         Fedora n -> do
-          eactiverelease <- activeFedoraRelease n
-          case eactiverelease of
-            Left _oldest ->
+          mactiverelease <- activeFedoraRelease n
+          case mactiverelease of
+            Nothing ->
                 return (("releases", urlpath) :
                         ("updates", url +//+ ["updates",show n]) :
                         [("updates-testing", url +//+ ["updates","testing",show n]) | testing]
                        ,[])
-            Right rel -> do
+            Just rel -> do
               let composed = releaseComposed rel
                   state = releaseState rel
                   postbeta = releasePostBeta rel
@@ -201,15 +201,12 @@ getURL debug dynredir reposource@(RepoSource koji _mirror) release arch =
     ELN ->
       getFedoraServer debug dynredir reposource ["eln"] ["1"]
     EPEL n -> do
-      eactiverel <- activeEPELRelease n
-      case eactiverel of
-        Left oldest ->
-          if n < oldest
-          then
+      mactiverel <- activeEPELRelease n
+      case mactiverel of
+        Nothing ->
           return
           (URL "https://archives.fedoraproject.org/pub/archive/epel", [show n])
-          else error' $ "unknown epel release:" +-+ show n
-        Right _rel -> getFedoraServer debug dynredir reposource ["epel"] [show n]
+        Just _rel -> getFedoraServer debug dynredir reposource ["epel"] [show n]
     EpelMinor n m -> do
       let ver = makeVersion $ map fromIntegral [n,m]
       mactiverel <- activeEPELMinorRelease ver
@@ -219,15 +216,12 @@ getURL debug dynredir reposource@(RepoSource koji _mirror) release arch =
           return (URL "https://archives.fedoraproject.org/pub/archive/epel", [show n ++ "." ++ show m])
     EPEL9Next -> getFedoraServer debug dynredir reposource ["epel","next"] ["9"]
     Fedora n -> do
-      eactiverelease <- activeFedoraRelease n
-      case eactiverelease of
-        Left oldest ->
-          if n < oldest
-          then
+      mactiverel <- activeFedoraRelease n
+      case mactiverel of
+        Nothing ->
           return
           (URL "https://archives.fedoraproject.org/pub/archive" +//+ fedoraTop, ["releases", show n])
-          else error' $ "unknown fedora release:" +-+ show n
-        Right rel ->
+        Just rel ->
           -- state values: ["disabled","pending","frozen","current","archived"]
           let pending = releaseState rel /= "current"
               postbeta = releasePostBeta rel

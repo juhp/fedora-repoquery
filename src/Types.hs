@@ -6,7 +6,8 @@ module Types (
   RepoSource(..),
   Verbosity(..),
   Release(..),
-  eitherRelease
+  eitherRelease,
+  elnVersion
   ) where
 
 import Data.Char (isDigit)

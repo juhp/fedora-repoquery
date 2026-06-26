@@ -11,14 +11,16 @@ module BodhiRelease (
   )
 where
 
+import Data.Function (on)
 import qualified Data.List as L
 import Data.Maybe (mapMaybe)
-import Data.Version.Extra (readVersion, Version)
+import Data.Version.Extra (readVersion, showVersion, Version(..))
 import Distribution.Fedora.BodhiReleases (getBodhiFedoraReleases,
                                           getBodhiEPELReleases, lookupKey)
-import SimpleCmd (error')
+import Safe (headMay)
+import SimpleCmd (error', (+-+))
 
-import Types (Natural)
+import Types (Natural, elnVersion)
 
 data BodhiRelease =
   Release {releaseVersion :: String, -- to handle "eln"
@@ -28,20 +30,23 @@ data BodhiRelease =
            releasePostBeta :: Bool}
   deriving Eq
 
--- Left is oldest active version
-activeFedoraRelease :: Natural -> IO (Either Natural BodhiRelease)
+activeFedoraRelease :: Natural -> IO (Maybe BodhiRelease)
 activeFedoraRelease n = do
+  -- FIXME include eol releases?
   active <- activeFedoraReleases
   case L.sortOn releaseVersion active of
     [] -> error' "failed to find active releases with Bodhi API"
     (oldest:_) ->
       return $
       case L.find (\r -> releaseVersion r == show n) active of
-        Just rel -> Right rel
-        Nothing -> Left $ read $ releaseVersion oldest
+        Just rel -> Just rel
+        Nothing ->
+          let oldver = read $ releaseVersion oldest in
+            if n < oldver
+            then Nothing
+            else error' $ "unknown fedora release:" +-+ show n
 
--- Left is oldest active major version
-activeEPELRelease :: Natural -> IO (Either Natural BodhiRelease)
+activeEPELRelease :: Natural -> IO (Maybe BodhiRelease)
 activeEPELRelease n = do
   active <- activeEPELReleases
   case L.sortOn (readVersion . releaseVersion) active of
@@ -49,16 +54,31 @@ activeEPELRelease n = do
     (oldest:_) ->
       return $
       case L.find (\r -> majorVer (releaseVersion r) == show n) active of
-        Just rel -> Right rel
-        Nothing -> Left $ read $ majorVer $ releaseVersion oldest
+        Just rel -> Just rel
+        Nothing ->
+          let oldver = read . majorVer $ releaseVersion oldest in
+            if n < oldver
+            then Nothing
+            else error' $ "unknown epel release:" +-+ show n
   where
     majorVer = takeWhile (/= '.')
 
--- FIXME Either for unknown minor
 activeEPELMinorRelease :: Version -> IO (Maybe BodhiRelease)
 activeEPELMinorRelease ver = do
   active <- activeEPELReleases
-  return $ L.find (\r -> readVersion (releaseVersion r) == ver) active
+  case L.find (\r -> readVersion (releaseVersion r) == ver) active of
+    Just rel -> return $ Just rel
+    Nothing -> do
+      let minors = filter (\r -> ((==) `on` majorVer) ver (readVersion . releaseVersion $ r)) active
+      if majorVer ver < fromIntegral elnVersion &&
+         all (\r -> readVersion (releaseVersion r) > ver) minors
+      then return Nothing
+      else error' $ "unknown epel release:" +-+ showVersion ver
+  where
+    majorVer v =
+      case headMay $ versionBranch v of
+        Just m -> m
+        Nothing -> error $ "no major version:" +-+ showVersion ver
 
 activeFedoraReleases :: IO [BodhiRelease]
 activeFedoraReleases =
