@@ -2,6 +2,6 @@
 - cache compose file locally
 * Centos+EPEL
 - centos-stream channels
-- read COMPOSE_ID
+- read and cache COMPOSE_ID
 
 - types for DIR and FILE urls to enforce trailing slash

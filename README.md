@@ -37,7 +37,7 @@ bash-5.2.26-6.el10.x86_64 (c10s-BaseOS)
 `$ fedora-repoquery eln kernel`
 
 ```
-kernel-7.2.0-0.rc0.260624g840ef6c78e6a.8.eln157.x86_64 (eln-BaseOS)
+kernel-7.1.0-0.rc3.260512g50897c955902.24.eln156.x86_64 (eln-BaseOS)
 ```
 
 Without a release argument, the system yum repo configuration is used:
@@ -96,6 +96,12 @@ rust-1.96.0-1.fc44.x86_64 (f44-updates-cf)
 ```
 which may be faster than dl.fp.o and fresher than other mirrors sometimes.
 
+Querying of epel10 minor versions is supported:
+`$ fedora-repoquery epel10.2 nix`
+
+```
+nix-2.24.15-2.el10_2.x86_64 (epel10.2)
+```
 
 ## Help
 `$ fedora-repoquery --version`
