@@ -7,7 +7,6 @@ module BodhiRelease (
   activeEPELMinorRelease,
   activeFedoraReleases,
   activeEPELReleases,
-  fedoraReleaseState,
   rawhideFedoraRelease
   )
 where
@@ -88,14 +87,6 @@ activeEPELReleases =
       return $
         Release version state branch composed $
         setting == Just ("post_beta" :: String)
-
-fedoraReleaseState :: Natural -> IO String
-fedoraReleaseState n = do
-  eactive <- activeFedoraRelease n
-  return $
-    case eactive of
-      Left _ -> error' $ "could find F" ++ show n ++ " release (state)"
-      Right rel -> releaseState rel
 
 rawhideFedoraRelease :: IO Natural
 rawhideFedoraRelease = do
