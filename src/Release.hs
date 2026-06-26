@@ -185,7 +185,10 @@ getURL debug dynredir reposource@(RepoSource koji _mirror) release arch =
           let url = URL $
                 if koji
                 then "https://odcs.stream.centos.org/stream-10"
-                else "https://composes.stream.centos.org/stream-10/production/latest-CentOS-Stream/compose/"
+                else
+                  -- FIXME add --nightly and --devel flags?
+                  -- was "https://composes.stream.centos.org/stream-10/production/latest-CentOS-Stream/compose/"
+                  "https://mirror.stream.centos.org/10-stream/"
           in return (url,[])
         9 ->
           let url = URL $
