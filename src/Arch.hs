@@ -21,7 +21,8 @@ data Arch = Source
   deriving Eq
 
 allArchs :: [Arch]
-allArchs = [Source, X86_64, AARCH64, PPC64LE, S390X, I386]
+-- no i386 repos after F25 and epel6
+allArchs = [Source, X86_64, AARCH64, PPC64LE, S390X]
 
 eitherArch :: String -> Either String Arch
 eitherArch s =
