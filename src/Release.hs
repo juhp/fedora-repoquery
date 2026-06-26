@@ -60,65 +60,65 @@ getRelease' debug dynredir warn checkdate reposource@(RepoSource koji _mirror) r
     if koji
     then return ([("koji",urlpath)],[])
     else
-    case release of
-      Centos n -> return ([("BaseOS",urlpath)],
-                          [("AppStream",url),(if n >= 9 then "CRB" else "PowerTools",url)])
-      ELN -> return ([("BaseOS",urlpath)],
-                     [("AppStream",urlpath),("CRB",urlpath)])
-      Rawhide -> return ([("development", urlpath)],[])
-      -- curl -s https://bodhi.fedoraproject.org/releases/?exclude_archived=True | jq
-      Fedora n -> do
-        eactiverelease <- activeFedoraRelease n
-        case eactiverelease of
-          Left _oldest ->
-              return (("releases", urlpath) :
-                      ("updates", url +//+ ["updates",show n]) :
-                      [("updates-testing", url +//+ ["updates","testing",show n]) | testing]
+      case release of
+        Centos n -> return ([("BaseOS",urlpath)],
+                            [("AppStream",url),(if n >= 9 then "CRB" else "PowerTools",url)])
+        ELN -> return ([("BaseOS",urlpath)],
+                       [("AppStream",urlpath),("CRB",urlpath)])
+        Rawhide -> return ([("development", urlpath)],[])
+        -- curl -s https://bodhi.fedoraproject.org/releases/?exclude_archived=True | jq
+        Fedora n -> do
+          eactiverelease <- activeFedoraRelease n
+          case eactiverelease of
+            Left _oldest ->
+                return (("releases", urlpath) :
+                        ("updates", url +//+ ["updates",show n]) :
+                        [("updates-testing", url +//+ ["updates","testing",show n]) | testing]
+                       ,[])
+            Right rel -> do
+              let composed = releaseComposed rel
+                  state = releaseState rel
+                  postbeta = releasePostBeta rel
+              return $
+            -- after Beta Freeze
+            -- {"state": "pending", "composed_by_bodhi": true,
+            --  "create_automatic_updates": false, "setting_status": "post_beta"}
+            --
+            -- final freeze
+            -- {"state": "frozen", "composed_by_bodhi": true,
+            --  "create_automatic_updates": false, "setting_status": "post_beta"}
+            --
+            -- final unfrozen
+            -- {"state": "current", "composed_by_bodhi": true,
+            --  "create_automatic_updates": false, "setting_status": "post_beta"}
+            --
+            -- released
+            -- {"state": "current", "composed_by_bodhi": true,
+            --  "create_automatic_updates": false, "setting_status": null}
+            --
+            -- Rawhide
+            -- {"state": "pending", "composed_by_bodhi": false,
+            --  "create_automatic_updates": true, "setting_status": "pre_beta"}
+                if state `elem` ["pending","frozen"] || state == "current" && postbeta
+                then (("development", urlpath) :
+                      [("updates", url +//+ ["updates",show n]) | postbeta , state == "current"] ++
+                      -- FIXME add way to disable or invert testing
+                      [("updates-testing", url +//+ ["updates","testing",show n]) | testing || composed, state /= "current"]
                      ,[])
-          Right rel -> do
-            let composed = releaseComposed rel
-                state = releaseState rel
-                postbeta = releasePostBeta rel
-            return $
-          -- after Beta Freeze
-          -- {"state": "pending", "composed_by_bodhi": true,
-          --  "create_automatic_updates": false, "setting_status": "post_beta"}
-          --
-          -- final freeze
-          -- {"state": "frozen", "composed_by_bodhi": true,
-          --  "create_automatic_updates": false, "setting_status": "post_beta"}
-          --
-          -- final unfrozen
-          -- {"state": "current", "composed_by_bodhi": true,
-          --  "create_automatic_updates": false, "setting_status": "post_beta"}
-          --
-          -- released
-          -- {"state": "current", "composed_by_bodhi": true,
-          --  "create_automatic_updates": false, "setting_status": null}
-          --
-          -- Rawhide
-          -- {"state": "pending", "composed_by_bodhi": false,
-          --  "create_automatic_updates": true, "setting_status": "pre_beta"}
-              if state `elem` ["pending","frozen"] || state == "current" && postbeta
-              then (("development", urlpath) :
-                    [("updates", url +//+ ["updates",show n]) | postbeta , state == "current"] ++
-                    -- FIXME add way to disable or invert testing
-                    [("updates-testing", url +//+ ["updates","testing",show n]) | testing || composed, state /= "current"]
-                   ,[])
-              else (("releases", urlpath) :
-                    ("updates", url +//+ ["updates",show n]) :
-                    [("updates-testing", url +//+ ["updates","testing",show n]) | testing || postbeta]
-                   ,[])
-      EPEL n -> return
-                (("epel",urlpath) :
-                 [("epel-testing",url +//+ ["testing", show n]) | testing],
-                 [])
-      EpelMinor n m -> return
-                (("epel",urlpath) :
-                 [("epel-testing",url +//+ ["testing", show n ++ "." ++ show m]) | testing],
-                 [])
-      EPEL9Next -> return ([("epelnext",urlpath)],[])
-      System -> error' "showRelease: unsupported for system"
+                else (("releases", urlpath) :
+                      ("updates", url +//+ ["updates",show n]) :
+                      [("updates-testing", url +//+ ["updates","testing",show n]) | testing || postbeta]
+                     ,[])
+        EPEL n -> return
+                  (("epel",urlpath) :
+                   [("epel-testing",url +//+ ["testing", show n]) | testing],
+                   [])
+        EpelMinor n m -> return
+                  (("epel",urlpath) :
+                   [("epel-testing",url +//+ ["testing", show n ++ "." ++ show m]) | testing],
+                   [])
+        EPEL9Next -> return ([("epelnext",urlpath)],[])
+        System -> error' "showRelease: unsupported for system"
   rawhide <- rawhideFedoraRelease
   let basicrepourls =
         map (repoConfigArgs reposource sysarch march rawhide release) basicrepos
