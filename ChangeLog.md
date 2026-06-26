@@ -4,8 +4,8 @@
 - add `--all-epel` releases
 - c10s: use mirror.stream.centos.org
 - improve handling of archived epel major and minor releases
-- preliminary support for pre-stream centos
-- fedora updates Everything was introduced from F28
+- preliminary support for pre-stream centos versions
+- fedora-updates Everything was introduced from F28
 - error for i386 arch unless epel6, f25, c7, or older
 - do not include i386 in `--all-archs` (regression in 0.8.2)
 
