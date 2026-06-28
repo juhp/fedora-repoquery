@@ -168,7 +168,7 @@ runMain sysarch dnf4 verbose dynredir time reposource mallreleases archs testing
       let (args,releases) = partitionEithers $ map eitherRelease relargs
       in do
         unless (null releases || isNothing mallreleases) $
-          error' "cannot specify releases and --all-releases"
+          error' "cannot specify releases and --all-{fedora,epel}"
         when (null releases && isNothing mallreleases) $
           when (verbose == Verbose || debug) $
           warning "(using system repos)"
