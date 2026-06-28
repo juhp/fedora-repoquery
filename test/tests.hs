@@ -33,6 +33,7 @@ tests =
   ,([previous], Nothing)
   ,(["eln"], Nothing)
   ,(["epel10"], Nothing)
+  ,(["epel10.2"], Nothing)
   ,(["epel9"], Nothing)
   ,(["epel8"], Nothing)
   ,(["epel7"], Nothing)

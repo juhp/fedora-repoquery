@@ -1,5 +1,9 @@
 # Version history for fedora-repoquery
 
+## 0.9.1 (2026-06-28)
+- fix IO memory leak due to lazy String IO with typed-process
+  (thank you to Efraim Kaov for reporting this)
+
 ## 0.9 (2026-06-26)
 - add `--all-epel` releases
 - c10s: use mirror.stream.centos.org
