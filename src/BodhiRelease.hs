@@ -14,7 +14,7 @@ where
 
 import Data.Aeson (Object)
 import Data.Function (on)
-import qualified Data.List as L
+import Data.List.Extra
 import Data.Maybe (mapMaybe)
 import Data.Version.Extra (readVersion, showVersion, Version(..))
 import Distribution.Fedora.BodhiReleases (getBodhiFedoraReleases,
@@ -38,11 +38,11 @@ activeFedoraRelease :: Natural -> IO (Maybe BodhiRelease)
 activeFedoraRelease n = do
   -- FIXME include eol releases?
   active <- activeBodhiFedoraReleases
-  case L.sortOn releaseVersion active of
+  case sortOn releaseBranch active of
     [] -> error' "failed to find active releases with Bodhi API"
     (oldest:_) ->
       return $
-      case L.find (\r -> releaseVersion r == show n) active of
+      case find (\r -> releaseVersion r == show n) active of
         Just rel -> Just rel
         Nothing ->
           let oldver = read $ releaseVersion oldest in
@@ -53,11 +53,11 @@ activeFedoraRelease n = do
 activeEPELRelease :: Natural -> IO (Maybe BodhiRelease)
 activeEPELRelease n = do
   active <- activeBodhiEPELReleases
-  case L.sortOn (readVersion . releaseVersion) active of
+  case sortOn (readVersion . releaseVersion) active of
     [] -> error' "failed to find active releases with Bodhi API"
     (oldest:_) ->
       return $
-      case L.find (\r -> majorVer (releaseVersion r) == show n) active of
+      case find (\r -> majorVer (releaseVersion r) == show n) active of
         Just rel -> Just rel
         Nothing ->
           let oldver = read . majorVer $ releaseVersion oldest in
@@ -70,7 +70,7 @@ activeEPELRelease n = do
 activeEPELMinorRelease :: Version -> IO (Maybe BodhiRelease)
 activeEPELMinorRelease ver = do
   active <- activeBodhiEPELReleases
-  case L.find (\r -> readVersion (releaseVersion r) == ver) active of
+  case find (\r -> readVersion (releaseVersion r) == ver) active of
     Just rel -> return $ Just rel
     Nothing -> do
       let minors = filter (\r -> ((==) `on` majorVer) ver (readVersion . releaseVersion $ r)) active
@@ -86,11 +86,15 @@ activeEPELMinorRelease ver = do
 
 activeBodhiReleases :: IO [BodhiRelease]
 activeBodhiReleases =
-  L.nub . mapMaybe maybeRelease <$> getBodhiReleases
+  nubOrdOn releaseBranch . mapMaybe maybeRelease <$> getBodhiReleases
 
 activeBodhiFedoraReleases :: IO [BodhiRelease]
 activeBodhiFedoraReleases =
-  L.nub . mapMaybe maybeRelease <$> getBodhiFedoraReleases
+  nubOrdOn releaseBranch . mapMaybe maybeRelease <$> getBodhiFedoraReleases
+
+activeBodhiEPELReleases :: IO [BodhiRelease]
+activeBodhiEPELReleases =
+  nubOrdOn releaseBranch . mapMaybe maybeRelease <$> getBodhiEPELReleases
 
 maybeRelease :: Object -> Maybe BodhiRelease
 maybeRelease obj = do
@@ -103,12 +107,9 @@ maybeRelease obj = do
     BodhiRelease version state branch composed $
     setting == Just ("post_beta" :: String)
 
-activeBodhiEPELReleases :: IO [BodhiRelease]
-activeBodhiEPELReleases =
-  L.nub . mapMaybe maybeRelease <$> getBodhiEPELReleases
 
 rawhideFedoraRelease :: IO Natural
 rawhideFedoraRelease = do
   actives <- activeBodhiFedoraReleases
   let pending = map releaseVersion (filter (\r -> releaseState r == "pending") actives)
-  return $ read $ maximum (L.delete "eln" pending)
+  return $ read $ maximum (delete "eln" pending)
