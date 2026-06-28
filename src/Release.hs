@@ -10,7 +10,7 @@ module Release (
   )
 where
 
-import Control.Monad.Extra (forM_, unless, void, when)
+import Control.Monad.Extra (forM_, void, when)
 import Data.Bifunctor (first)
 import qualified Data.CaseInsensitive as CI
 import Data.List.Extra
@@ -37,9 +37,11 @@ import Common (warning)
 import Types
 import URL
 
-showReleaseCmd :: Bool -> Bool -> RepoSource -> Release  -> Arch -> Maybe Arch
-               -> Bool -> IO ()
-showReleaseCmd debug dynredir reposource release sysarch march testing =
+showReleaseCmd :: Bool -> Bool -> RepoSource -> Maybe Release  -> Arch
+               -> Maybe Arch -> Bool -> IO ()
+showReleaseCmd _debug _dynredir _reposource Nothing _sysarch _march _testing =
+  return ()
+showReleaseCmd debug dynredir reposource (Just release) sysarch march testing =
   void $ getRelease debug dynredir False True reposource release sysarch march testing
 
 getRelease :: Bool -> Bool -> Bool -> Bool -> RepoSource -> Release -> Arch
@@ -132,7 +134,6 @@ getRelease' debug dynredir warn checkdate reposource@(RepoSource koji _mirror) r
                    [("epel-testing",url +//+ ["testing", show n ++ "." ++ show m]) | testing],
                    [])
         EPEL9Next -> return ([("epelnext",urlpath)],[])
-        System -> error' "showRelease: unsupported for system"
   rawhide <- rawhideFedoraRelease
   let basicrepourls =
         map (repoConfigArgs reposource sysarch march rawhide release) basicrepos
@@ -141,7 +142,7 @@ getRelease' debug dynredir warn checkdate reposource@(RepoSource koji _mirror) r
   forM_ basicrepourls $ \(reponame,(url',path')) -> do
     let baserepo = url' +//+ path'
     when debug $ print $ renderUrl Dir baserepo
-    unless (not checkdate || release == System) $ do
+    when checkdate $ do
       let composeinfo =
             url' +//+
             if koji
@@ -159,7 +160,6 @@ getRelease' debug dynredir warn checkdate reposource@(RepoSource koji _mirror) r
                             then ["Everything" | n >= 28] ++ ["state"]
                             else ["COMPOSE_ID"]
                 Rawhide -> ["COMPOSE_ID"]
-                System -> error' "system not supported"
       let composeUrl = renderUrl File composeinfo
       when debug $ print composeUrl
       mtimestr <- curlGetHeader Nothing "Last-Modified" composeUrl
@@ -226,7 +226,7 @@ getURL debug dynredir reposource@(RepoSource koji _mirror) release arch =
           -- state values: ["disabled","pending","frozen","current","archived"]
           let pending = releaseState rel /= "current"
               postbeta = releasePostBeta rel
-              rawhide = pending && releaseBranch rel == "rawhide"
+              rawhide = pending && releaseBranch rel == Rawhide
               releasestr = if rawhide then "rawhide" else show n
           in
             if arch == RISCV64
@@ -236,7 +236,6 @@ getURL debug dynredir reposource@(RepoSource koji _mirror) release arch =
               [if pending || postbeta then "development" else "releases",
                releasestr]
     Rawhide -> getFedoraServer debug dynredir reposource fedoraTop ["development", "rawhide"]
-    System -> error' "getURL: unsupported for system"
   where
     fedoraTop =
       -- FIXME support older archs
@@ -276,7 +275,6 @@ repoConfigArgs (RepoSource False mirror) sysarch march rawhide release (repo,url
           EPEL9Next -> ["Everything", showArch arch]
           Fedora _ -> ["Everything", showArch arch] ++ (if arch == Source then ["tree"] else ["os" | repo `elem` ["releases","development"]])
           Rawhide -> ["Everything", showArch arch, if arch == Source then "tree" else "os"]
-          System -> error' "repoConfigArgs: unsupported for system"
   in (reponame, (url, path ++ ["/"]))
   where
     repoVersion :: String
@@ -294,7 +292,6 @@ repoConfigArgs (RepoSource False mirror) sysarch march rawhide release (repo,url
         Centos _ -> show release ++ '-':repo
         OldCentos 8 -> show release ++  '-':repo
         OldCentos _ -> show release
-        System -> ""
 -- koji
 repoConfigArgs (RepoSource True _mirror) sysarch march _rawhide release (repo,url) =
   let (compose,path) =

@@ -9,7 +9,7 @@ import Control.Monad.Extra
 import qualified Data.ByteString.Lazy as B
 import Data.Char (isSpace)
 import Data.List.Extra
-import Data.Maybe (isJust, fromMaybe)
+import Data.Maybe (fromMaybe, isJust, isNothing)
 import Safe (lastMay)
 import System.Directory (doesFileExist, findExecutable)
 import System.Exit (exitFailure, ExitCode(ExitSuccess))
@@ -53,15 +53,15 @@ noQueryFormatOptions =
     "changelogs"
   ]
 
-repoqueryCmd :: Bool -> Bool -> Verbosity -> Bool -> Bool -> Bool -> Release
-             -> RepoSource -> Arch -> [Arch] -> Bool -> [DnfOption]
-             -> [String] -> IO ()
-repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource sysarch archs testing opts args = do
+repoqueryCmd :: Bool -> Bool -> Verbosity -> Bool -> Bool -> Bool
+             -> Maybe Release -> RepoSource -> Arch -> [Arch] -> Bool
+             -> [DnfOption] -> [String] -> IO ()
+repoqueryCmd dnf4 debug verbose multiple dynredir checkdate mrelease reposource sysarch archs testing opts args = do
   forM_ (if null archs then [sysarch] else archs) $ \arch -> do
     repoConfigs <-
-      if release == System
-      then return []
-      else getRelease debug dynredir True checkdate reposource release sysarch (Just arch) testing
+      case mrelease of
+        Nothing -> return []
+        Just release -> getRelease debug dynredir True checkdate reposource release sysarch (Just arch) testing
     -- dnf5 writes repo update output to stdout
     -- https://github.com/rpm-software-management/dnf5/issues/1361
     -- but seems to cache better
@@ -78,7 +78,7 @@ repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource s
                   ["--disableplugin=subscription-manager" | rhsm] ++
                   ["--queryformat=" ++ queryformat | queryFormatAllowed] ++
                   -- drop modules for F39+
-                  ["--setopt=module_platform_id=platform:" ++ show release] ++
+                  ["--setopt=module_platform_id=platform:" ++ maybe "system" show mrelease] ++
                   concatMap renderRepoConfig repoConfigs ++
                   map (renderOption . tweakQfOpt (isJust mdnf5)) opts ++ args
     -- FIXME drop "/usr/bin/"?
@@ -90,7 +90,7 @@ repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource s
     (ok, out, err) <- readProcess $ proc dnf cmdargs
     unless (B.null err) $ B.putStr err
     unless (B.null out) $ do
-      unless (not checkdate || release == System || multiple) $ warning ""
+      unless (not checkdate || isNothing mrelease || multiple) $ warning ""
       B.putStr out
     unless (ok == ExitSuccess) exitFailure
   where

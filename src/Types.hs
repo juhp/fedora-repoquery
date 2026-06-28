@@ -36,7 +36,6 @@ data Release = EpelMinor Natural Natural
              | Fedora Natural
              | ELN
              | Rawhide
-             | System
   deriving Eq
 
 -- derived from fedora-releases Branch
@@ -72,9 +71,6 @@ instance Ord Release where
   compare _ (Centos _) = GT
   compare (OldCentos _) _ = LT
   compare _ (OldCentos _) = GT
-  -- undefined really
-  compare System _ = EQ
-  compare _ System = EQ
 
 -- FIXME determine via EPEL or Centos
 elnVersion :: Natural
@@ -140,4 +136,3 @@ instance Show Release where
   show ELN = "eln"
   show (Centos n) = 'c' : show n ++ "s"
   show (OldCentos n) = 'c' : show n
-  show System = "system"

@@ -36,8 +36,7 @@ import Paths_fedora_repoquery (version)
 import Query
 import Release (activeFedoraReleases, activeEPELReleases, activeReleases,
                 downloadServer, showReleaseCmd)
-import Types (Mirror(..), Release (System), RepoSource(..), Verbosity(..),
-              eitherRelease)
+import Types (Mirror(..), RepoSource(..), Verbosity(..), eitherRelease)
 
 data Command = Query [DnfOption] [String]
              | CacheSize | CacheEmpties | DnfHelp | ReleaseList
@@ -177,17 +176,18 @@ runMain sysarch dnf4 verbose dynredir time reposource mallreleases archs testing
           then
             case mallreleases of
               Just allreleases ->
+                map Just <$>
                 case allreleases of
                   AllFedora -> activeFedoraReleases
                   AllEPEL -> activeEPELReleases
                   AllReleases -> activeReleases
-              Nothing -> return [System]
-          else return releases
-        forM_ releaselist $ \release ->
+              Nothing -> return [Nothing]
+          else return $ map Just releases
+        forM_ releaselist $ \mrelease ->
           if null args && null opts
           then if null archs
-               then showReleaseCmd debug dynredir reposource release sysarch Nothing testing
-               else forM_ archs $ \arch -> showReleaseCmd debug dynredir reposource release sysarch (Just arch) testing
+               then showReleaseCmd debug dynredir reposource mrelease sysarch Nothing testing
+               else forM_ archs $ \arch -> showReleaseCmd debug dynredir reposource mrelease sysarch (Just arch) testing
           else
             let multiple = length releaselist > 1 || length archs > 1
-            in repoqueryCmd dnf4 debug verbose multiple dynredir time release reposource sysarch archs testing opts args
+            in repoqueryCmd dnf4 debug verbose multiple dynredir time mrelease reposource sysarch archs testing opts args
