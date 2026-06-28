@@ -7,7 +7,7 @@ module Types (
   Verbosity(..),
   Release(..),
   eitherRelease,
-  readReleaseUnsafe,
+  readRelease,
   elnVersion
   ) where
 
@@ -125,12 +125,11 @@ eitherRelease rel =
                    GT -> Fedora r
     _ -> Left rel
 
--- partial
-readReleaseUnsafe :: String -> Release
-readReleaseUnsafe s =
+readRelease :: String -> Maybe Release
+readRelease s =
   case eitherRelease s of
-    Right r -> r
-    Left e -> error $ "unknown release" +-+ e
+    Right r -> Just r
+    Left _ -> Nothing
 
 instance Show Release where
   show Rawhide = "rawhide"

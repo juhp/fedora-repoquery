@@ -6,8 +6,7 @@ module Release (
   activeFedoraReleases,
   activeEPELReleases,
   activeReleases,
-  downloadServer,
-  readBranchUnsafe
+  downloadServer
   )
 where
 
@@ -404,7 +403,4 @@ activeReleases =
 
 sortReleases :: [BodhiRelease] -> [Release]
 sortReleases =
-  sortOn Down . map readBranchUnsafe
-
-readBranchUnsafe :: BodhiRelease -> Release
-readBranchUnsafe = readReleaseUnsafe . releaseBranch
+  sortOn Down . map releaseBranch

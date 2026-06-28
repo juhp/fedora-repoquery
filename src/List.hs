@@ -7,14 +7,13 @@ import Data.Ord (Down(Down))
 import SimpleCmd ((+-+))
 
 import BodhiRelease (activeBodhiReleases, BodhiRelease(..))
-import Release (readBranchUnsafe)
 
 listVersionsCmd :: IO ()
 listVersionsCmd =
   activeBodhiReleases >>= mapM_ printRelease . sortOn releaseSorter
   where
     printRelease rel =
-      putStrLn $ releaseBranch rel +-+ releaseState rel
+      putStrLn $ show (releaseBranch rel) +-+ releaseState rel
 
     releaseSorter rel =
-      (Down (releaseState rel), Down (readBranchUnsafe rel))
+      (Down (releaseState rel), Down (releaseBranch rel))

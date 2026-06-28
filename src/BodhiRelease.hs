@@ -24,12 +24,12 @@ import Distribution.Fedora.BodhiReleases (getBodhiFedoraReleases,
 import Safe (headMay)
 import SimpleCmd (error', (+-+))
 
-import Types (Natural, elnVersion)
+import Types (Release, Natural, elnVersion, readRelease)
 
 data BodhiRelease =
   BodhiRelease {releaseVersion :: String, -- to handle "eln"
                 releaseState ::  String,
-                releaseBranch :: String,
+                releaseBranch :: Release,
                 releaseComposed :: Bool,
                 releasePostBeta :: Bool}
   deriving Eq
@@ -95,7 +95,7 @@ activeBodhiFedoraReleases =
 maybeRelease :: Object -> Maybe BodhiRelease
 maybeRelease obj = do
   version <- lookupKey "version" obj
-  branch <- lookupKey "branch" obj
+  branch <- lookupKey "branch" obj >>= readRelease
   state <- lookupKey "state" obj
   composed <- lookupKey "composed_by_bodhi" obj
   let setting = lookupKey "setting_status" obj
