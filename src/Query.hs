@@ -6,13 +6,15 @@ module Query (
   ) where
 
 import Control.Monad.Extra
+import qualified Data.ByteString.Lazy as B
 import Data.Char (isSpace)
 import Data.List.Extra
 import Data.Maybe (isJust, fromMaybe)
 import Safe (lastMay)
-import SimpleCmd (cmdLines)
 import System.Directory (doesFileExist, findExecutable)
+import System.Exit (exitFailure, ExitCode(ExitSuccess))
 import System.FilePath (takeBaseName, (<.>))
+import System.Process.Typed (proc, readProcess)
 
 import Arch
 import Common (warning)
@@ -83,10 +85,14 @@ repoqueryCmd dnf4 debug verbose multiple dynredir checkdate release reposource s
     let dnf = fromMaybe "/usr/bin/dnf-3" mdnf5
     when debug $
       warning $ unwords $ ('\n' : takeBaseName dnf) : map show cmdargs
-    res <- cmdLines dnf cmdargs
-    unless (null res) $ do
+    -- We have to be careful here: this can be a very large output
+    -- https://bugzilla.redhat.com/show_bug.cgi?id=2493905
+    (ok, out, err) <- readProcess $ proc dnf cmdargs
+    unless (B.null err) $ B.putStr err
+    unless (B.null out) $ do
       unless (not checkdate || release == System || multiple) $ warning ""
-      putStrLn $ intercalate "\n" res
+      B.putStr out
+    unless (ok == ExitSuccess) exitFailure
   where
     queryFormatAllowed =
       not $ any (`elem` map DnfFlag noQueryFormatOptions) opts

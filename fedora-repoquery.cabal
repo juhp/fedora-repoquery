@@ -45,6 +45,7 @@ executable fedora-repoquery
                        URL
   hs-source-dirs:      src
   build-depends:       base < 5,
+                       bytestring,
                        case-insensitive,
                        curl,
                        directory,
@@ -60,6 +61,7 @@ executable fedora-repoquery
                        simple-cmd-args,
                        text,
                        time,
+                       typed-process,
                        xdg-basedir
 
   default-language:    Haskell2010
