@@ -43,14 +43,17 @@ data Release = EpelMinor Natural Natural
 -- | defined such that: EPELNext 9 < EPEL 10 < Fedora 41 < Rawhide
 instance Ord Release where
   compare Rawhide Rawhide = EQ
+  compare ELN ELN = EQ
   compare (Fedora m) (Fedora n) = compare m n
-  compare EPEL9Next EPEL9Next = EQ
   compare (EPEL m) (EPEL n) = compare m n
   compare (EpelMinor m1 n1) (EpelMinor m2 n2) =
     case compare m1 m2 of
       LT -> LT
       GT -> GT
       EQ -> compare n1 n2
+  compare EPEL9Next EPEL9Next = EQ
+  compare (Centos m) (Centos n) = compare m n
+  compare (OldCentos m) (OldCentos n) = compare m n
   compare Rawhide _ = GT
   compare _ Rawhide = LT
   compare ELN _ = GT
@@ -63,12 +66,10 @@ instance Ord Release where
   compare (EpelMinor maj _) (EPEL n) = if maj <= n then LT else GT
   compare (EpelMinor _ _) EPEL9Next = GT
   compare EPEL9Next (EpelMinor _ _) = LT
-  compare (Centos m) (Centos n) = compare m n
   compare (Centos _) (OldCentos _) = GT
   compare (OldCentos _) (Centos _) = LT
   compare (Centos _) _ = LT
   compare _ (Centos _) = GT
-  compare (OldCentos m) (OldCentos n) = compare m n
   compare (OldCentos _) _ = LT
   compare _ (OldCentos _) = GT
   -- undefined really
