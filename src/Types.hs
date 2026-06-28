@@ -37,7 +37,43 @@ data Release = EpelMinor Natural Natural
              | ELN
              | Rawhide
              | System
-  deriving (Eq, Ord)
+  deriving Eq
+
+-- derived from fedora-releases Branch
+-- | defined such that: EPELNext 9 < EPEL 10 < Fedora 41 < Rawhide
+instance Ord Release where
+  compare Rawhide Rawhide = EQ
+  compare (Fedora m) (Fedora n) = compare m n
+  compare EPEL9Next EPEL9Next = EQ
+  compare (EPEL m) (EPEL n) = compare m n
+  compare (EpelMinor m1 n1) (EpelMinor m2 n2) =
+    case compare m1 m2 of
+      LT -> LT
+      GT -> GT
+      EQ -> compare n1 n2
+  compare Rawhide _ = GT
+  compare _ Rawhide = LT
+  compare ELN _ = GT
+  compare _ ELN = LT
+  compare (Fedora _) _ = GT
+  compare _ (Fedora _) = LT
+  compare (EPEL m) EPEL9Next = if m == 9 then LT else compare m 9
+  compare EPEL9Next (EPEL n) = if n == 9 then GT else compare 9 n
+  compare (EPEL m) (EpelMinor maj _) = if m >= maj then GT else LT
+  compare (EpelMinor maj _) (EPEL n) = if maj <= n then LT else GT
+  compare (EpelMinor _ _) EPEL9Next = GT
+  compare EPEL9Next (EpelMinor _ _) = LT
+  compare (Centos m) (Centos n) = compare m n
+  compare (Centos _) (OldCentos _) = GT
+  compare (OldCentos _) (Centos _) = LT
+  compare (Centos _) _ = LT
+  compare _ (Centos _) = GT
+  compare (OldCentos m) (OldCentos n) = compare m n
+  compare (OldCentos _) _ = LT
+  compare _ (OldCentos _) = GT
+  -- undefined really
+  compare System _ = EQ
+  compare _ System = EQ
 
 -- FIXME determine via EPEL or Centos
 elnVersion :: Natural

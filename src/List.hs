@@ -6,14 +6,14 @@ import Data.List.Extra
 import Data.Ord (Down(Down))
 import SimpleCmd ((+-+))
 
-import Release (activeFedoraReleases, BodhiRelease(..))
+import BodhiRelease (activeBodhiReleases, BodhiRelease(..))
 
 listVersionsCmd :: IO ()
 listVersionsCmd =
-  activeFedoraReleases >>= mapM_ printRelease . sortOn releaseSorter
+  activeBodhiReleases >>= mapM_ printRelease . sortOn releaseSorter
   where
-    printRelease (BodhiRelease _version state branch _composed _postbeta) =
-      putStrLn $ branch +-+ state
+    printRelease rel =
+      putStrLn $ releaseBranch rel +-+ releaseState rel
 
     releaseSorter rel =
       (Down (releaseState rel), Down(releaseVersion rel))

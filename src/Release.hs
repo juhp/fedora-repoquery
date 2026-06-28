@@ -5,6 +5,7 @@ module Release (
   getRelease,
   activeFedoraReleases,
   activeEPELReleases,
+  activeReleases,
   BodhiRelease(..),
   downloadServer
   )
@@ -15,6 +16,7 @@ import Data.Bifunctor (first)
 import qualified Data.CaseInsensitive as CI
 import Data.List.Extra
 import Data.Maybe (fromMaybe)
+import Data.Ord (Down(Down))
 import qualified Data.Text as T
 import Data.Time.Format (defaultTimeLocale, parseTimeM, rfc822DateFormat)
 import Data.Time.LocalTime (utcToLocalZonedTime)
@@ -387,3 +389,19 @@ s +/+ t =
     (_,"") -> s
     (_,_) -> dropWhileEnd (== '/') s ++ '/' : dropWhile (== '/') t
 #endif
+
+activeFedoraReleases :: IO [Release]
+activeFedoraReleases =
+  sortReleases <$> activeBodhiFedoraReleases
+
+activeEPELReleases :: IO [Release]
+activeEPELReleases =
+  sortReleases <$> activeBodhiEPELReleases
+
+activeReleases :: IO [Release]
+activeReleases =
+  sortReleases <$> activeBodhiReleases
+
+sortReleases :: [BodhiRelease] -> [Release]
+sortReleases =
+  sortOn Down . map (readRelease . releaseBranch)

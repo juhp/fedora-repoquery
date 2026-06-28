@@ -14,7 +14,7 @@ import Control.Applicative (
   )
 #endif
 import Control.Monad (forM_, unless, when)
-import Data.Either (rights, partitionEithers)
+import Data.Either (partitionEithers)
 import Data.Maybe (isNothing)
 #if !MIN_VERSION_base(4,11,0)
 import Data.Semigroup ((<>))
@@ -34,15 +34,15 @@ import Cache (cacheSize, cleanEmptyCaches)
 import List (listVersionsCmd)
 import Paths_fedora_repoquery (version)
 import Query
-import Release (activeFedoraReleases, activeEPELReleases,downloadServer,
-                releaseBranch, showReleaseCmd)
+import Release (activeFedoraReleases, activeEPELReleases, activeReleases,
+                downloadServer, showReleaseCmd)
 import Types (Mirror(..), Release (System), RepoSource(..), Verbosity(..),
               eitherRelease)
 
 data Command = Query [DnfOption] [String]
              | CacheSize | CacheEmpties | DnfHelp | ReleaseList
 
-data AllReleases = AllFedora | AllEPEL
+data AllReleases = AllFedora | AllEPEL | AllReleases
 
 main :: IO ()
 main = do
@@ -69,9 +69,9 @@ main' = do
           <*> ((Mirror <$> strOptionWith 'm' "mirror" "URL" ("Fedora mirror [default: " ++ downloadServer ++ "]")) <|>
                flagLongWith' CloudFront "cf" "Use CloudFront cache" <|>
                flagWith DownloadFpo DlFpo 'd' "dl" "Use dl.fp.o"))
-    -- FIXME: --all-releases ?
     <*> optional (flagWith' AllFedora 'F' "all-fedora" "Query all Fedora releases" <|>
-                  flagWith' AllEPEL 'E' "all-epel" "Query all EPEL releases")
+                  flagWith' AllEPEL 'E' "all-epel" "Query all EPEL releases" <|>
+                  flagLongWith' AllReleases "all-releases" "Query all Fedora and EPEL releases")
     <*> (flagWith' [Source] 's' "source" "Query source repos" <|>
          flagWith' allArchs 'A' "all-archs" "Query all arch repos" <|>
          many (optionWith (eitherReader eitherArch) 'a' "repo-arch" "ARCH" ("Specify repo arch [default:" +-+ showArch sysarch ++ "]")))
@@ -177,10 +177,10 @@ runMain sysarch dnf4 verbose dynredir time reposource mallreleases archs testing
           then
             case mallreleases of
               Just allreleases ->
-                rights . map (eitherRelease . releaseBranch)
-                <$> case allreleases of
-                      AllFedora -> activeFedoraReleases
-                      AllEPEL -> activeEPELReleases
+                case allreleases of
+                  AllFedora -> activeFedoraReleases
+                  AllEPEL -> activeEPELReleases
+                  AllReleases -> activeReleases
               Nothing -> return [System]
           else return releases
         forM_ releaselist $ \release ->
