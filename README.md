@@ -10,7 +10,7 @@ Usage examples:
 `$ fedora-repoquery rawhide firefox`
 
 ```
-firefox-152.0-1.fc45.x86_64 (fedora-rawhide)
+firefox-152.0.2-1.fc45.x86_64 (fedora-rawhide)
 ```
 (note it is shorter to write `fedora-repoquery 45`).
 
@@ -37,7 +37,7 @@ bash-5.2.26-6.el10.x86_64 (c10s-BaseOS)
 `$ fedora-repoquery eln kernel`
 
 ```
-kernel-7.1.0-0.rc3.260512g50897c955902.24.eln156.x86_64 (eln-BaseOS)
+kernel-7.2.0-0.rc0.260626g4edcdefd4083.12.eln157.x86_64 (eln-BaseOS)
 ```
 
 Without a release argument, the system yum repo configuration is used:
@@ -72,7 +72,7 @@ after the release version:
 
 ```
 2026-04-24 23:40:25 +08 <https://mirror.freedif.org/fedora/fedora/linux/releases/44/>
-2026-06-26 08:57:49 +08 <https://mirror.freedif.org/fedora/fedora/linux/updates/44/>
+2026-06-28 08:55:58 +08 <https://mirror.freedif.org/fedora/fedora/linux/updates/44/>
 ```
 
 One can also query multiple releases (or arch's):
@@ -81,7 +81,7 @@ One can also query multiple releases (or arch's):
 
 ```
 python3-3.14.0-1.fc43.x86_64 (f43)
-python3-3.14.5-1.fc43.x86_64 (f43-updates)
+python3-3.14.6-1.fc43.x86_64 (f43-updates)
 python3-3.14.3-2.fc44.x86_64 (f44)
 python3-3.14.6-1.fc44.x86_64 (f44-updates)
 ```
@@ -97,17 +97,18 @@ rust-1.96.0-1.fc44.x86_64 (f44-updates-cf)
 which may be faster than dl.fp.o and fresher than other mirrors sometimes.
 
 Querying of epel10 minor versions is supported:
+
 `$ fedora-repoquery epel10.2 nix`
 
 ```
-nix-2.24.15-2.el10_2.x86_64 (epel10.2)
+nix-2.31.5-3.el10_2.x86_64 (epel10.2)
 ```
 
 ## Help
 `$ fedora-repoquery --version`
 
 ```
-0.9
+0.9.1
 ```
 
 `$ fedora-repoquery --help`
@@ -118,7 +119,8 @@ fedora-repoquery tool for querying Fedora repos for packages.
 Usage: fedora-repoquery [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] 
                         [--dynamic] [-T|--time] [-K|--koji] 
                         [(-m|--mirror URL) | --cf | (-d|--dl)] 
-                        [(-F|--all-fedora) | (-E|--all-epel)] 
+                        [(-F|--all-fedora) | (-E|--all-epel) | --all-releases] 
+                        [--minor] 
                         [(-s|--source) | (-A|--all-archs) | 
                           [-a|--repo-arch ARCH]] [-t|--testing] [-D|--debug] 
                         [(-z|--cache-size) | (-e|--cache-clean-empty) | 
@@ -165,6 +167,8 @@ Available options:
   -d,--dl                  Use dl.fp.o
   -F,--all-fedora          Query all Fedora releases
   -E,--all-epel            Query all EPEL releases
+  --all-releases           Query all Fedora and EPEL releases
+  --minor                  Query active epel minor releases
   -s,--source              Query source repos
   -A,--all-archs           Query all arch repos
   -a,--repo-arch ARCH      Specify repo arch [default: x86_64]
