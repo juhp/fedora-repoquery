@@ -116,36 +116,35 @@ nix-2.31.5-3.el10_2.x86_64 (epel10.2)
 ```
 fedora-repoquery tool for querying Fedora repos for packages.
 
-Usage: fedora-repoquery [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)] 
-                        [--dynamic] [-T|--time] [-K|--koji] 
-                        [(-m|--mirror URL) | --cf | (-d|--dl)] 
-                        [(-F|--all-fedora) | (-E|--all-epel) | --all-releases] 
-                        [--minor] 
-                        [(-s|--source) | (-A|--all-archs) | 
-                          [-a|--repo-arch ARCH]] [-t|--testing] [-D|--debug] 
-                        [(-z|--cache-size) | (-e|--cache-clean-empty) | 
-                          --list-releases | --help-dnf | 
-                          [--advisories ARG | --advisory-severities ARG | 
-                            --arch ARG | --available | --bugfix | --bzs ARG | 
-                            --cves ARG | --disable-modular-filtering | 
-                            --duplicates | --enhancement | --exactdeps | 
-                            --extras | (-f|--file ARG) | --installed | 
-                            --installed-from-repo ARG | --installonly | 
-                            --latest-limit ARG | --leaves | --newpackage | 
-                            --providers-of ARG | --recent | --recursive | 
-                            --security | --srpm | --unneeded | --upgrades | 
-                            --userinstalled | --whatconflicts ARG | 
-                            (--wd|--whatdepends ARG) | --whatenhances ARG | 
-                            --whatobsoletes ARG | (--whatprovides|--wp ARG) | 
-                            --whatrecommends ARG | (--whatrequires|--wr ARG) | 
-                            --whatsuggests ARG | --whatsupplements ARG | 
-                            --conflicts | --depends | --enhances | --files | 
-                            (-l|--list) | --obsoletes | (-p|--provides) | 
-                            --recommends | (-r|--requires) | --requires-pre | 
-                            --sourcerpm | --suggests | --supplements | 
-                            --location | (-i|--info) | 
-                            (--changelog|--changelogs) | --querytags | 
-                            (--qf|--queryformat ARG)] 
+Usage: fedora-repoquery [--version] [-4|--dnf4] [(-q|--quiet) | (-v|--verbose)]
+                        [--dynamic] [-T|--time] [-K|--koji]
+                        [(-m|--mirror URL) | --cf | (-d|--dl)]
+                        [(-F|--all-fedora) | (-E|--all-epel) | --all-releases]
+                        [(-s|--source) | (-A|--all-archs) |
+                          [-a|--repo-arch ARCH]] [-t|--testing] [-D|--debug]
+                        [(-z|--cache-size) | (-e|--cache-clean-empty) |
+                          --list-releases | --help-dnf |
+                          [--advisories ARG | --advisory-severities ARG |
+                            --arch ARG | --available | --bugfix | --bzs ARG |
+                            --cves ARG | --disable-modular-filtering |
+                            --duplicates | --enhancement | --exactdeps |
+                            --extras | (-f|--file ARG) | --installed |
+                            --installed-from-repo ARG | --installonly |
+                            --latest-limit ARG | --leaves | --newpackage |
+                            --providers-of ARG | --recent | --recursive |
+                            --security | --srpm | --unneeded | --upgrades |
+                            --userinstalled | --whatconflicts ARG |
+                            (--wd|--whatdepends ARG) | --whatenhances ARG |
+                            --whatobsoletes ARG | (--whatprovides|--wp ARG) |
+                            --whatrecommends ARG | (--whatrequires|--wr ARG) |
+                            --whatsuggests ARG | --whatsupplements ARG |
+                            --conflicts | --depends | --enhances | --files |
+                            (-l|--list) | --obsoletes | (-p|--provides) |
+                            --recommends | (-r|--requires) | --requires-pre |
+                            --sourcerpm | --suggests | --supplements |
+                            --location | (-i|--info) |
+                            (--changelog|--changelogs) | --querytags |
+                            (--qf|--queryformat ARG)]
                           [[RELEASE]... [REPOQUERY_OPTS]... [PKGSPECIFIER]...]]
 
   where RELEASE is {fN or N (fedora), 'rawhide', epelN, epel10.x, epel9-next, cN
@@ -165,10 +164,9 @@ Available options:
                            https://download.fedoraproject.org/pub]
   --cf                     Use CloudFront cache
   -d,--dl                  Use dl.fp.o
-  -F,--all-fedora          Query all Fedora releases
-  -E,--all-epel            Query all EPEL releases
-  --all-releases           Query all Fedora and EPEL releases
-  --minor                  Query active epel minor releases
+  -F,--all-fedora          Query all current Fedora releases
+  -E,--all-epel            Query all current EPEL releases
+  --all-releases           Query all current releases
   -s,--source              Query source repos
   -A,--all-archs           Query all arch repos
   -a,--repo-arch ARCH      Specify repo arch [default: x86_64]

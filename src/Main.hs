@@ -69,9 +69,9 @@ main' = do
           <*> ((Mirror <$> strOptionWith 'm' "mirror" "URL" ("Fedora mirror [default: " ++ downloadServer ++ "]")) <|>
                flagLongWith' CloudFront "cf" "Use CloudFront cache" <|>
                flagWith DownloadFpo DlFpo 'd' "dl" "Use dl.fp.o"))
-    <*> optional (flagWith' AllFedora 'F' "all-fedora" "Query all Fedora releases" <|>
-                  flagWith' AllEPEL 'E' "all-epel" "Query all EPEL releases" <|>
-                  flagLongWith' AllReleases "all-releases" "Query all Fedora and EPEL releases")
+    <*> optional (flagWith' AllFedora 'F' "all-fedora" "Query all current Fedora releases" <|>
+                  flagWith' AllEPEL 'E' "all-epel" "Query all current EPEL releases" <|>
+                  flagLongWith' AllReleases "all-releases" "Query all current releases")
     <*> (flagWith' [Source] 's' "source" "Query source repos" <|>
          flagWith' allArchs 'A' "all-archs" "Query all arch repos" <|>
          many (optionWith (eitherReader eitherArch) 'a' "repo-arch" "ARCH" ("Specify repo arch [default:" +-+ showArch sysarch ++ "]")))
