@@ -7,6 +7,7 @@ module Types (
   Verbosity(..),
   Release(..),
   eitherRelease,
+  readRelease,
   elnVersion
   ) where
 
@@ -86,6 +87,13 @@ eitherRelease rel =
                    EQ -> ELN
                    GT -> Fedora r
     _ -> Left rel
+
+-- partial
+readRelease :: String -> Release
+readRelease s =
+  case eitherRelease s of
+    Right r -> r
+    Left e -> error $ "unknown release" +-+ e
 
 instance Show Release where
   show Rawhide = "rawhide"
