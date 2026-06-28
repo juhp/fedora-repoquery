@@ -11,6 +11,7 @@ module BodhiRelease (
   )
 where
 
+import Data.Aeson (Object)
 import Data.Function (on)
 import qualified Data.List as L
 import Data.Maybe (mapMaybe)
@@ -23,11 +24,11 @@ import SimpleCmd (error', (+-+))
 import Types (Natural, elnVersion)
 
 data BodhiRelease =
-  Release {releaseVersion :: String, -- to handle "eln"
-           releaseState ::  String,
-           releaseBranch :: String,
-           releaseComposed :: Bool,
-           releasePostBeta :: Bool}
+  BodhiRelease {releaseVersion :: String, -- to handle "eln"
+                releaseState ::  String,
+                releaseBranch :: String,
+                releaseComposed :: Bool,
+                releasePostBeta :: Bool}
   deriving Eq
 
 activeFedoraRelease :: Natural -> IO (Maybe BodhiRelease)
@@ -83,30 +84,21 @@ activeEPELMinorRelease ver = do
 activeFedoraReleases :: IO [BodhiRelease]
 activeFedoraReleases =
   L.nub . mapMaybe maybeRelease <$> getBodhiFedoraReleases
-  where
-    maybeRelease obj = do
-      version <- lookupKey "version" obj
-      branch <- lookupKey "branch" obj
-      state <- lookupKey "state" obj
-      composed <- lookupKey "composed_by_bodhi" obj
-      let setting = lookupKey "setting_status" obj
-      return $
-        Release version state branch composed $
-        setting == Just ("post_beta" :: String)
+
+maybeRelease :: Object -> Maybe BodhiRelease
+maybeRelease obj = do
+  version <- lookupKey "version" obj
+  branch <- lookupKey "branch" obj
+  state <- lookupKey "state" obj
+  composed <- lookupKey "composed_by_bodhi" obj
+  let setting = lookupKey "setting_status" obj
+  return $
+    BodhiRelease version state branch composed $
+    setting == Just ("post_beta" :: String)
 
 activeEPELReleases :: IO [BodhiRelease]
 activeEPELReleases =
   L.nub . mapMaybe maybeRelease <$> getBodhiEPELReleases
-  where
-    maybeRelease obj = do
-      version <- lookupKey "version" obj
-      branch <- lookupKey "branch" obj
-      state <- lookupKey "state" obj
-      composed <- lookupKey "composed_by_bodhi" obj
-      let setting = lookupKey "setting_status" obj
-      return $
-        Release version state branch composed $
-        setting == Just ("post_beta" :: String)
 
 rawhideFedoraRelease :: IO Natural
 rawhideFedoraRelease = do

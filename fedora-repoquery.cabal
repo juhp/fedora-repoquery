@@ -45,6 +45,7 @@ executable fedora-repoquery
                        URL
   hs-source-dirs:      src
   build-depends:       base < 5,
+                       aeson,
                        bytestring,
                        case-insensitive,
                        curl,
