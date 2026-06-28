@@ -7,7 +7,7 @@ module Types (
   Verbosity(..),
   Release(..),
   eitherRelease,
-  readRelease,
+  readReleaseUnsafe,
   elnVersion
   ) where
 
@@ -125,8 +125,8 @@ eitherRelease rel =
     _ -> Left rel
 
 -- partial
-readRelease :: String -> Release
-readRelease s =
+readReleaseUnsafe :: String -> Release
+readReleaseUnsafe s =
   case eitherRelease s of
     Right r -> r
     Left e -> error $ "unknown release" +-+ e
